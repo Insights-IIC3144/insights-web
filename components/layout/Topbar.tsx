@@ -10,7 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { BRANDS, RETAILER } from "@/lib/mock";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,8 +23,6 @@ const ranges = ["Últimos 7 días", "Últimos 30 días", "Últimos 90 días", "A
 export function Topbar() {
   const router = useRouter();
   
-  // Mocked user object since Auth0 is not installed yet
-  const user = { name: "Marina", role: "Admin", initials: "M" }; 
   const [brand, setBrand] = useState(BRANDS[0]);
   const [range, setRange] = useState("Últimos 90 días");
 
@@ -32,10 +31,11 @@ export function Topbar() {
   };
 
   const handleLogout = () => {
-    document.cookie = "simulated_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    toast.success("Sesión cerrada (simulada)");
-    router.push("/login");
+    toast.success("Cerrando sesión...");
+    window.location.assign("/api/auth/logout");
   };
+
+  const { user } = useUser();
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
@@ -104,40 +104,39 @@ export function Topbar() {
           <span className="hidden sm:inline">Exportar</span>
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="ml-1">
-              <Avatar className="h-8 w-8 ring-2 ring-primary/15">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                  {user.initials}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <div className="font-medium">{user.name}</div>
-              <div className="text-xs text-muted-foreground font-normal">
-                {user.role} · {brand}
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/perfil" className="cursor-pointer">
-                <UserIcon className="h-4 w-4" /> Perfil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/configuracion" className="cursor-pointer">
-                <SettingsIcon className="h-4 w-4" /> Configuración
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
-              <LogOut className="h-4 w-4" /> Cerrar sesión
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full border border-border/50">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.picture || "/avatars/01.png"} alt={user.name || "User"} />
+                  <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/perfil" className="cursor-pointer">
+                  <UserIcon className="h-4 w-4" /> Perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                <LogOut className="h-4 w-4 mr-2" /> Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+        )}
       </div>
     </header>
   );

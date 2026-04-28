@@ -208,7 +208,7 @@
     @apply text-left font-medium text-muted-foreground px-4 py-3 border-b border-border bg-muted/40 text-xs uppercase tracking-wider;
   }
   .data-grid td {
-    @apply px-4 py-3 border-b border-border/60 tabular;
+    @apply px-4 py-3 border-b border-border/60 tabular-nums;
   }
   .data-grid tr:hover td {
     @apply bg-muted/30;

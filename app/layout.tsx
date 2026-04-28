@@ -14,6 +14,8 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
+import { UserProvider } from '@auth0/nextjs-auth0/client';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,8 +28,10 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", inter.variable, outfitHeading.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
-        <Toaster />
+        <UserProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+          <Toaster />
+        </UserProvider>
       </body>
     </html>
   )

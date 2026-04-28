@@ -1,24 +1,20 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { getSession } from '@auth0/nextjs-auth0/edge';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const authCookie = request.cookies.get('simulated_auth');
-  const isLoginPage = request.nextUrl.pathname.startsWith('/login');
-
-  // Si no está loggeado y trata de entrar a cualquier página que no sea el login
-  if (!authCookie && !isLoginPage) {
-    return NextResponse.redirect(new URL('/login', request.url));
+export default async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  const session = await getSession(req, res);
+  
+  // Si no hay sesión (usuario no logueado), redirigirlo a nuestra landing page personalizada
+  if (!session?.user) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
-
-  // Si ya está loggeado y trata de ir al login, lo devolvemos al dashboard
-  if (authCookie && isLoginPage) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
-  return NextResponse.next();
+  
+  return res;
 }
 
 export const config = {
-  // Configurar las rutas donde aplica el middleware (excluir estáticos y API)
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Configurar las rutas donde aplica el middleware (proteger toda la aplicación excepto login, estáticos, y API)
+  matcher: ['/((?!api/auth|login|_next/static|_next/image|favicon.ico).*)'],
 }
