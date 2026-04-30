@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
 export default function RootDashboard() {
-  // Redirigir siempre a la ruta específica de ventas para mantener consistencia
-  redirect('/sales');
+  // Redirigir siempre a la ruta principal del dashboard
+  redirect('/dashboard');
 }
