@@ -1,5 +1,12 @@
-import Link from "next/link";
-import { LayoutDashboard } from "lucide-react";
+"use client";
+
+import { NavLink } from "@/components/NavLink";
+import { BarChart3, TrendingUp, Sparkles } from "lucide-react";
+
+const items = [
+  { href: "/sales", label: "Dashboard de Ventas", icon: TrendingUp, end: false, ai: false },
+  { href: "/competitive-positioning", label: "Posicionamiento Competitivo", icon: BarChart3, end: false, ai: false },
+];
 
 export function Sidebar() {
   return (
@@ -18,13 +25,23 @@ export function Sidebar() {
         <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-[#C0C9D9]/50 font-medium">
           Analítica
         </div>
-        <Link 
-          href="/sales" 
-          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors bg-[#1B2338] text-white hover:bg-[#20283A]"
-        >
-          <LayoutDashboard className="h-4 w-4 text-[#8B95D6]" />
-          Dashboard de Ventas
-        </Link>
+        {items.map((it) => (
+          <NavLink
+            key={it.href}
+            href={it.href}
+            end={it.end}
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium ring-1 ring-sidebar-primary/30"
+          >
+            <it.icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{it.label}</span>
+            {it.ai && (
+              <span className="ml-auto inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-sidebar-primary/15 text-sidebar-primary">
+                <Sparkles className="h-2.5 w-2.5" /> IA
+              </span>
+            )}
+          </NavLink>
+        ))}
       </nav>
 
       <div className="px-4 py-4 border-t border-[#20283A]">
