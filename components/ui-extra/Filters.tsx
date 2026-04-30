@@ -3,20 +3,13 @@ import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORIES, COUNTRIES, DEPARTMENTS, TRAFFIC_SOURCES } from "@/lib/mock";
-import { api } from "@/lib/api";
+import { FilterParams, FiltersData } from "@/types/shared";
+import { filterService } from "@/services/filterService";
 
 interface Props {
     showTraffic?: boolean;
     showGender?: boolean;
     onChange?: (filters: Record<string, string>) => void;
-}
-
-interface FiltersData {
-    categories: string[];
-    departments: string[];
-    countries: string[];
-    trafficSources: string[];
-    genders: string[];
 }
 
 export function Filters({ showTraffic, showGender, onChange }: Props) {
@@ -37,7 +30,7 @@ export function Filters({ showTraffic, showGender, onChange }: Props) {
     };
 
     useEffect(() => {
-        api.get<FiltersData>('/filters')
+        filterService.getFilters()
             .then(data => setFilters(data))
             .catch(err => console.error("Error fetching filters:", err));
     }, []);
