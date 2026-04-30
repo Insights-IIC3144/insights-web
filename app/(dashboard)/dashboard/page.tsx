@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Panel } from "@/components/ui-extra/Panel";
 import { Filters } from "@/components/ui-extra/Filters";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui-extra/PageHeader";
 import {
   AreaChart, Area, BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid,
 } from "recharts";
 import { DollarSign, ShoppingBag, Package, Users, ReceiptText } from "lucide-react";
 import { api } from "@/lib/api";
+import { useDashboard } from "@/context/DashboardContext";
 
 const fmtCurrency = (v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 const fmtNumber = (v: number) => v.toLocaleString('en-US');
@@ -43,14 +45,23 @@ export default function ExecutiveDashboard() {
   const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const { days } = useDashboard();
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Strip empty values so we don't send empty query params
+        const params: Record<string, string> = Object.fromEntries(
+          Object.entries(activeFilters).filter(([, v]) => v !== '')
+        );
+        // days comes from Topbar via context
+        if (days > 0) params.days = String(days);
+
         const [kpiRes, catRes] = await Promise.all([
-          api.get<ExecutiveKpi[]>('/insights/executive-kpis'),
-          api.get<CategorySales[]>('/insights/category-sales')
+          api.get<ExecutiveKpi[]>('/executive/kpis', params),
+          api.get<CategorySales[]>('/executive/category-sales', params)
         ]);
         
         if (kpiRes) setKpis(kpiRes);
@@ -62,7 +73,7 @@ export default function ExecutiveDashboard() {
       }
     };
     fetchData();
-  }, []);
+  }, [activeFilters, days]);
 
   const totalRevenue = kpis.reduce((s, d) => s + (d.revenue || 0), 0);
   const totalOrders = kpis.reduce((s, d) => s + (d.totalOrders || 0), 0);
@@ -92,15 +103,21 @@ export default function ExecutiveDashboard() {
         title="Dashboard"
         subtitle="Visión ejecutiva del desempeño de tu marca dentro de TheLook eCommerce."
       />
-      <Filters showGender showTraffic />
+      <Filters showGender showTraffic onChange={setActiveFilters} />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <KpiCard label="Ventas totales" value={fmtCurrency(totalRevenue)} delta={0} hint="vs período anterior" icon={<DollarSign className="h-4 w-4" />} />
-        <KpiCard label="Órdenes" value={fmtNumber(totalOrders)} delta={0} hint="30d" icon={<ShoppingBag className="h-4 w-4" />} />
-        <KpiCard label="Unidades vendidas" value={fmtNumber(totalUnits)} delta={0} hint="30d" icon={<Package className="h-4 w-4" />} />
-        <KpiCard label="Clientes únicos" value={fmtNumber(uniqueCustomers)} delta={0} hint="30d" icon={<Users className="h-4 w-4" />} />
-        <KpiCard label="Ticket promedio" value={fmtCurrency(aov)} delta={0} hint="vs período anterior" icon={<ReceiptText className="h-4 w-4" />} />
+        {loading ? (
+          Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
+        ) : (
+          <>
+            <KpiCard label="Ventas totales" value={fmtCurrency(totalRevenue)} delta={0} hint="vs período anterior" icon={<DollarSign className="h-4 w-4" />} />
+            <KpiCard label="Órdenes" value={fmtNumber(totalOrders)} delta={0} hint="30d" icon={<ShoppingBag className="h-4 w-4" />} />
+            <KpiCard label="Unidades vendidas" value={fmtNumber(totalUnits)} delta={0} hint="30d" icon={<Package className="h-4 w-4" />} />
+            <KpiCard label="Clientes únicos" value={fmtNumber(uniqueCustomers)} delta={0} hint="30d" icon={<Users className="h-4 w-4" />} />
+            <KpiCard label="Ticket promedio" value={fmtCurrency(aov)} delta={0} hint="vs período anterior" icon={<ReceiptText className="h-4 w-4" />} />
+          </>
+        )}
       </div>
 
       {/* Trend + breakdown */}
@@ -108,7 +125,7 @@ export default function ExecutiveDashboard() {
         <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Revenue diario">
           <div className="h-72">
             {loading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground text-sm">Cargando...</div>
+              <Skeleton className="h-full w-full rounded-lg" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
@@ -132,7 +149,7 @@ export default function ExecutiveDashboard() {
         <Panel title="Revenue por categoría" description="Top categorías">
           <div className="h-72">
             {loading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground text-sm">Cargando...</div>
+              <Skeleton className="h-full w-full rounded-lg" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={catData} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>

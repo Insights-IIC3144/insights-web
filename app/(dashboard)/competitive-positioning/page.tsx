@@ -24,6 +24,9 @@ export default function CompetitivePositioningPage() {
         title="Posicionamiento Competitivo"
         subtitle="Tu marca comparada contra el benchmark agregado de otras marcas en TheLook. Sin nombres individuales."
       />
+      <div className="mb-6 inline-flex items-center rounded-full bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-500 border border-amber-500/20">
+        🚧 Próximamente disponible en el siguiente PR
+      </div>
       <Filters />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">

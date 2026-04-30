@@ -17,17 +17,30 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useDashboard } from "@/context/DashboardContext";
 
-const ranges = ["Últimos 7 días", "Últimos 30 días", "Últimos 90 días", "Año actual", "Personalizado"];
+const RANGE_OPTIONS = [
+  { label: "Últimos 7 días", days: 7 },
+  { label: "Últimos 30 días", days: 30 },
+  { label: "Últimos 90 días", days: 90 },
+  { label: "Últimos 180 días", days: 180 },
+  { label: "Último año", days: 365 },
+];
 
 export function Topbar() {
   const router = useRouter();
+  const { days, setDays } = useDashboard();
   
   const [brand, setBrand] = useState(BRANDS[0]);
-  const [range, setRange] = useState("Últimos 90 días");
+  const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
 
   const onBrandChange = async (b: string) => {
     setBrand(b);
+  };
+
+  const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
+    setRange(option);
+    setDays(option.days);
   };
 
   const handleLogout = () => {
@@ -67,10 +80,6 @@ export function Topbar() {
           </DropdownMenu>
         </div>
 
-        <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-[#B1DEB9] bg-[#E3F4E8] px-2.5 py-0.5 text-[12px] font-medium text-[#116E45] ml-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#116E45] animate-pulse" />
-          MV actualizadas hace 12 min
-        </span>
 
         <div className="flex-1" />
 
@@ -86,14 +95,14 @@ export function Topbar() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
               <Calendar className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{range}</span>
+              <span className="hidden sm:inline">{range.label}</span>
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {ranges.map((r) => (
-              <DropdownMenuItem key={r} onClick={() => setRange(r)}>
-                {r}
+            {RANGE_OPTIONS.map((r) => (
+              <DropdownMenuItem key={r.label} onClick={() => handleRangeChange(r)}>
+                {r.label}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
