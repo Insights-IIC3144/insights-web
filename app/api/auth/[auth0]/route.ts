@@ -52,9 +52,10 @@ const handler = handleAuth({
         
         // Si todo sale bien, retornamos la sesión normal y Next.js dejará pasar al usuario.
         return session;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error en afterCallback sync:", error);
-        // Si falla la sincronización, arrojamos un error para cancelar el inicio de sesión.
+        error.status = 403;
+        error.message = "unauthorized";
         throw error;
       }
     }
@@ -63,6 +64,18 @@ const handler = handleAuth({
 
 export const GET = async (req: NextRequest, ctx: { params: Promise<{ auth0: string }> }) => {
   const resolvedParams = await ctx.params;
-  // @ts-ignore - Bypass Next.js SDK typing issues with unwrapped params in newer Next.js versions
-  return handler(req, { params: resolvedParams });
+  // @ts-ignore - Bypass Next.js SDK typing issues with unwrapped params
+  const authResponse = await handler(req, { params: resolvedParams });
+  
+  // Si Auth0 devuelve un error HTTP (por ejemplo, 400 o 500) porque el afterCallback falló
+  // interceptamos la respuesta y redirigimos nosotros mismos
+  if (authResponse.status >= 400) {
+    console.log("Interceptada respuesta de error de Auth0. Redirigiendo a /login...");
+    const url = req.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('error', 'unauthorized');
+    return NextResponse.redirect(url);
+  }
+  
+  return authResponse;
 };

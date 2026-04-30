@@ -71,9 +71,6 @@ export function AuthShell({
           {subtitle && <p className="text-sm text-muted-foreground mt-1.5">{subtitle}</p>}
           <div className="mt-7">{children}</div>
           {footer && <div className="mt-6 text-sm text-muted-foreground">{footer}</div>}
-          <div className="mt-10 text-[11px] text-muted-foreground/70">
-            Demo · Autenticación simulada en navegador. No usar credenciales reales.
-          </div>
         </div>
       </main>
     </div>
