@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
+
 export function Sidebar() {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-[#111A2C] text-[#C0C9D9] border-r border-[#20283A]">
@@ -15,7 +18,13 @@ export function Sidebar() {
         <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-[#C0C9D9]/50 font-medium">
           Analítica
         </div>
-        {/* Navigation items will be added here later */}
+        <Link 
+          href="/sales" 
+          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors bg-[#1B2338] text-white hover:bg-[#20283A]"
+        >
+          <LayoutDashboard className="h-4 w-4 text-[#8B95D6]" />
+          Dashboard de Ventas
+        </Link>
       </nav>
 
       <div className="px-4 py-4 border-t border-[#20283A]">
