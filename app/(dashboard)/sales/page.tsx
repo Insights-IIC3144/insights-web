@@ -15,6 +15,9 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mt-1">
             Resumen de rendimiento y métricas clave de tu negocio.
           </p>
+          <div className="mt-4 inline-flex items-center rounded-full bg-amber-500/10 px-3 py-1 text-sm font-medium text-amber-500 border border-amber-500/20">
+            🚧 Próximamente disponible en el siguiente PR
+          </div>
         </div>
         
         {/* Skeleton para los filtros (Selectores de Fecha/Tienda) */}

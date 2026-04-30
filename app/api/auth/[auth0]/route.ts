@@ -18,10 +18,10 @@ const handler = handleAuth({
     afterCallback: async (req: NextRequest, session: Session) => {
       // Sincronización con el Backend en el instante en que el usuario se loguea exitosamente
       try {
-        const syncUrl = `${process.env.BACKEND_URL || 'http://localhost:8080'}/api/users/sync`;
-        
+        const syncUrl = `${process.env.BACKEND_URL || 'http://localhost:8080/api'}/users/sync`;
+
         console.log("Iniciando sincronización con el backend: " + syncUrl);
-        
+
         // Asumiendo que has configurado AUTH0_AUDIENCE, session.accessToken contendrá un JWT válido
         // Si no está configurado AUTH0_AUDIENCE, esto será un opaque token y el backend Java lo rechazará.
         const response = await fetch(syncUrl, {
@@ -49,7 +49,7 @@ const handler = handleAuth({
         }
 
         console.log("Sincronización exitosa con el backend.");
-        
+
         // Si todo sale bien, retornamos la sesión normal y Next.js dejará pasar al usuario.
         return session;
       } catch (error: any) {
@@ -64,9 +64,8 @@ const handler = handleAuth({
 
 export const GET = async (req: NextRequest, ctx: { params: Promise<{ auth0: string }> }) => {
   const resolvedParams = await ctx.params;
-  // @ts-ignore - Bypass Next.js SDK typing issues with unwrapped params
   const authResponse = await handler(req, { params: resolvedParams });
-  
+
   // Si Auth0 devuelve un error HTTP (por ejemplo, 400 o 500) porque el afterCallback falló
   // interceptamos la respuesta y redirigimos nosotros mismos
   if (authResponse.status >= 400) {
@@ -76,6 +75,6 @@ export const GET = async (req: NextRequest, ctx: { params: Promise<{ auth0: stri
     url.searchParams.set('error', 'unauthorized');
     return NextResponse.redirect(url);
   }
-  
+
   return authResponse;
 };
