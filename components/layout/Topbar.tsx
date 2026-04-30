@@ -29,9 +29,7 @@ const RANGE_OPTIONS = [
 
 export function Topbar() {
   const router = useRouter();
-  const { days, setDays } = useDashboard();
-  
-  const [brand, setBrand] = useState(BRANDS[0]);
+  const { days, setDays, brand, setBrand } = useDashboard();
   const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
 
   const onBrandChange = async (b: string) => {
