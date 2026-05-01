@@ -41,7 +41,10 @@ export default function CompetitivePositioningPage() {
         title="Posicionamiento Competitivo"
         subtitle="Tu marca comparada contra el benchmark agregado de otras marcas en TheLook. Sin nombres individuales."
       />
+
+      {/* TODO: filters must only be displayed when they are functional
       <Filters onChange={setActiveFilters} />
+      */}
 
       {loading && <div className="mb-4 text-xs text-muted-foreground">Cargando datos...</div>}
 
