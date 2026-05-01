@@ -137,6 +137,7 @@ export default function CompetitivePositioningPage() {
             </div>
           </div>
 
+          {/* TODO: this section is assigned to someone else on Jira, so this is just the base
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {stats.topCategories.map((c) => (
               <div key={c.category} className="panel p-5">
@@ -155,6 +156,7 @@ export default function CompetitivePositioningPage() {
               </div>
             ))}
           </div>
+          */}
         </>
       )}
 
