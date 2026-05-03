@@ -3,12 +3,14 @@
 import Link, { type LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
 interface NavLinkProps extends Omit<LinkProps, "href"> {
     href: string;
     className?: string;
     activeClassName?: string;
     end?: boolean;
+    children?: ReactNode;
 }
 
 const normalizePath = (path: string) => {
@@ -21,6 +23,7 @@ export function NavLink({
     className,
     activeClassName,
     end,
+    children,
     ...props
 }: NavLinkProps) {
     const pathname = usePathname();
@@ -34,6 +37,8 @@ export function NavLink({
             className={cn(className, isActive && activeClassName)}
             aria-current={isActive ? "page" : undefined}
             {...props}
-        />
+        >
+            {children}
+        </Link>
     );
 }
