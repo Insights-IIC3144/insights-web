@@ -182,8 +182,8 @@ export const catalogProducts = Array.from({ length: 18 }).map((_, i) => {
       score < 60
         ? "Reescribir título y agregar atributos"
         : score < 80
-        ? "Mejorar descripción y categorización"
-        : "Mantener",
+          ? "Mejorar descripción y categorización"
+          : "Mantener",
   };
 });
 
@@ -204,10 +204,10 @@ export const competitionByCategory = salesByCategory.slice(0, 7).map((c) => {
       brandShare < 14
         ? "Baja participación, evaluar surtido"
         : brandAvg > benchAvg * 1.1
-        ? "Precio sobre benchmark"
-        : brandAvg < benchAvg * 0.9
-        ? "Precio bajo benchmark, margen"
-        : "Posición competitiva",
+          ? "Precio sobre benchmark"
+          : brandAvg < benchAvg * 0.9
+            ? "Precio bajo benchmark, margen"
+            : "Posición competitiva",
   };
 });
 
@@ -289,3 +289,16 @@ export const featuredInsights = [
     tone: "warning" as const,
   },
 ];
+
+// mvCompetitivePosition
+export const competitivePosition = [
+  { category: "Outerwear & Coats", brandRevenue: 184_320, marketRevenue: 1_420_900, sharePct: 12.97, brandAvgPrice: 246, benchmarkAvgPrice: 218, growthVsBench: 4.2 },
+  { category: "Jeans", brandRevenue: 152_780, marketRevenue: 2_010_400, sharePct: 7.6, brandAvgPrice: 71, benchmarkAvgPrice: 68, growthVsBench: -1.1 },
+  { category: "Tops & Tees", brandRevenue: 121_540, marketRevenue: 3_180_200, sharePct: 3.82, brandAvgPrice: 27, benchmarkAvgPrice: 24, growthVsBench: -2.8 },
+  { category: "Sweaters", brandRevenue: 98_220, marketRevenue: 880_300, sharePct: 11.16, brandAvgPrice: 162, benchmarkAvgPrice: 138, growthVsBench: 6.4 },
+  { category: "Active", brandRevenue: 76_910, marketRevenue: 1_540_600, sharePct: 4.99, brandAvgPrice: 58, benchmarkAvgPrice: 62, growthVsBench: 1.8 },
+  { category: "Accessories", brandRevenue: 41_280, marketRevenue: 1_220_800, sharePct: 3.38, brandAvgPrice: 35, benchmarkAvgPrice: 41, growthVsBench: -3.2 },
+];
+
+export const fmtCurrency = (n: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
