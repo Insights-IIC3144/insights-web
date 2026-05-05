@@ -1,4 +1,5 @@
 export interface FilterParams {
+  brand?: string;
   category?: string;
   department?: string;
   country?: string;

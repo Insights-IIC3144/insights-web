@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { executiveService } from "@/services/executiveService";
-import { ExecutiveKpi, CategorySales } from "@/types/executive";
+import { salesService } from "@/services/salesService";
+import { SalesDailyKpi, SalesByCategory, SalesPerformanceByDimension } from "@/types/sales";
 import { FilterParams } from "@/types/shared";
 import { useDashboard } from "@/context/DashboardContext";
 
-export function useExecutiveData(activeFilters: Record<string, string>) {
-  const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
-  const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
+export function useSalesData(activeFilters: Record<string, string>) {
+  const [kpis, setKpis] = useState<SalesDailyKpi[]>([]);
+  const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
+  const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
   const [loading, setLoading] = useState(true);
   const { days, brand } = useDashboard();
 
@@ -20,15 +21,17 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
         if (days > 0) params.days = days;
         if (brand) params.brand = brand;
 
-        const [kpiRes, catRes] = await Promise.all([
-          executiveService.getKpis(params),
-          executiveService.getCategorySales(params)
+        const [kpiRes, catRes, perfRes] = await Promise.all([
+          salesService.getKpis(params),
+          salesService.getCategorySales(params),
+          salesService.getPerformance(params)
         ]);
         
         if (kpiRes) setKpis(kpiRes);
         if (catRes) setCategorySales(catRes);
+        if (perfRes) setPerformance(perfRes);
       } catch (err) {
-        console.error("Error fetching executive data:", err);
+        console.error("Error fetching sales data:", err);
       } finally {
         setLoading(false);
       }
@@ -36,5 +39,5 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
     fetchData();
   }, [activeFilters, days, brand]);
 
-  return { kpis, categorySales, loading };
+  return { kpis, categorySales, performance, loading };
 }
