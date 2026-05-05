@@ -7,6 +7,7 @@ const handler = handleAuth({
     return {
       authorizationParams: {
         prompt: 'login',
+        scope: 'openid profile email',
         ...(connection && { connection }),
       }
     };
@@ -18,37 +19,26 @@ const handler = handleAuth({
     afterCallback: async (req: NextRequest, session: Session) => {
       // Sincronización con el Backend en el instante en que el usuario se loguea exitosamente
       try {
-        const syncUrl = `${process.env.BACKEND_URL || 'http://localhost:8080/api'}/users/sync`;
+        const meUrl = `${process.env.BACKEND_URL || 'http://localhost:8080/api'}/users/me`;
 
-        console.log("Iniciando sincronización con el backend: " + syncUrl);
+        console.log("Verificando acceso en el backend: " + meUrl);
 
-        // Asumiendo que has configurado AUTH0_AUDIENCE, session.accessToken contendrá un JWT válido
-        // Si no está configurado AUTH0_AUDIENCE, esto será un opaque token y el backend Java lo rechazará.
-        const response = await fetch(syncUrl, {
-          method: 'POST',
+        const response = await fetch(meUrl, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.accessToken}`
-          },
-          // NOTA: Ya no enviamos retailer_id desde el frontend.
-          // El backend se encarga de extraer el email del token y buscar el retailer_id.
-          body: JSON.stringify({
-            email: session.user.email,
-            auth0_id: session.user.sub,
-            name: session.user.name,
-            picture: session.user.picture
-          })
+          }
         });
 
         if (!response.ok) {
-          if (response.status === 403 || response.status === 404) {
-            console.error("Usuario no invitado o retailer no encontrado. Bloqueando acceso.");
+          if (response.status === 403 || response.status === 401) {
+            console.error("Usuario no autorizado en el sistema.");
             throw new Error("Acceso denegado. No estás autorizado en el sistema.");
           }
-          throw new Error(`Error en el backend al sincronizar: ${response.statusText}`);
+          throw new Error(`Error en el backend: ${response.statusText}`);
         }
 
-        console.log("Sincronización exitosa con el backend.");
+        console.log("Acceso verificado correctamente.");
 
         // Si todo sale bien, retornamos la sesión normal y Next.js dejará pasar al usuario.
         return session;
