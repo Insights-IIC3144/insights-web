@@ -1,23 +1,22 @@
 "use client";
 
-import { Calendar, ChevronDown, Download, LogOut, Search, Settings as SettingsIcon, Store, User as UserIcon } from "lucide-react";
+import {
+  Calendar, ChevronDown, Download, LogOut, Search, Store, User as UserIcon
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { BRANDS, RETAILER } from "@/lib/mock";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { BRANDS } from "@/lib/mock";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useDashboard } from "@/context/DashboardContext";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import Link from "next/link";
 
 const RANGE_OPTIONS = [
   { label: "Últimos 7 días", days: 7 },
@@ -28,13 +27,21 @@ const RANGE_OPTIONS = [
 ];
 
 export function Topbar() {
-  const router = useRouter();
-  const { days, setDays, brand, setBrand } = useDashboard();
-  const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
+  const { setDays, brand, setBrand } = useDashboard();
+  const [range, setRange] = useState(RANGE_OPTIONS[2]);
+  const { profile, isLoading: profileLoading } = useUserProfile();
+  const { user } = useUser();
 
-  const onBrandChange = async (b: string) => {
-    setBrand(b);
-  };
+  const [brands, setBrandsData] = useState<string[]>([])
+  const [brandsLoading, setBrandsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/proxy/filters')
+      .then(r => r.json())
+      .then(data => setBrandsData(data.brands ?? []))
+      .catch(() => setBrandsData([]))
+      .finally(() => setBrandsLoading(false))
+  }, [])
 
   const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
     setRange(option);
@@ -46,38 +53,63 @@ export function Topbar() {
     window.location.assign("/api/auth/logout");
   };
 
-  const { user } = useUser();
-
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
       <div className="flex items-center gap-3 px-5 lg:px-8 h-14">
-        {/* Retailer + brand */}
+
+        {/* Retailer + Brand */}
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5 text-[13px] text-muted-foreground font-medium">
             <Store className="h-4 w-4" />
             Retailer
           </div>
-          <div className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#F8F9FA] px-2.5 py-0.5 text-[13px] font-medium text-[#333A73]">{RETAILER}</div>
+
+          {/* Retailer — dato real del backend */}
+          {profileLoading ? (
+            <Skeleton className="h-5 w-32" />
+          ) : (
+            <div className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#F8F9FA] px-2.5 py-0.5 text-[13px] font-medium text-[#333A73]">
+              {profile?.retailerName ?? '—'}
+            </div>
+          )}
+
           <span className="text-muted-foreground/30 px-1">/</span>
+
+          {/* Brand — dropdown con datos reales de BigQuery */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2"
+              >
                 {brand}
                 <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60">
+            <DropdownMenuContent align="start" className="w-60 max-h-72 overflow-y-auto">
               <DropdownMenuLabel className="text-xs">Marca actual (products.brand)</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {BRANDS.map((b) => (
-                <DropdownMenuItem key={b} onClick={() => onBrandChange(b)}>
-                  {b}
+              {brandsLoading ? (
+                <DropdownMenuItem disabled>Cargando...</DropdownMenuItem>
+              ) : brands.length === 0 ? (
+                <DropdownMenuItem disabled className="text-muted-foreground">
+                  Sin marcas disponibles
                 </DropdownMenuItem>
-              ))}
+              ) : (
+                brands.map((b) => (
+                  <DropdownMenuItem
+                    key={b}
+                    onClick={() => setBrand(b)}
+                    className={b === brand ? "bg-muted font-medium" : ""}
+                  >
+                    {b}
+                  </DropdownMenuItem>
+                ))
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
 
         <div className="flex-1" />
 
@@ -111,6 +143,7 @@ export function Topbar() {
           <span className="hidden sm:inline">Exportar</span>
         </Button>
 
+        {/* Avatar */}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -125,18 +158,30 @@ export function Topbar() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
-                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {!profileLoading && profile && (
+                <>
+                  <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>🏪 {profile.retailerName}</span>
+                      <span className="capitalize opacity-70">{profile.role}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/perfil" className="cursor-pointer">
-                  <UserIcon className="h-4 w-4" /> Perfil
+                  <UserIcon className="h-4 w-4 mr-2" /> Perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive cursor-pointer"
+              >
                 <LogOut className="h-4 w-4 mr-2" /> Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -144,6 +189,7 @@ export function Topbar() {
         ) : (
           <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
         )}
+
       </div>
     </header>
   );
