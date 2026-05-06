@@ -11,11 +11,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { BRANDS } from "@/lib/mock";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useDashboard } from "@/context/DashboardContext";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserContext } from "@/context/UserContext";
 import Link from "next/link";
 
 const RANGE_OPTIONS = [
@@ -27,21 +25,17 @@ const RANGE_OPTIONS = [
 ];
 
 export function Topbar() {
-  const { setDays, brand, setBrand } = useDashboard();
+  const {
+    profile,
+    isLoading: profileLoading,
+    setDays,
+    selectedBrand,
+    setSelectedBrand,
+    availableBrands
+  } = useUserContext();
+
   const [range, setRange] = useState(RANGE_OPTIONS[2]);
-  const { profile, isLoading: profileLoading } = useUserProfile();
   const { user } = useUser();
-
-  const [brands, setBrandsData] = useState<string[]>([])
-  const [brandsLoading, setBrandsLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/proxy/filters')
-      .then(r => r.json())
-      .then(data => setBrandsData(data.brands ?? []))
-      .catch(() => setBrandsData([]))
-      .finally(() => setBrandsLoading(false))
-  }, [])
 
   const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
     setRange(option);
@@ -75,39 +69,55 @@ export function Topbar() {
 
           <span className="text-muted-foreground/30 px-1">/</span>
 
-          {/* Brand — dropdown con datos reales de BigQuery */}
+          {/* Brand — Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2"
+                disabled={profileLoading || (profile?.role !== 'retailer_admin')} // Bloqueamos si no es admin
               >
-                {brand}
-                <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
+                {profileLoading ? "Cargando..." : (selectedBrand || "Todas las marcas")}
+                {profile?.role === 'retailer_admin' && (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60 max-h-72 overflow-y-auto">
-              <DropdownMenuLabel className="text-xs">Marca actual (products.brand)</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {brandsLoading ? (
-                <DropdownMenuItem disabled>Cargando...</DropdownMenuItem>
-              ) : brands.length === 0 ? (
-                <DropdownMenuItem disabled className="text-muted-foreground">
-                  Sin marcas disponibles
+
+            {/* Solo mostramos el contenido del menú si es Admin */}
+            {profile?.role === 'retailer_admin' && (
+              <DropdownMenuContent align="start" className="w-60 max-h-72 overflow-y-auto">
+                <DropdownMenuLabel className="text-xs">Filtro de marca</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {/* Opción para limpiar el filtro */}
+                <DropdownMenuItem
+                  onClick={() => setSelectedBrand("")}
+                  className={selectedBrand === "" ? "bg-muted font-medium" : ""}
+                >
+                  Todas las marcas
                 </DropdownMenuItem>
-              ) : (
-                brands.map((b) => (
-                  <DropdownMenuItem
-                    key={b}
-                    onClick={() => setBrand(b)}
-                    className={b === brand ? "bg-muted font-medium" : ""}
-                  >
-                    {b}
+
+                <DropdownMenuSeparator />
+
+                {availableBrands.length === 0 ? (
+                  <DropdownMenuItem disabled className="text-muted-foreground">
+                    Cargando marcas...
                   </DropdownMenuItem>
-                ))
-              )}
-            </DropdownMenuContent>
+                ) : (
+                  availableBrands.map((b) => (
+                    <DropdownMenuItem
+                      key={b}
+                      onClick={() => setSelectedBrand(b)}
+                      className={b === selectedBrand ? "bg-muted font-medium" : ""}
+                    >
+                      {b}
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            )}
           </DropdownMenu>
         </div>
 

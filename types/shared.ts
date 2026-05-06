@@ -16,10 +16,10 @@ export interface FiltersData {
 }
 
 export interface UserProfile {
-  email: string
-  name: string
-  role: 'brand' | 'retailer_admin'
-  brand: string
-  isActive: boolean
-  retailerName: string
+  email: string;
+  name: string;
+  role: 'brand' | 'retailer_admin';
+  brand: string | null;
+  isActive: boolean;
+  retailerName: string;
 }
