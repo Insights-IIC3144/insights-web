@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { executiveService } from "@/services/executiveService";
 import { ExecutiveKpi, CategorySales } from "@/types/executive";
 import { FilterParams } from "@/types/shared";
-import { useDashboard } from "@/context/DashboardContext";
+import { useUserContext } from "@/context/UserContext";
 
 export function useExecutiveData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [loading, setLoading] = useState(true);
-  const { days, brand } = useDashboard();
+  const { days, selectedBrand: brand } = useUserContext();
 
   useEffect(() => {
     const fetchData = async () => {
