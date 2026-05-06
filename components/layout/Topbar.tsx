@@ -33,6 +33,10 @@ export function Topbar() {
     setSelectedBrand,
     availableBrands
   } = useUserContext();
+  const router = useRouter();
+  const { days, setDays, brand, setBrand } = useDashboard();
+  
+  const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
 
   const [range, setRange] = useState(RANGE_OPTIONS[2]);
   const { user } = useUser();
@@ -123,12 +127,7 @@ export function Topbar() {
 
         <div className="flex-1" />
 
-        {/* Search */}
-        <div className="hidden lg:flex items-center gap-2 h-9 px-3 rounded-md border bg-card text-muted-foreground text-sm w-72">
-          <Search className="h-4 w-4" />
-          <span className="text-xs">Buscar producto, categoría, segmento…</span>
-          <kbd className="ml-auto text-[10px] font-mono bg-muted rounded px-1.5 py-0.5 border">⌘K</kbd>
-        </div>
+
 
         {/* Date range */}
         <DropdownMenu>
@@ -148,10 +147,7 @@ export function Topbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button size="sm" className="gap-2">
-          <Download className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Exportar</span>
-        </Button>
+
 
         {/* Avatar */}
         {user ? (

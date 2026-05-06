@@ -12,14 +12,15 @@ interface DashboardContextType {
 
 const DashboardContext = createContext<DashboardContextType>({
   days: 90,
-  setDays: () => { },
+  setDays: () => {},
   brand: BRANDS[0],
-  setBrand: () => { },
+  setBrand: () => {},
 });
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [days, setDays] = useState(90);
   const [brand, setBrand] = useState(BRANDS[0]);
+  
   return (
     <DashboardContext.Provider value={{ days, setDays, brand, setBrand }}>
       {children}
