@@ -16,6 +16,20 @@ export default function SalesDashboard() {
     <div className="space-y-6 animate-in fade-in duration-500">
 
       {/* HEADER Y FILTROS */}
+import { Filters } from "@/components/ui-extra/Filters";
+import { PageHeader } from "@/components/ui-extra/PageHeader";
+import { SalesKpiGrid } from "@/components/dashboard/SalesKpiGrid";
+import { SalesCharts } from "@/components/dashboard/SalesCharts";
+import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
+import { useSalesData } from "@/hooks/useSalesData";
+
+export default function DashboardPage() {
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const { kpis, categorySales, performance, loading } = useSalesData(activeFilters);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      
       <PageHeader
         title="Dashboard de Ventas"
         subtitle="Resumen de rendimiento y métricas clave de tu negocio."
@@ -95,6 +109,32 @@ export default function SalesDashboard() {
           </div>
         </CardContent>
       </Card>
+
+    </div>
+  );
+}
+
+      <Filters 
+        showGender 
+        showTraffic 
+        onChange={setActiveFilters} 
+      />
+
+      <SalesKpiGrid 
+        data={kpis} 
+        loading={loading} 
+      />
+
+      <SalesCharts 
+        kpis={kpis} 
+        categorySales={categorySales} 
+        loading={loading} 
+      />
+
+      <PerformanceTable 
+        performance={performance} 
+        loading={loading} 
+      />
 
     </div>
   );

@@ -1,31 +1,43 @@
-import { useEffect, useState } from "react";
-import { SalesKpi } from "@/types/sales";
-import { api } from "@/lib/api"; // ajusta la ruta si es diferente
+import { useState, useEffect } from "react";
+import { salesService } from "@/services/salesService";
+import { SalesKpi, SalesByCategory, SalesPerformanceByDimension } from "@/types/sales";
+import { FilterParams } from "@/types/shared";
+import { useDashboard } from "@/context/DashboardContext";
 
-interface Filters {
-  days?: number;
-  category?: string;
-  country?: string;
-  [key: string]: string | number | undefined;
-}
-
-export function useSalesData(filters: Filters = {}) {
+export function useSalesData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<SalesKpi[]>([]);
+  const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
+  const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
   const [loading, setLoading] = useState(true);
+  const { days, brand } = useDashboard();
 
   useEffect(() => {
-    setLoading(true);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const params: FilterParams = Object.fromEntries(
+          Object.entries(activeFilters).filter(([, v]) => v !== "")
+        );
+        if (days > 0) params.days = days;
+        if (brand) params.brand = brand;
 
-    const params: Record<string, string> = {};
-    if (filters.days)     params.days     = String(filters.days);
-    if (filters.category) params.category = filters.category;
-    if (filters.country)  params.country  = filters.country;
+        const [kpiRes, catRes, perfRes] = await Promise.all([
+          salesService.getKpis(params),
+          salesService.getCategorySales(params),
+          salesService.getPerformance(params),
+        ]);
 
-    api.get<SalesKpi[]>("/sales/kpis", params)
-      .then((data) => { setKpis(data); setLoading(false); })
-      .catch(() => setLoading(false));
+        if (kpiRes) setKpis(kpiRes);
+        if (catRes) setCategorySales(catRes);
+        if (perfRes) setPerformance(perfRes);
+      } catch (err) {
+        console.error("Error fetching sales data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [activeFilters, days, brand]);
 
-  }, [JSON.stringify(filters)]);
-
-  return { kpis, loading };
+  return { kpis, categorySales, performance, loading };
 }

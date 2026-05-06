@@ -8,7 +8,7 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [loading, setLoading] = useState(true);
-  const { days } = useDashboard();
+  const { days, brand } = useDashboard();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,6 +18,7 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
           Object.entries(activeFilters).filter(([, v]) => v !== '')
         );
         if (days > 0) params.days = days;
+        if (brand) params.brand = brand;
 
         const [kpiRes, catRes] = await Promise.all([
           executiveService.getKpis(params),
@@ -33,7 +34,7 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
       }
     };
     fetchData();
-  }, [activeFilters, days]);
+  }, [activeFilters, days, brand]);
 
   return { kpis, categorySales, loading };
 }
