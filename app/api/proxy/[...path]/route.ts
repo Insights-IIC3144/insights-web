@@ -19,7 +19,7 @@ const handler = async (req: NextRequest, ctx: { params: Promise<{ path: string[]
     const resolvedParams = await ctx.params;
     const path = resolvedParams.path.join('/');
     const queryString = req.nextUrl.searchParams.toString();
-    const backendUrl = `${process.env.BACKEND_URL || 'http://localhost:8080'}/${path}${queryString ? `?${queryString}` : ''}`;
+    const backendUrl = `${process.env.BACKEND_URL || 'http://localhost:8080/api'}/${path}${queryString ? `?${queryString}` : ''}`;
 
     // 3. Preparar los headers
     const headers: Record<string, string> = {

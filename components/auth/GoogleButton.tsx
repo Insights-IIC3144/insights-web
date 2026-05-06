@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-
 import { Loader2 } from "lucide-react";
 
 export function GoogleButton({ onClick, disabled, loading, label = "Continuar con Google" }: { onClick: () => void; disabled?: boolean; loading?: boolean; label?: string }) {

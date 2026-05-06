@@ -1,33 +1,44 @@
 "use client";
 
-import { Calendar, ChevronDown, Download, LogOut, Search, Settings as SettingsIcon, Store, User as UserIcon } from "lucide-react";
+import {
+  Calendar, ChevronDown, Download, LogOut, Search, Store, User as UserIcon
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { BRANDS, RETAILER } from "@/lib/mock";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useUserContext } from "@/context/UserContext";
+import Link from "next/link";
 
-const ranges = ["Últimos 7 días", "Últimos 30 días", "Últimos 90 días", "Año actual", "Personalizado"];
+const RANGE_OPTIONS = [
+  { label: "Últimos 7 días", days: 7 },
+  { label: "Últimos 30 días", days: 30 },
+  { label: "Últimos 90 días", days: 90 },
+  { label: "Últimos 180 días", days: 180 },
+  { label: "Último año", days: 365 },
+];
 
 export function Topbar() {
-  const router = useRouter();
-  
-  const [brand, setBrand] = useState(BRANDS[0]);
-  const [range, setRange] = useState("Últimos 90 días");
+  const {
+    profile,
+    isLoading: profileLoading,
+    setDays,
+    selectedBrand,
+    setSelectedBrand,
+    availableBrands
+  } = useUserContext();
+  const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
+  const { user } = useUser();
 
-  const onBrandChange = async (b: string) => {
-    setBrand(b);
+  const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
+    setRange(option);
+    setDays(option.days);
   };
 
   const handleLogout = () => {
@@ -35,75 +46,105 @@ export function Topbar() {
     window.location.assign("/api/auth/logout");
   };
 
-  const { user } = useUser();
-
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
       <div className="flex items-center gap-3 px-5 lg:px-8 h-14">
-        {/* Retailer + brand */}
+
+        {/* Retailer + Brand */}
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-1.5 text-[13px] text-muted-foreground font-medium">
             <Store className="h-4 w-4" />
             Retailer
           </div>
-          <div className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#F8F9FA] px-2.5 py-0.5 text-[13px] font-medium text-[#333A73]">{RETAILER}</div>
+
+          {/* Retailer — dato real del backend */}
+          {profileLoading ? (
+            <Skeleton className="h-5 w-32" />
+          ) : (
+            <div className="inline-flex items-center rounded-md border border-[#E2E8F0] bg-[#F8F9FA] px-2.5 py-0.5 text-[13px] font-medium text-[#333A73]">
+              {profile?.retailerName ?? '—'}
+            </div>
+          )}
+
           <span className="text-muted-foreground/30 px-1">/</span>
+
+          {/* Brand — Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2">
-                {brand}
-                <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2"
+                disabled={profileLoading || (profile?.role !== 'retailer_admin')} // Bloqueamos si no es admin
+              >
+                {profileLoading ? "Cargando..." : (selectedBrand || "Todas las marcas")}
+                {profile?.role === 'retailer_admin' && (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
+                )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60">
-              <DropdownMenuLabel className="text-xs">Marca actual (products.brand)</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {BRANDS.map((b) => (
-                <DropdownMenuItem key={b} onClick={() => onBrandChange(b)}>
-                  {b}
+
+            {/* Solo mostramos el contenido del menú si es Admin */}
+            {profile?.role === 'retailer_admin' && (
+              <DropdownMenuContent align="start" className="w-60 max-h-72 overflow-y-auto">
+                <DropdownMenuLabel className="text-xs">Filtro de marca</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {/* Opción para limpiar el filtro */}
+                <DropdownMenuItem
+                  onClick={() => setSelectedBrand("")}
+                  className={selectedBrand === "" ? "bg-muted font-medium" : ""}
+                >
+                  Todas las marcas
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
+
+                <DropdownMenuSeparator />
+
+                {availableBrands.length === 0 ? (
+                  <DropdownMenuItem disabled className="text-muted-foreground">
+                    Cargando marcas...
+                  </DropdownMenuItem>
+                ) : (
+                  availableBrands.map((b) => (
+                    <DropdownMenuItem
+                      key={b}
+                      onClick={() => setSelectedBrand(b)}
+                      className={b === selectedBrand ? "bg-muted font-medium" : ""}
+                    >
+                      {b}
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            )}
           </DropdownMenu>
         </div>
 
-        <span className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-[#B1DEB9] bg-[#E3F4E8] px-2.5 py-0.5 text-[12px] font-medium text-[#116E45] ml-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#116E45] animate-pulse" />
-          MV actualizadas hace 12 min
-        </span>
-
         <div className="flex-1" />
 
-        {/* Search */}
-        <div className="hidden lg:flex items-center gap-2 h-9 px-3 rounded-md border bg-card text-muted-foreground text-sm w-72">
-          <Search className="h-4 w-4" />
-          <span className="text-xs">Buscar producto, categoría, segmento…</span>
-          <kbd className="ml-auto text-[10px] font-mono bg-muted rounded px-1.5 py-0.5 border">⌘K</kbd>
-        </div>
+
 
         {/* Date range */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
               <Calendar className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{range}</span>
+              <span className="hidden sm:inline">{range.label}</span>
               <ChevronDown className="h-3.5 w-3.5 opacity-60" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {ranges.map((r) => (
-              <DropdownMenuItem key={r} onClick={() => setRange(r)}>
-                {r}
+            {RANGE_OPTIONS.map((r) => (
+              <DropdownMenuItem key={r.label} onClick={() => handleRangeChange(r)}>
+                {r.label}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button size="sm" className="gap-2">
-          <Download className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Exportar</span>
-        </Button>
 
+
+        {/* Avatar */}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -118,18 +159,30 @@ export function Topbar() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
-                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {!profileLoading && profile && (
+                <>
+                  <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
+                    <div className="flex flex-col gap-0.5">
+                      <span>🏪 {profile.retailerName}</span>
+                      <span className="capitalize opacity-70">{profile.role}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/perfil" className="cursor-pointer">
-                  <UserIcon className="h-4 w-4" /> Perfil
+                  <UserIcon className="h-4 w-4 mr-2" /> Perfil
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive cursor-pointer"
+              >
                 <LogOut className="h-4 w-4 mr-2" /> Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -137,6 +190,7 @@ export function Topbar() {
         ) : (
           <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
         )}
+
       </div>
     </header>
   );
