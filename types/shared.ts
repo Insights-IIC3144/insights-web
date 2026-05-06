@@ -15,3 +15,12 @@ export interface FiltersData {
   trafficSources: string[];
   genders: string[];
 }
+
+export interface UserProfile {
+  email: string;
+  name: string;
+  role: 'brand' | 'retailer_admin';
+  brand: string | null;
+  isActive: boolean;
+  retailerName: string;
+}
