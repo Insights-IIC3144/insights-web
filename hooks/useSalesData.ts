@@ -4,7 +4,10 @@ import { SalesKpi, SalesByCategory, SalesPerformanceByDimension } from "@/types/
 import { FilterParams } from "@/types/shared";
 import { useDashboard } from "@/context/DashboardContext";
 
-export function useSalesData(activeFilters: Record<string, string>) {
+export function useSalesData(
+  activeFilters: Record<string, string>,
+  granularity: string = "monthly"
+) {
   const [kpis, setKpis] = useState<SalesKpi[]>([]);
   const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
   const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
@@ -20,6 +23,7 @@ export function useSalesData(activeFilters: Record<string, string>) {
         );
         if (days > 0) params.days = days;
         if (brand) params.brand = brand;
+        params.granularity = granularity;
 
         const [kpiRes, catRes, perfRes] = await Promise.all([
           salesService.getKpis(params),
@@ -37,7 +41,7 @@ export function useSalesData(activeFilters: Record<string, string>) {
       }
     };
     fetchData();
-  }, [activeFilters, days, brand]);
+  }, [activeFilters, days, brand, granularity]);
 
   return { kpis, categorySales, performance, loading };
 }
