@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { salesService } from "@/services/salesService";
 import { SalesDailyKpi, SalesByCategory, SalesPerformanceByDimension } from "@/types/sales";
 import { FilterParams } from "@/types/shared";
-import { useDashboard } from "@/context/DashboardContext";
+import { useUserContext } from "@/context/UserContext";
 
 export function useSalesData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<SalesDailyKpi[]>([]);
   const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
   const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
   const [loading, setLoading] = useState(true);
-  const { days, brand } = useDashboard();
+  const { days, selectedBrand: brand } = useUserContext();
 
   useEffect(() => {
     const fetchData = async () => {

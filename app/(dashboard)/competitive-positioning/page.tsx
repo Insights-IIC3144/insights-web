@@ -6,7 +6,7 @@ import { Filters } from "@/components/ui-extra/Filters";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { fmtMoney, fmtPct } from "@/lib/format";
-import { useDashboard } from "@/context/DashboardContext";
+import { useUserContext } from "@/context/UserContext";
 import {
   Bar,
   BarChart,
@@ -30,7 +30,7 @@ const tooltipStyle = {
 };
 
 export default function CompetitivePositioningPage() {
-  const { brand, days } = useDashboard();
+  const { selectedBrand: brand, days } = useUserContext();
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
   const { loading, stats } = useCompetitiveStats(brand, days, activeFilters);

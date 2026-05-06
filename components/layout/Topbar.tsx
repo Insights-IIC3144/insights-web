@@ -33,12 +33,7 @@ export function Topbar() {
     setSelectedBrand,
     availableBrands
   } = useUserContext();
-  const router = useRouter();
-  const { days, setDays, brand, setBrand } = useDashboard();
-  
   const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
-
-  const [range, setRange] = useState(RANGE_OPTIONS[2]);
   const { user } = useUser();
 
   const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
