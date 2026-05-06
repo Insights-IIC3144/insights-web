@@ -39,18 +39,6 @@ export function AuthShell({
             Visualiza ventas, audiencias, calidad de catálogo y posicionamiento competitivo de tu marca,
             con asistencia de IA solo donde aporta valor.
           </p>
-          <div className="grid grid-cols-3 gap-3 pt-4">
-            {[
-              { k: "6", v: "Materialized views" },
-              { k: "100%", v: "Aislamiento por marca" },
-              { k: "0", v: "PII expuesta" },
-            ].map((x) => (
-              <div key={x.v} className="rounded-md bg-[#1B2338] p-3">
-                <div className="text-lg font-semibold text-white">{x.k}</div>
-                <div className="text-[11px] text-[#8B95D6] leading-tight">{x.v}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="relative text-[11px] text-[#C0C9D9]/50">
