@@ -6,7 +6,7 @@ import { Filters } from "@/components/ui-extra/Filters";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { fmtMoney, fmtPct } from "@/lib/format";
-import { useUserContext } from "@/context/UserContext";
+//import { useUserContext } from "@/context/UserContext";
 import {
   Bar,
   BarChart,
@@ -30,10 +30,10 @@ const tooltipStyle = {
 };
 
 export default function CompetitivePositioningPage() {
-  const { selectedBrand: brand, days } = useUserContext();
+  // const { selectedBrand: brand, days } = useUserContext();
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
 
-  const { loading, stats } = useCompetitiveStats(brand, days, activeFilters);
+  const { loading, stats } = useCompetitiveStats(activeFilters);
 
   return (
     <div>
@@ -111,61 +111,81 @@ export default function CompetitivePositioningPage() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Categoría</TableHead>
-                    <TableHead className="text-right">Ventas marca</TableHead>
-                    <TableHead className="text-right">Ventas categoría</TableHead>
-                    <TableHead className="text-right">Share ventas</TableHead>
-                    <TableHead className="text-right">Precio marca</TableHead>
-                    <TableHead className="text-right">Precio benchmark</TableHead>
-                    <TableHead className="text-right">Share unidades</TableHead>
+                  <TableRow className="hover:bg-transparent border-b">
+                    <TableHead className="text-muted-foreground font-medium py-3 px-6">Categoría</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas marca</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas categoría</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio marca</TableHead>
+                    <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio benchmark</TableHead>
+                    <TableHead className="text-muted-foreground font-medium py-3 px-6">Oportunidad</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stats.detailByCategory.map((c) => (
-                    <TableRow key={c.category}>
-                      <TableCell className="font-medium">{c.category}</TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtMoney(c.brandSales)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{fmtMoney(c.categorySales)}</TableCell>
-                      <TableCell className="text-right">
-                        <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtMoney(c.averageBrandPrice)}</TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{fmtMoney(c.averageBenchmarkPrice)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtPct(c.volumeSharePct)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {stats.detailByCategory.map((c) => {
+                    const oportunidad = (() => {
+                      if (c.salesSharePct < 15) return "Baja participación, evaluar surtido";
+                      if (c.priceGapPct > 5) return "Precio sobre benchmark";
+                      if (c.priceGapPct < -5) return "Precio bajo benchmark, margen";
+                      return "Posición competitiva";
+                    })();
+                    return (
+                      <TableRow key={c.category} className="border-b last:border-0">
+                        <TableCell className="font-medium py-4 px-6">{c.category}</TableCell>
+                        <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.brandSales)}</TableCell>
+                        <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.categorySales)}</TableCell>
+                        <TableCell className="text-right py-4 px-6">
+                          <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.averageBrandPrice)}</TableCell>
+                        <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.averageBenchmarkPrice)}</TableCell>
+                        <TableCell className="text-xs py-4 px-6">{oportunidad}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           </div>
 
-          {/* TODO: this section is assigned to someone else on Jira, so this is just the base
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {stats.topCategories.map((c) => (
-              <div key={c.category} className="panel p-5">
-                <div className="flex items-start gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
-                    <div className="font-semibold text-sm mt-0.5">
-                      Share ventas {fmtPct(c.salesSharePct)} | Gap precio {fmtPct(c.priceGapPct)}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+            {stats.topCategories.map((c) => {
+              const oportunidad = (() => {
+                if (c.salesSharePct < 15) return "Baja participación, evaluar surtido";
+                if (c.priceGapPct > 5) return "Precio sobre benchmark";
+                if (c.priceGapPct < -5) return "Precio bajo benchmark, margen";
+                return "Posición competitiva";
+              })();
+              return (
+                <div key={c.category} className="panel p-5">
+                  <div className="flex items-start gap-2 mb-2">
+                    <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                    <div>
+                      <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
+                      <div className="font-semibold text-sm mt-0.5">{oportunidad}</div>
                     </div>
                   </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Tu share es{" "}
+                    <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
+                    Precio promedio marca{" "}
+                    <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
+                    vs benchmark{" "}
+                    <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Precio promedio marca {fmtMoney(c.averageBrandPrice)} vs benchmark {fmtMoney(c.averageBenchmarkPrice)}. Share unidades {fmtPct(c.volumeSharePct)}.
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          */}
+
         </>
       )}
 
       {!loading && !stats && (
-        <div className="mb-4 text-sm text-muted-foreground">
-          No hay datos disponibles para los filtros seleccionados.
+        <div className="panel flex items-center justify-center h-64">
+          <p className="text-muted-foreground text-sm">
+            Selecciona una marca en el menú superior para ver el posicionamiento competitivo.
+          </p>
         </div>
       )}
     </div>
