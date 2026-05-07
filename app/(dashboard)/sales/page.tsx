@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui-extra/PageHeader";
 import { SalesKpiGrid } from "@/components/dashboard/SalesKpiGrid";
 import { SalesCharts } from "@/components/dashboard/SalesCharts";
 import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
+import { GranularitySelector } from "@/components/dashboard/GranularitySelector";
 import { useSalesData } from "@/hooks/useSalesData";
 
 export default function SalesDashboard() {
@@ -15,29 +16,19 @@ export default function SalesDashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-
-      {/* HEADER Y FILTROS */}
       <PageHeader
         title="Dashboard de Ventas"
         subtitle="Resumen de rendimiento y métricas clave de tu negocio."
       />
-      <Filters onChange={setActiveFilters} />
 
-      {/* KPI CARDS */}
+      <div className="flex items-center justify-between gap-4">
+        <Filters onChange={setActiveFilters} />
+        <GranularitySelector value={granularity} onChange={setGranularity} />
+      </div>
+
       <SalesKpiGrid data={kpis} loading={loading} />
-
-      {/* CHARTS AREA */}
-      <SalesCharts
-        kpis={kpis}
-        categorySales={categorySales}
-        loading={loading}
-        granularity={granularity}
-        onGranularityChange={setGranularity}
-      />
-
-      {/* PERFORMANCE TABLE */}
+      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} />
       <PerformanceTable performance={performance} loading={loading} />
-
     </div>
   );
 }
