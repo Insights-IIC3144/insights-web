@@ -7,7 +7,7 @@ export interface SalesKpi {
   unitsSold: number;
   uniqueCustomers: number;
   avgOrderValue: number;
-  returnRate: number;
+  lossRate: number;
 }
 
 export interface SalesByCategory {

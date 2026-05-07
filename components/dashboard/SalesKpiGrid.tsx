@@ -1,4 +1,4 @@
-import { DollarSign, ShoppingCart, TrendingUp, RotateCcw, Users, Package } from "lucide-react";
+import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle, Users, Package } from "lucide-react";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SalesKpi } from "@/types/sales";
@@ -15,7 +15,7 @@ export function SalesKpiGrid({ data, loading }: Props) {
   const totalOrders     = data.reduce((s, d) => s + (d.totalOrders     || 0), 0);
   const unitsSold       = data.reduce((s, d) => s + (d.unitsSold       || 0), 0);
   const uniqueCustomers = data.reduce((s, d) => s + (d.uniqueCustomers || 0), 0);
-  const returnRate      = data.length > 0 ? data[data.length - 1].returnRate : 0;
+  const lossRate        = data.length > 0 ? data[data.length - 1].lossRate : 0;
   const aov             = totalOrders > 0 ? revenueNet / totalOrders : 0;
 
   if (loading) {
@@ -43,10 +43,10 @@ export function SalesKpiGrid({ data, loading }: Props) {
         icon={<ShoppingCart className="h-4 w-4" />}
       />
       <KpiCard
-        label="Tasa de Devolución"
-        value={`${(returnRate * 100).toFixed(1)}%`}
+        label="Tasa de Pérdida"
+        value={`${((lossRate ?? 0) * 100).toFixed(1)}%`}
         hint=""
-        icon={<RotateCcw className="h-4 w-4" />}
+        icon={<AlertTriangle className="h-4 w-4" />}
       />
       <KpiCard
         label="Ticket Promedio"
