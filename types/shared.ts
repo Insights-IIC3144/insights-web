@@ -6,6 +6,7 @@ export interface FilterParams {
   gender?: string;
   trafficSource?: string;
   days?: number;
+  granularity?: string; 
 }
 
 export interface FiltersData {

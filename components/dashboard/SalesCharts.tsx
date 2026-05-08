@@ -1,24 +1,25 @@
-import { Panel } from "@/components/ui-extra/Panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend
+  AreaChart, Area, LineChart, Line, ComposedChart, Bar,
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+  XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
-import { SalesDailyKpi, SalesByCategory } from "@/types/sales";
-import { fmtMoney } from "@/lib/format";
+import { SalesKpi, SalesByCategory } from "@/types/sales";
+import { fmtMoney, fmtNum } from "@/lib/format";
+import { ChartCard } from "../ui-extra/ChartCard";
 
 interface Props {
-  kpis: SalesDailyKpi[];
+  kpis: SalesKpi[];
   categorySales: SalesByCategory[];
   loading: boolean;
 }
 
-const tooltipStyle = {
+const TOOLTIP_STYLE = {
   background: "hsl(var(--popover))",
   border: "1px solid hsl(var(--border))",
-  borderRadius: "8px",
-  fontSize: "12px",
+  borderRadius: 8,
+  fontSize: 12,
   color: "hsl(var(--popover-foreground))",
-  boxShadow: "var(--shadow-elevated)",
 };
 
 const PIE_COLORS = [
@@ -28,74 +29,137 @@ const PIE_COLORS = [
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
 ];
+/*
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-card-foreground">{title}</h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+  */
 
 export function SalesCharts({ kpis, categorySales, loading }: Props) {
-  const trendData = kpis.map(k => ({
+  const trendData = kpis.map((k) => ({
     label: k.date,
-    revenue: k.revenue
-  })).sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
+    revenue: k.revenueNet ?? 0,
+    orders: k.totalOrders ?? 0,
+    aov: k.avgOrderValue ?? 0,
+  }));
 
-  // categorySales comes directly grouped from the backend now
   const catData = categorySales
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Panel className="lg:col-span-2" title="Ventas en el Tiempo" description="Revenue diario generado">
-        <div className="h-72">
-          {loading ? (
-            <Skeleton className="h-full w-full rounded-lg" />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#salesGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </Panel>
+    <div className="flex flex-col gap-4">
+      <ChartCard title="Ventas en el Tiempo"
+      subtitle="Evolución de los ingresos netos según la granularidad seleccionada. 
+      Útil para identificar tendencias y estacionalidad."
+      >
+        {loading ? (
+          <Skeleton className="h-[300px] w-full" />
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={trendData}>
+              <defs>
+                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos netos"]} />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revenueGrad)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </ChartCard>
 
-      <Panel title="Ventas por Categoría" description="Distribución de revenue">
-        <div className="h-72 flex items-center justify-center">
+      <ChartCard title="Ticket Promedio en el Tiempo"
+      subtitle="Valor promedio por orden completada. 
+      Un aumento sostenido indica que los clientes están comprando productos de mayor valor.">
+        {loading ? (
+          <Skeleton className="h-[250px] w-full" />
+        ) : (
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+              <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ticket promedio"]} />
+              <Line type="monotone" dataKey="aov" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </ChartCard>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ChartCard title="Ventas por Categoría"
+        subtitle="Distribución de ingresos por categoría de producto.
+        Útil para identificar las categorías más rentables y detectar cambios en el comportamiento de compra.">
           {loading ? (
-            <Skeleton className="h-48 w-48 rounded-full" />
+            <Skeleton className="h-[300px] w-full" />
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
                 <Pie
                   data={catData}
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={2}
                   dataKey="revenue"
                   nameKey="category"
-                  stroke="hsl(var(--background))"
-                  strokeWidth={2}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  {catData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  {catData.map((_, i) => (
+                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos"]} />
+                <Legend />
               </PieChart>
             </ResponsiveContainer>
           )}
-        </div>
-      </Panel>
+        </ChartCard>
+
+        <ChartCard title="Órdenes vs Ingresos Netos"
+        subtitle="Compara el volumen de órdenes con los ingresos netos. 
+        Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen.">
+          {loading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="revenue" orientation="left" tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
+                <YAxis yAxisId="orders" orientation="right" tickFormatter={(v) => fmtNum(v)} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  formatter={(v: number, name: string) =>
+                    name === "revenue" ? [fmtMoney(v), "Ingresos netos"] : [fmtNum(v), "Órdenes"]
+                  }
+                />
+                <Legend />
+                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="revenue" />
+                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="orders" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
     </div>
   );
 }
