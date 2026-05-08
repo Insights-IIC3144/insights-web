@@ -1,34 +1,45 @@
 import { useState, useEffect, useMemo } from "react";
 import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory } from "@/types/competitive";
+import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
 
-export function useCompetitiveStats(brand: string, days: number, activeFilters: Record<string, string>) {
+export function useCompetitiveData(activeFilters: Record<string, string>) {
     const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
     const [loading, setLoading] = useState(true);
+    const { days, selectedBrand: brand } = useUserContext();
 
     useEffect(() => {
+        if (!brand || brand.trim() === "") {
+            setCategories([]);
+            setLoading(false);
+            return;
+        }
+
         const fetchData = async () => {
-            setLoading(true);
-            try {
-                const params: FilterParams & { brand: string } = {
-                    brand,
-                    ...Object.fromEntries(Object.entries(activeFilters).filter(([, v]) => v !== "")),
+        setLoading(true);
+        try {
+            const params: FilterParams & { brand: string } = {
+                brand,
+                ...Object.fromEntries(
+                    Object.entries(activeFilters).filter(([, v]) => v !== "")
+                ),
                 };
                 if (days > 0) params.days = days;
+            params.brand = brand;
 
-                const data = await competitiveService.getAll(params);
-                setCategories(data || []);
-            } catch (err) {
-                console.error("Error fetching competitive data:", err);
-                setCategories([]);
-            } finally {
-                setLoading(false);
-            }
+            const data = await competitiveService.getAll(params);
+            setCategories(data || []);
+        } catch (err) {
+            console.error("Error fetching competitive data:", err);
+            setCategories([]);
+        } finally {
+            setLoading(false);
+        }
         };
 
         fetchData();
-    }, [activeFilters, brand, days]);
+    }, [activeFilters, days, brand]);
 
     const stats = useMemo(() => {
         if (!categories.length) return null;
