@@ -4,10 +4,10 @@ import { competitiveService } from "@/services/competitiveService";
 import { AudienciasData, RetencionData } from "@/types/executive";
 import { CompetitiveCardsData } from "@/types/competitive";
 import { FilterParams } from "@/types/shared";
-import { useDashboard } from "@/context/DashboardContext";
+import { useUserContext } from "@/context/UserContext";
 
 export function usePerformanceCardsData(activeFilters: Record<string, string>) {
-  const { days, brand } = useDashboard();
+  const { days, selectedBrand: brand } = useUserContext();
   const [audiencias, setAudiencias] = useState<AudienciasData | null>(null);
   const [retencion, setRetencion] = useState<RetencionData | null>(null);
   const [competitiveCards, setCompetitiveCards] = useState<CompetitiveCardsData | null>(null);
@@ -21,19 +21,25 @@ export function usePerformanceCardsData(activeFilters: Record<string, string>) {
       );
       if (days > 0) params.days = days;
 
-      const [audRes, retRes, compRes] = await Promise.allSettled([
+      const [audRes, retRes] = await Promise.allSettled([
         executiveService.getAudiencias(params),
         executiveService.getRetencion(params),
-        competitiveService.getCards({ ...params, brand }),
       ]);
 
       if (audRes.status === "fulfilled") setAudiencias(audRes.value);
       if (retRes.status === "fulfilled") setRetencion(retRes.value);
-      if (compRes.status === "fulfilled") setCompetitiveCards(compRes.value);
+
+      if (brand) {
+        const compRes = await competitiveService.getCards({ ...params, brand }).catch(() => null);
+        setCompetitiveCards(compRes);
+      } else {
+        setCompetitiveCards(null);
+      }
+
       setLoading(false);
     };
     fetchData();
   }, [activeFilters, days, brand]);
 
-  return { audiencias, retencion, competitiveCards, loading };
+  return { audiencias, retencion, competitiveCards, hasBrand: !!brand, loading };
 }

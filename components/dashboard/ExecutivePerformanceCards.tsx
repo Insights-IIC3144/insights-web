@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function ExecutivePerformanceCards({ activeFilters }: Props) {
-  const { audiencias, retencion, competitiveCards, loading } = usePerformanceCardsData(activeFilters)
+  const { audiencias, retencion, competitiveCards, hasBrand, loading } = usePerformanceCardsData(activeFilters)
 
   const dash = (v: string | number | null | undefined) =>
     v == null ? "—" : v
@@ -70,32 +70,38 @@ export function ExecutivePerformanceCards({ activeFilters }: Props) {
         title="Posicionamiento competitivo"
         description="Share vs benchmark de categoría"
       >
-        <div className={contentClass}>
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm text-muted-foreground">Mayor share</span>
-            <span className="text-sm font-medium">
-              {competitiveCards?.topShareCategory != null
-                ? `${competitiveCards.topShareCategory} · ${competitiveCards.topSharePercentage?.toFixed(1)}%`
-                : "—"}
-            </span>
+        {!hasBrand ? (
+          <p className="text-sm text-muted-foreground">
+            Selecciona una marca específica para ver su posicionamiento competitivo.
+          </p>
+        ) : (
+          <div className={contentClass}>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">Mayor share</span>
+              <span className="text-sm font-medium">
+                {competitiveCards?.topShareCategory != null
+                  ? `${competitiveCards.topShareCategory} · ${competitiveCards.topSharePercentage?.toFixed(1)}%`
+                  : "—"}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">Mejor crecimiento</span>
+              <span className="text-sm font-medium text-success">
+                {competitiveCards?.bestGrowthCategory != null
+                  ? `${competitiveCards.bestGrowthCategory} (${competitiveCards.bestGrowthPercentage ? (competitiveCards.bestGrowthPercentage > 0 ? "+" : "") + competitiveCards.bestGrowthPercentage.toFixed(1) : "0.0"}%)`
+                  : "—"}
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm text-muted-foreground">A revisar</span>
+              <span className="text-sm font-medium text-warning">
+                {competitiveCards?.worstGrowthCategory != null
+                  ? `${competitiveCards.worstGrowthCategory} (${competitiveCards.worstGrowthPercentage?.toFixed(1)}%)`
+                  : "—"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm text-muted-foreground">Mejor crecimiento</span>
-            <span className="text-sm font-medium text-success">
-              {competitiveCards?.bestGrowthCategory != null
-                ? `${competitiveCards.bestGrowthCategory} (${competitiveCards.bestGrowthPercentage ? (competitiveCards.bestGrowthPercentage > 0 ? "+" : "") + competitiveCards.bestGrowthPercentage.toFixed(1) : "0.0"}%)`
-                : "—"}
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm text-muted-foreground">A revisar</span>
-            <span className="text-sm font-medium text-warning">
-              {competitiveCards?.worstGrowthCategory != null
-                ? `${competitiveCards.worstGrowthCategory} (${competitiveCards.worstGrowthPercentage?.toFixed(1)}%)`
-                : "—"}
-            </span>
-          </div>
-        </div>
+        )}
       </Panel>
     </div>
   )
