@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-//import { useUserContext } from "@/context/UserContext";
 import { PageHeader } from "@/components/ui-extra/PageHeader";
 import { Filters } from "@/components/ui-extra/Filters";
 import { CompetitiveKpiGrid } from "@/components/dashboard/CompetitiveKpiGrid";
@@ -9,7 +8,6 @@ import { CompetitiveCharts } from "@/components/dashboard/CompetitiveCharts";
 import { useCompetitiveData } from "@/hooks/useCompetitiveData";
 
 export default function CompetitivePositioningPage() {
-  // const { selectedBrand: brand, days } = useUserContext();
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const { loading, stats } = useCompetitiveData(activeFilters);
 
