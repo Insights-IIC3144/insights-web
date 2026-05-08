@@ -4,12 +4,12 @@ import { CompetitiveCategory } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
 
-export function useCompetitiveStats(activeFilters: Record<string, string>) {
-  const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { days, selectedBrand: brand } = useUserContext(); // ← igual que useSalesData
+export function useCompetitiveData(activeFilters: Record<string, string>) {
+    const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { days, selectedBrand: brand } = useUserContext();
 
-  useEffect(() => {
+    useEffect(() => {
         if (!brand || brand.trim() === "") {
             setCategories([]);
             setLoading(false);
