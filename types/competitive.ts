@@ -1,3 +1,12 @@
+export interface CompetitiveCardsData {
+  topShareCategory: string | null;
+  topSharePercentage: number | null;
+  bestGrowthCategory: string | null;
+  bestGrowthPercentage: number | null;
+  worstGrowthCategory: string | null;
+  worstGrowthPercentage: number | null;
+}
+
 export interface CompetitiveCategory {
     category: string;
     brandSales: number;

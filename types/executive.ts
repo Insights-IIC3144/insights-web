@@ -18,3 +18,16 @@ export interface SalesTrendPoint {
   label: string;
   revenue: number;
 }
+
+export interface AudienciasData {
+  mainChannel: string | null;
+  mainCity: string | null;
+  mainAgeRange: string | null;
+  ageRangePercentage: number | null;
+}
+
+export interface RetencionData {
+  recurringBuyers: number | null;
+  avgProductsPerClient: number | null;
+  topRetentionChannel: string | null;
+}
