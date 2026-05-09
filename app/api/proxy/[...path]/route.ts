@@ -1,4 +1,6 @@
-import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
+import auth0 from '@/lib/auth0';
+
+const { getAccessToken, withApiAuthRequired } = auth0;
 import { NextRequest, NextResponse } from 'next/server';
 
 // Este manejador intercepta cualquier petición a /api/proxy/*

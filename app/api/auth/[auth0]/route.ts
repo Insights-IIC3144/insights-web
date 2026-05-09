@@ -1,5 +1,5 @@
 import auth0 from '@/lib/auth0';
-import { Session } from '@auth0/nextjs-auth0';
+import type { Session } from '@auth0/nextjs-auth0';
 import { NextRequest, NextResponse } from 'next/server';
 
 const { handleAuth, handleLogin, handleCallback, handleLogout } = auth0;
