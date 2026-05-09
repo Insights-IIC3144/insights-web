@@ -1,10 +1,16 @@
-import { getSession } from '@auth0/nextjs-auth0/edge';
+import { initAuth0 } from '@auth0/nextjs-auth0/edge';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const baseURL =
+  process.env.AUTH0_BASE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
+const auth0 = initAuth0({ baseURL });
+
 export default async function proxy(req: NextRequest) {
   const res = NextResponse.next();
-  const session = await getSession(req, res);
+  const session = await auth0.getSession(req, res);
 
   if (!session?.user) {
     return NextResponse.redirect(new URL('/login', req.url));
