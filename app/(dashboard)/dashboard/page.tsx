@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/ui-extra/PageHeader";
 import { ExecutiveKpiGrid } from "@/components/dashboard/ExecutiveKpiGrid";
 import { ExecutiveCharts } from "@/components/dashboard/ExecutiveCharts";
 import { useExecutiveData } from "@/hooks/useExecutiveData";
+import { ExecutivePerformanceCards } from "@/components/dashboard/ExecutivePerformanceCards";
 
 export default function ExecutiveDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -34,6 +35,8 @@ export default function ExecutiveDashboard() {
         categorySales={categorySales} 
         loading={loading} 
       />
+
+      <ExecutivePerformanceCards activeFilters={activeFilters} />
     </div>
   );
 }

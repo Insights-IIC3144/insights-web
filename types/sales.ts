@@ -1,8 +1,13 @@
-export interface SalesDailyKpi {
+export interface SalesKpi {
   date: string;
-  revenue: number;
-  orders: number;
+  brand: string;
+  totalOrders: number;
+  revenueGross: number;
+  revenueNet: number;
   unitsSold: number;
+  uniqueCustomers: number;
+  avgOrderValue: number;
+  lossRate: number;
 }
 
 export interface SalesByCategory {

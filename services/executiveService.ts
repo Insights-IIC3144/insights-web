@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import { ExecutiveKpi, CategorySales } from "@/types/executive";
+import { AudiencesData, RetentionData } from "@/types/executive";
 import { FilterParams } from "@/types/shared";
 
 export const executiveService = {
@@ -8,4 +9,10 @@ export const executiveService = {
     
   getCategorySales: (params: FilterParams) => 
     api.get<CategorySales[]>('/executive/category-sales', params as any),
+
+  getAudiences: (params: FilterParams) =>
+    api.get<AudiencesData>('/executive/audiences', params as any),
+
+  getRetention: (params: FilterParams) =>
+    api.get<RetentionData>('/executive/retention', params as any),
 };
