@@ -1,6 +1,4 @@
-import auth0 from '@/lib/auth0'
-
-const { getAccessToken, withApiAuthRequired } = auth0
+import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0'
 import { NextRequest, NextResponse } from 'next/server'
 
 const handler = async (req: NextRequest) => {

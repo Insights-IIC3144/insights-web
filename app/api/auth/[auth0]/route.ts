@@ -1,13 +1,12 @@
-import auth0 from '@/lib/auth0';
+import { handleAuth, handleLogin, handleCallback, handleLogout } from '@auth0/nextjs-auth0';
 import type { Session } from '@auth0/nextjs-auth0';
 import { NextRequest, NextResponse } from 'next/server';
-
-const { handleAuth, handleLogin, handleCallback, handleLogout } = auth0;
 
 const handler = handleAuth({
   login: handleLogin((req) => {
     const connection = (req as NextRequest).nextUrl.searchParams.get('connection');
     return {
+      redirectUri: `${(req as NextRequest).nextUrl.origin}/api/auth/callback`,
       authorizationParams: {
         prompt: 'login',
         scope: 'openid profile email',
