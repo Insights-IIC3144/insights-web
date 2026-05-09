@@ -1,5 +1,7 @@
-import { handleAuth, handleLogin, handleCallback, handleLogout } from '@auth0/nextjs-auth0';
+import auth0 from '@/lib/auth0';
 import type { Session } from '@auth0/nextjs-auth0';
+
+const { handleAuth, handleLogin, handleCallback, handleLogout } = auth0;
 import { NextRequest, NextResponse } from 'next/server';
 
 const handler = handleAuth({
