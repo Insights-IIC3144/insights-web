@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function ExecutivePerformanceCards({ activeFilters }: Props) {
-  const { audiencias, retencion, competitiveCards, hasBrand, loading } = usePerformanceCardsData(activeFilters)
+  const { audiences, retention, competitiveCards, hasBrand, loading } = usePerformanceCardsData(activeFilters)
 
   const dash = (v: string | number | null | undefined) =>
     v == null ? "—" : v
@@ -17,23 +17,23 @@ export function ExecutivePerformanceCards({ activeFilters }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Panel
-        title="Audiencias"
+        title="Audiences"
         description="Compradores activos del período"
       >
         <div className={contentClass}>
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Canal principal</span>
-            <span className="text-sm font-medium">{dash(audiencias?.mainChannel)}</span>
+            <span className="text-sm font-medium">{dash(audiences?.mainChannel)}</span>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Mayor ciudad</span>
-            <span className="text-sm font-medium">{dash(audiencias?.mainCity)}</span>
+            <span className="text-sm font-medium">{dash(audiences?.mainCity)}</span>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Edad principal</span>
             <span className="text-sm font-medium">
-              {audiencias?.mainAgeRange != null
-                ? `${audiencias.mainAgeRange} (${audiencias.ageRangePercentage?.toFixed(1)}%)`
+              {audiences?.mainAgeRange != null
+                ? `${audiences.mainAgeRange} (${audiences.ageRangePercentage?.toFixed(1)}%)`
                 : "—"}
             </span>
           </div>
@@ -48,20 +48,20 @@ export function ExecutivePerformanceCards({ activeFilters }: Props) {
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Compradores recurrentes</span>
             <span className="text-lg font-semibold tabular">
-              {retencion?.recurringBuyers != null ? fmtNum(retencion.recurringBuyers) : "—"}
+              {retention?.recurringBuyers != null ? fmtNum(retention.recurringBuyers) : "—"}
             </span>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Artículos por cliente</span>
             <span className="text-sm font-medium">
-              {retencion?.avgProductsPerClient != null
-                ? retencion.avgProductsPerClient.toFixed(2)
+              {retention?.avgProductsPerClient != null
+                ? retention.avgProductsPerClient.toFixed(2)
                 : "—"}
             </span>
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Canal con mayor retención</span>
-            <span className="text-sm font-medium">{dash(retencion?.topRetentionChannel)}</span>
+            <span className="text-sm font-medium">{dash(retention?.topRetentionChannel)}</span>
           </div>
         </div>
       </Panel>

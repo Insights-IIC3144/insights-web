@@ -19,14 +19,14 @@ export interface SalesTrendPoint {
   revenue: number;
 }
 
-export interface AudienciasData {
+export interface AudiencesData {
   mainChannel: string | null;
   mainCity: string | null;
   mainAgeRange: string | null;
   ageRangePercentage: number | null;
 }
 
-export interface RetencionData {
+export interface RetentionData {
   recurringBuyers: number | null;
   avgProductsPerClient: number | null;
   topRetentionChannel: string | null;

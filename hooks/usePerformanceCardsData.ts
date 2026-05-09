@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import { executiveService } from "@/services/executiveService";
 import { competitiveService } from "@/services/competitiveService";
-import { AudienciasData, RetencionData } from "@/types/executive";
+import { AudiencesData, RetentionData } from "@/types/executive";
 import { CompetitiveCardsData } from "@/types/competitive";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
 
 export function usePerformanceCardsData(activeFilters: Record<string, string>) {
   const { days, selectedBrand: brand } = useUserContext();
-  const [audiencias, setAudiencias] = useState<AudienciasData | null>(null);
-  const [retencion, setRetencion] = useState<RetencionData | null>(null);
+  const [audiences, setAudiences] = useState<AudiencesData | null>(null);
+  const [retention, setRetention] = useState<RetentionData | null>(null);
   const [competitiveCards, setCompetitiveCards] = useState<CompetitiveCardsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -22,12 +22,12 @@ export function usePerformanceCardsData(activeFilters: Record<string, string>) {
       if (days > 0) params.days = days;
 
       const [audRes, retRes] = await Promise.allSettled([
-        executiveService.getAudiencias(params),
-        executiveService.getRetencion(params),
+        executiveService.getAudiences(params),
+        executiveService.getRetention(params),
       ]);
 
-      if (audRes.status === "fulfilled") setAudiencias(audRes.value);
-      if (retRes.status === "fulfilled") setRetencion(retRes.value);
+      if (audRes.status === "fulfilled") setAudiences(audRes.value);
+      if (retRes.status === "fulfilled") setRetention(retRes.value);
 
       if (brand) {
         const compRes = await competitiveService.getCards({ ...params, brand }).catch(() => null);
@@ -41,5 +41,5 @@ export function usePerformanceCardsData(activeFilters: Record<string, string>) {
     fetchData();
   }, [activeFilters, days, brand]);
 
-  return { audiencias, retencion, competitiveCards, hasBrand: !!brand, loading };
+  return { audiences, retention, competitiveCards, hasBrand: !!brand, loading };
 }
