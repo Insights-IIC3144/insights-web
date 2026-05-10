@@ -27,11 +27,11 @@ export function ExecutiveKpiGrid({ data, loading }: Props) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      <KpiCard label="Ventas totales" value={fmtMoney(totalRevenue)} delta={0} hint="vs período anterior" icon={<DollarSign className="h-4 w-4" />} />
-      <KpiCard label="Órdenes" value={fmtNum(totalOrders)} delta={0} hint="30d" icon={<ShoppingBag className="h-4 w-4" />} />
-      <KpiCard label="Unidades vendidas" value={fmtNum(totalUnits)} delta={0} hint="30d" icon={<Package className="h-4 w-4" />} />
-      <KpiCard label="Clientes únicos" value={fmtNum(uniqueCustomers)} delta={0} hint="30d" icon={<Users className="h-4 w-4" />} />
-      <KpiCard label="Ticket promedio" value={fmtMoney(aov)} delta={0} hint="vs período anterior" icon={<ReceiptText className="h-4 w-4" />} />
+      <KpiCard label="Ventas totales" value={fmtMoney(totalRevenue)} icon={<DollarSign className="h-4 w-4" />} />
+      <KpiCard label="Órdenes" value={fmtNum(totalOrders)} icon={<ShoppingBag className="h-4 w-4" />} />
+      <KpiCard label="Unidades vendidas" value={fmtNum(totalUnits)} icon={<Package className="h-4 w-4" />} />
+      <KpiCard label="Clientes únicos" value={fmtNum(uniqueCustomers)} icon={<Users className="h-4 w-4" />} />
+      <KpiCard label="Ticket promedio" value={fmtMoney(aov)} icon={<ReceiptText className="h-4 w-4" />} />
     </div>
   );
 }
