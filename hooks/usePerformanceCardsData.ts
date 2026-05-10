@@ -20,6 +20,7 @@ export function usePerformanceCardsData(activeFilters: Record<string, string>) {
         Object.entries(activeFilters).filter(([, v]) => v !== "")
       );
       if (days > 0) params.days = days;
+      if (brand) params.brand = brand;
 
       const [audRes, retRes] = await Promise.allSettled([
         executiveService.getAudiences(params),
