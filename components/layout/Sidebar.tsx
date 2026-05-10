@@ -47,19 +47,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-4 py-4 border-t border-[#20283A] hidden lg:block">
-        <div className="rounded-md bg-[#1B2338] p-3">
-          <div className="text-[11px] uppercase tracking-wider text-[#C0C9D9]/60 mb-1">
-            Fuente
-          </div>
-          <div className="text-xs text-white font-medium">
-            BigQuery · TheLook eCommerce
-          </div>
-          <div className="text-[11px] text-[#8B95D6] mt-1">
-            6 materialized views activas
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }
