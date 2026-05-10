@@ -17,7 +17,7 @@ export function ExecutivePerformanceCards({ activeFilters }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Panel
-        title="Audiences"
+        title="Audiencias"
         description="Compradores activos del período"
       >
         <div className={contentClass}>
