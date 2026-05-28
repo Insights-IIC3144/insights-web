@@ -1,0 +1,7 @@
+[
+  { "dimensionName": "Search", "revenue": 482300, "orders": 3120, "unitsSold": 4580 },
+  { "dimensionName": "Organic", "revenue": 298600, "orders": 1980, "unitsSold": 2910 },
+  { "dimensionName": "Email", "revenue": 210400, "orders": 1120, "unitsSold": 1640 },
+  { "dimensionName": "Facebook", "revenue": 168200, "orders": 680, "unitsSold": 1000 },
+  { "dimensionName": "Display", "revenue": 125030, "orders": 318, "unitsSold": 468 }
+]

@@ -9,6 +9,12 @@ const baseURL =
 const auth0 = initAuth0({ baseURL });
 
 export default async function proxy(req: NextRequest) {
+  // Bypass de autenticación exclusivo para tests E2E con Cypress.
+  // Solo activo cuando NODE_ENV !== 'production', nunca se despliega en Vercel.
+  if (process.env.CYPRESS_TESTING === 'true' && process.env.NODE_ENV !== 'production') {
+    return NextResponse.next();
+  }
+
   const res = NextResponse.next();
   const session = await auth0.getSession(req, res);
 
