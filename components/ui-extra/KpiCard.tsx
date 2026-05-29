@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface KpiCardProps {
@@ -7,16 +8,30 @@ interface KpiCardProps {
     delta?: number; // percentage change vs previous period
     hint?: string;
     icon?: React.ReactNode;
+    tooltip?: React.ReactNode;
 }
 
-export function KpiCard({ label, value, delta, hint, icon }: KpiCardProps) {
+export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardProps) {
     const positive = (delta ?? 0) >= 0;
     return (
         <div className="kpi-card">
             <div className="flex items-start justify-between gap-2">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                    {label}
-                </div>
+                {tooltip ? (
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger
+                                render={<div className="text-xs uppercase tracking-wider text-muted-foreground font-medium cursor-help" />}
+                            >
+                                {label}
+                            </TooltipTrigger>
+                            <TooltipContent>{tooltip}</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                ) : (
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                        {label}
+                    </div>
+                )}
                 {icon && <div className="text-muted-foreground">{icon}</div>}
             </div>
             <div className="mt-2 text-2xl font-semibold tracking-tight tabular text-foreground">
