@@ -1,20 +1,8 @@
-/// <reference types="cypress" />
-
-/**
- * Simula una sesión autenticada interceptando las llamadas de contexto y API.
- *
- * El middleware de Next.js (proxy.ts) corre en el edge y no es interceptable por
- * Cypress. Para esquivarlo, el servidor debe arrancarse con CYPRESS_TESTING=true
- * (ver scripts del package.json). Una vez pasada esa barrera, todas las llamadas
- * de datos del cliente sí son interceptables aquí.
- */
-
-// ─── Declaraciones de tipos para los comandos personalizados ─────────────────
-
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
+      // cmds de sales-dashboard
       mockAuthenticatedSession(role?: "retailer_admin" | "brand"): void;
       mockSalesData(overrides?: {
         kpis?: object | null;
@@ -22,12 +10,16 @@ declare global {
         performance?: object | null;
         statusCode?: number;
       }): void;
+
+      // cmds de competitive-positioning
+      mockSession(): Chainable<void>;
+      interceptCompetitiveApi(scenario?: "default" | "empty" | "error"): Chainable<void>;
+      clearSession(): Chainable<void>;
     }
   }
 }
 
-// ─── Implementación ──────────────────────────────────────────────────────────
-
+// sales-dashboard
 Cypress.Commands.add("mockAuthenticatedSession", (role: "retailer_admin" | "brand" = "retailer_admin") => {
   const profile =
     role === "brand"
@@ -102,5 +94,69 @@ Cypress.Commands.add(
     }
   }
 );
+
+// competitive-positioning
+Cypress.Commands.add("clearSession", () => {
+  cy.clearCookies();
+  cy.clearLocalStorage();
+  cy.window().then((win) => win.sessionStorage.clear());
+});
+
+Cypress.Commands.add("mockSession", () => {
+  cy.intercept("GET", "**/api/users/me", {
+    fixture: "user-me.json",
+    statusCode: 200,
+  }).as("getUserMe");
+
+  cy.intercept("GET", "**/api/proxy/filters*", {
+    body: { brands: ["MyBrand", "OtherBrand"] },
+    statusCode: 200,
+  }).as("getFilters");
+});
+
+Cypress.Commands.add("interceptCompetitiveApi", (scenario = "default") => {
+  if (scenario === "default") {
+    cy.intercept("GET", "**/api/proxy/competitive/all**", {
+      fixture: "competitive-all.json",
+      statusCode: 200,
+    }).as("getCompetitiveAll");
+
+    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
+      fixture: "competitive-cards.json",
+      statusCode: 200,
+    }).as("getCompetitiveCards");
+  }
+
+  if (scenario === "empty") {
+    cy.intercept("GET", "**/api/proxy/competitive/all**", {
+      body: [],
+      statusCode: 200,
+    }).as("getCompetitiveAllEmpty");
+
+    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
+      body: {
+        topShareCategory: null,
+        topSharePercentage: null,
+        bestGrowthCategory: null,
+        bestGrowthPercentage: null,
+        worstGrowthCategory: null,
+        worstGrowthPercentage: null,
+      },
+      statusCode: 200,
+    }).as("getCompetitiveCardsEmpty");
+  }
+
+  if (scenario === "error") {
+    cy.intercept("GET", "**/api/proxy/competitive/all**", {
+      statusCode: 500,
+      body: { error: "Internal Server Error" },
+    }).as("getCompetitiveAllError");
+
+    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
+      statusCode: 500,
+      body: { error: "Internal Server Error" },
+    }).as("getCompetitiveCardsError");
+  }
+});
 
 export {};

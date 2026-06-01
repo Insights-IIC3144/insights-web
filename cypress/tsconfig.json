@@ -1,9 +1,17 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["ES2021", "DOM"],
     "types": ["cypress"],
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "isolatedModules": false,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "include": ["./**/*.ts"],
   "exclude": ["../node_modules"]

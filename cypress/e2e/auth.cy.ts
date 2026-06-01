@@ -63,4 +63,5 @@ describe("Authentication and route protection", () => {
       cy.contains("Acceso denegado").should("not.exist");
     });
   });
+
 });
