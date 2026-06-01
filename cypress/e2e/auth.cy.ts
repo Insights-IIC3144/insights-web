@@ -64,4 +64,26 @@ describe("Authentication and route protection", () => {
     });
   });
 
+    it("las rutas del dashboard redirigen a /login", () => {
+      const protectedRoutes = [
+        "/dashboard",
+        "/competitive-positioning",
+        "/sales",
+      ];
+      protectedRoutes.forEach((route) => {
+        cy.visit(route, { failOnStatusCode: false });
+        cy.url().should("include", "/login");
+      });
+    });
+  });
+  context("Logout", () => {
+    it("el endpoint /api/auth/logout responde", () => {
+      cy.request({
+        url: "/api/auth/logout",
+        followRedirect: false,
+        failOnStatusCode: false,
+      }).then((response) => {
+        expect(response.status).to.be.oneOf([200, 302, 307]);
+      });
+  });
 });
