@@ -1,0 +1,67 @@
+[
+  {
+    "category": "Jeans",
+    "brandSales": 125430.5,
+    "categorySales": 892000,
+    "brandVolume": 3210,
+    "categoryVolume": 22400,
+    "salesBenchmark": 89200,
+    "volumeBenchmark": 2240,
+    "salesShare": 14.06,
+    "volumeShare": 14.33,
+    "averageBrandPrice": 39.07,
+    "averageBenchmarkPrice": 39.82
+  },
+  {
+    "category": "T-Shirts",
+    "brandSales": 98750,
+    "categorySales": 520000,
+    "brandVolume": 6580,
+    "categoryVolume": 34666,
+    "salesBenchmark": 52000,
+    "volumeBenchmark": 3466,
+    "salesShare": 18.99,
+    "volumeShare": 18.98,
+    "averageBrandPrice": 15.01,
+    "averageBenchmarkPrice": 15
+  },
+  {
+    "category": "Outerwear & Coats",
+    "brandSales": 210800,
+    "categorySales": 680000,
+    "brandVolume": 1420,
+    "categoryVolume": 4533,
+    "salesBenchmark": 68000,
+    "volumeBenchmark": 453,
+    "salesShare": 31,
+    "volumeShare": 31.33,
+    "averageBrandPrice": 148.45,
+    "averageBenchmarkPrice": 150.11
+  },
+  {
+    "category": "Suits & Sport Coats",
+    "brandSales": 44200,
+    "categorySales": 310000,
+    "brandVolume": 210,
+    "categoryVolume": 1476,
+    "salesBenchmark": 31000,
+    "volumeBenchmark": 147,
+    "salesShare": 14.26,
+    "volumeShare": 14.23,
+    "averageBrandPrice": 210.48,
+    "averageBenchmarkPrice": 210.84
+  },
+  {
+    "category": "Swim",
+    "brandSales": 31500,
+    "categorySales": 175000,
+    "brandVolume": 1800,
+    "categoryVolume": 10000,
+    "salesBenchmark": 17500,
+    "volumeBenchmark": 1000,
+    "salesShare": 18,
+    "volumeShare": 18,
+    "averageBrandPrice": 17.5,
+    "averageBenchmarkPrice": 17.5
+  }
+]

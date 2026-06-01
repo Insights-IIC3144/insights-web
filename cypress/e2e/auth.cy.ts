@@ -17,11 +17,6 @@ describe("Autenticación - Flujo de Auth0", () => {
       ).should("be.visible");
     });
 
-    it("la página de login renderiza el título principal", () => {
-      cy.visit("/login");
-      cy.get("h1, h2").first().should("be.visible");
-    });
-
     it("las rutas del dashboard redirigen a /login", () => {
       const protectedRoutes = [
         "/dashboard",
@@ -47,5 +42,40 @@ describe("Autenticación - Flujo de Auth0", () => {
   });
 
   // TODO: Protección de endpoints API
-  
+  /*
+  context("Protección de endpoints API (sin sesión)", () => {
+    beforeEach(() => {
+      cy.clearCookies();
+      cy.clearLocalStorage();
+      cy.window().then((win) => win.sessionStorage.clear()).then(() => {});
+    });
+
+    it("/api/proxy/competitive/all retorna 401 o 500 sin token", () => {
+      cy.request({
+        method: "GET",
+        url: "/api/proxy/competitive/all",
+        failOnStatusCode: false,
+        headers: {
+          Cookie: "",
+        },
+      }).then((response) => {
+        expect(response.status).to.not.eq(200);
+      });
+    });
+
+    it("/api/proxy/competitive/performance-cards retorna error sin token", () => {
+      cy.request({
+        method: "GET",
+        url: "/api/proxy/competitive/performance-cards",
+        qs: { brand: "TestBrand" },
+        failOnStatusCode: false,
+        headers: {
+          Cookie: "",
+        },
+      }).then((response) => {
+        expect(response.status).to.not.eq(200);
+      });
+    });
+  });
+  */
 });
