@@ -1,10 +1,5 @@
 /*
  * E2E Tests: Sales Dashboard (/sales)
- *
- * Prerequisite: the Next.js server must run with CYPRESS_TESTING=true
- * (e.g. CYPRESS_TESTING=true npm run dev) so the Auth0 middleware does not
- * block the routes. All calls to the Java backend are intercepted by Cypress
- * via cy.intercept(), so the backend does not need to be running.
  */
 describe("Sales Dashboard", () => {
   // Common setup: simulated session + mocked backend data
@@ -23,11 +18,6 @@ describe("Sales Dashboard", () => {
     });
 
     it("shows loading skeletons while data is being fetched", () => {
-      // Use the static { delay, fixture } form instead of the callback form.
-      // The callback form has a race condition with React StrictMode's double-invocation:
-      // the first request is caught, but the second (StrictMode) can escape the intercept
-      // and reach the real server, returning 401 and triggering a logout navigation.
-      // The static form handles concurrent requests atomically.
       cy.intercept("GET", "/api/proxy/sales/kpis*", {
         delay: 600,
         fixture: "sales-kpis.json",
@@ -35,14 +25,8 @@ describe("Sales Dashboard", () => {
 
       cy.visit("/sales");
 
-      // Skeletons should be visible during the delay (shadcn Skeleton uses animate-pulse)
       cy.get(".animate-pulse").should("exist");
 
-      // React StrictMode fires effects twice: both KPI requests carry the 600 ms delay,
-      // so the second one is still in-flight when the first cy.wait resolves.
-      // Waiting for the absence of skeletons would be flaky (loading flips back to true
-      // during the second cycle). Instead, wait for the actual fixture value to appear —
-      // it can only render once both StrictMode cycles complete and loading is finally false.
       cy.wait("@salesKpisDelayed");
       cy.wait("@salesCategories");
       cy.wait("@salesPerformance");
@@ -70,10 +54,6 @@ describe("Sales Dashboard", () => {
       cy.visit("/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
 
-      // React StrictMode (active in Next.js dev) runs effects twice: the second run
-      // re-sets loading=true briefly. Waiting for the fixture-derived value to appear
-      // in the DOM is the most reliable barrier — Cypress retries until it's actually there.
-      // Fixture total net revenue: 124300 + 115530 = 239830 → fmtMoney → "$239,830"
       cy.contains("$239,830").should("exist");
 
       cy.get(".kpi-card").should("have.length.at.least", 6);
@@ -124,12 +104,6 @@ describe("Sales Dashboard", () => {
       cy.visit("/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
 
-      // Wait for the first fixture traffic source to appear in the DOM.
-      // This is more reliable than checking for the absence of skeletons because
-      // React StrictMode double-invokes effects, causing loading to briefly flip
-      // back to true between the two cycles. Waiting for actual fixture content
-      // means we only proceed once the full data render has settled.
-      // "Search" only exists in the table (the filter dropdown is closed).
       cy.contains("Search", { timeout: 15000 }).should("exist");
 
       ["Search", "Organic", "Email", "Facebook", "Display"].forEach((source) => {
@@ -207,8 +181,6 @@ describe("Sales Dashboard", () => {
     it("applying a Category filter re-fetches data with the category param", () => {
       cy.mockSalesData();
 
-      // .click() opens the Base UI Select popup (confirmed working).
-      // .realClick() on the item fires real pointer events so onValueChange triggers correctly.
       cy.get("[data-slot='select-trigger']").first().click();
       cy.get("[data-slot='select-item']").contains("Jeans").should("be.visible").realClick();
 
@@ -321,11 +293,11 @@ describe("Sales Dashboard", () => {
 
       cy.visit("/dashboard");
 
-      // Espera mínima para estabilizar el render inicial
+      // Wait for filters to load since Dashboard de Ventas is a filter option and the sidebar is rendered after filters resolve. 
       cy.wait("@filters");
       cy.contains("a", "Dashboard de Ventas").should("be.visible").click();
 
-      // La navegación en App Router puede tardar mientras resuelve data
+      // The URL should update to /sales and the sales dashboard should load
       cy.url().should("include", "/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
       cy.contains("Dashboard de Ventas").should("be.visible");
