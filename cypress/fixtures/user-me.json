@@ -1,0 +1,7 @@
+{
+  "id": "test-user-001",
+  "email": "test@example.com",
+  "name": "Test User",
+  "role": "brand_user",
+  "brand": "MyBrand"
+}
