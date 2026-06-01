@@ -10,8 +10,8 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "cypress:open": "CYPRESS_TESTING=true cypress open",
-    "cypress:run": "CYPRESS_TESTING=true cypress run",
+    "cypress:open": "CYPRESS_TESTING=true cypress open --env CYPRESS_TESTING=true",
+    "cypress:run": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true",
     "test:e2e": "CYPRESS_TESTING=true start-server-and-test dev http://localhost:3000 cypress:run"
   },
   "dependencies": {
@@ -41,6 +41,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "cypress": "^15.15.0",
+    "cypress-real-events": "^1.15.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "16.1.7",
     "postcss": "^8",

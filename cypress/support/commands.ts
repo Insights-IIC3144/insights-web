@@ -23,6 +23,11 @@ declare global {
         statusCode?: number;
       }): void;
     }
+
+    // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
+    interface DefineCustomEnvVariables {
+      CYPRESS_TESTING: boolean;
+    }
   }
 }
 
