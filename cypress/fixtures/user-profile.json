@@ -1,0 +1,8 @@
+{
+  "email": "test-admin@thelook.com",
+  "name": "Test Admin",
+  "role": "retailer_admin",
+  "brand": null,
+  "isActive": true,
+  "retailerName": "TheLook"
+}
