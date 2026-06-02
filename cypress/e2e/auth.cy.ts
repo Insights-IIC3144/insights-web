@@ -3,12 +3,7 @@
  */
 describe("Authentication and route protection", () => {
   context("Unauthenticated user", () => {
-    // These tests verify the Auth0 middleware redirect behaviour.
-    // They require the server to run WITHOUT CYPRESS_TESTING=true (i.e. with the
-    // real middleware active). When the full test suite runs with CYPRESS_TESTING=true
-    // the middleware is bypassed so these tests are permanently skipped here.
-    // To run them, start the server normally (npm run dev) and open Cypress without
-    // the CYPRESS_TESTING env var: npx cypress open
+
     it.skip("visiting /sales redirects to /login", () => {
       cy.visit("/sales", { failOnStatusCode: false });
       cy.url().should("include", "/login");
@@ -47,9 +42,7 @@ describe("Authentication and route protection", () => {
     });
 
     it("clicking Google initiates the Auth0 redirect with the correct connection", () => {
-      // window.location.assign is non-configurable in Chrome/Electron and cannot be stubbed.
-      // Instead, intercept the navigation request at the network level so we can assert
-      // that clicking the button triggers the correct Auth0 redirect URL.
+
       cy.intercept("GET", "/api/auth/login*").as("auth0Login");
 
       cy.contains("Continuar con Google").click();
