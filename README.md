@@ -41,11 +41,20 @@ $ vercel --prod
 ...
 ```
 Next time only `vercel --prod` is necessary.
+---
+# Development
+```bash
+# Install dependencies
+npm install
 
+# Start the development server
+npm run dev
+```
 ---
 
 # Testing
 We use Cypress for End-to-End (E2E) testing.
+Important: The frontend server must be running (npm run dev) before executing any of the test commands below.
 
 ## Run all tests
 ```bash

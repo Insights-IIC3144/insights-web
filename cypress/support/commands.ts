@@ -12,9 +12,15 @@ declare global {
       }): void;
 
       // cmds de competitive-positioning
-      mockSession(): Chainable<void>;
-      interceptCompetitiveApi(scenario?: "default" | "empty" | "error"): Chainable<void>;
-      clearSession(): Chainable<void>;
+      mockCompetitiveData(overrides?: {
+        all?: object | null;
+        statusCode?: number;
+      }): void;
+    }
+
+    // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
+    interface DefineCustomEnvVariables {
+      CYPRESS_TESTING: boolean;
     }
   }
 }
@@ -96,67 +102,34 @@ Cypress.Commands.add(
 );
 
 // competitive-positioning
-Cypress.Commands.add("clearSession", () => {
-  cy.clearCookies();
-  cy.clearLocalStorage();
-  cy.window().then((win) => win.sessionStorage.clear());
-});
+Cypress.Commands.add(
+  "mockCompetitiveData",
+  (overrides?: {
+    all?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
 
-Cypress.Commands.add("mockSession", () => {
-  cy.intercept("GET", "**/api/users/me", {
-    fixture: "user-me.json",
-    statusCode: 200,
-  }).as("getUserMe");
+    // competitive/all
+    if (statusCode !== 200) {
+      cy.intercept("GET", "**/competitive/all*", {
+        statusCode,
+        body: { error: "Server error" }
+      }).as("compAll");
+      return;
+    }
 
-  cy.intercept("GET", "**/api/proxy/filters*", {
-    body: { brands: ["MyBrand", "OtherBrand"] },
-    statusCode: 200,
-  }).as("getFilters");
-});
-
-Cypress.Commands.add("interceptCompetitiveApi", (scenario = "default") => {
-  if (scenario === "default") {
-    cy.intercept("GET", "**/api/proxy/competitive/all**", {
-      fixture: "competitive-all.json",
-      statusCode: 200,
-    }).as("getCompetitiveAll");
-
-    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
-      fixture: "competitive-cards.json",
-      statusCode: 200,
-    }).as("getCompetitiveCards");
+    if (overrides && "all" in overrides) {
+      cy.intercept("GET", "**/competitive/all*", {
+        statusCode: 200,
+        body: overrides.all
+      }).as("compAll");
+    } else {
+      cy.intercept("GET", "**/competitive/all*", {
+        fixture: "competitive-all.json"
+      }).as("compAll");
+    }
   }
-
-  if (scenario === "empty") {
-    cy.intercept("GET", "**/api/proxy/competitive/all**", {
-      body: [],
-      statusCode: 200,
-    }).as("getCompetitiveAllEmpty");
-
-    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
-      body: {
-        topShareCategory: null,
-        topSharePercentage: null,
-        bestGrowthCategory: null,
-        bestGrowthPercentage: null,
-        worstGrowthCategory: null,
-        worstGrowthPercentage: null,
-      },
-      statusCode: 200,
-    }).as("getCompetitiveCardsEmpty");
-  }
-
-  if (scenario === "error") {
-    cy.intercept("GET", "**/api/proxy/competitive/all**", {
-      statusCode: 500,
-      body: { error: "Internal Server Error" },
-    }).as("getCompetitiveAllError");
-
-    cy.intercept("GET", "**/api/proxy/competitive/performance-cards**", {
-      statusCode: 500,
-      body: { error: "Internal Server Error" },
-    }).as("getCompetitiveCardsError");
-  }
-});
+);
 
 export {};

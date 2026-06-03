@@ -1,75 +1,148 @@
-Cypress.on('uncaught:exception', (err, runnable) => {
-  console.error("Error capturado en la app:", err.message);
-  return false;
-});
+/*
+ * E2E Tests: Competitive Positioning Dashboard (/competitive-positioning)
+ */
+describe("Competitive Positioning Dashboard", () => {
+  //Brand
+  context("Role: Brand User", () => {
+    beforeEach(() => {
+      cy.mockAuthenticatedSession("brand");
+      cy.mockCompetitiveData();
+    });
 
-function visitAuthenticated(apiState: "default" | "empty" | "error" = "default") {
-  cy.clearLocalStorage();
-  cy.clearCookies();
-  cy.mockSession();
+    context("Initial page load", () => {
+      it("renders the 'Posicionamiento Competitivo' title and subtitle", () => {
+        cy.visit("/competitive-positioning");
+        cy.contains("Posicionamiento Competitivo").should("be.visible");
+      });
 
-  cy.intercept("GET", "**/api/users/me",    { fixture: "user-me.json" }).as("getUsersMe");
-  cy.intercept("GET", "**/api/auth/me",      { fixture: "user-me.json" }).as("getAuthMe");
-  cy.intercept("GET", "**/api/auth/session", { fixture: "user-me.json" }).as("getAuthSession");
+      it("shows loading skeletons while data is being fetched", () => {
+        cy.intercept("GET", "**/competitive/all*", {
+          delay: 500,
+          fixture: "competitive-all.json",
+        }).as("compAllDelayed");
 
-  cy.interceptCompetitiveApi(apiState);
+        cy.visit("/competitive-positioning");
+        cy.get(".animate-pulse").should("exist");
+        cy.wait("@compAllDelayed");
+        cy.contains("Jeans").should("be.visible");
+      });
 
-  cy.visit("/competitive-positioning");
+      it("shows all KPI cards and insight logic correctly", () => {
+        cy.visit("/competitive-positioning");
+        cy.wait("@compAll");
 
-  cy.url().then((url) => {
-    cy.log("URL ACTUAL DURANTE LA VISITA:", url);
-  });
-  cy.screenshot("estado-antes-del-wait");
+        cy.contains("Share de ventas").should("be.visible");
+        cy.contains("Unidades share").should("be.visible");
+      });
 
-  cy.wait("@getUsersMe", { timeout: 10000 });
+      it("renders the detail table with exact column headers", () => {
+        cy.visit("/competitive-positioning");
+        cy.wait("@compAll");
 
-  if (apiState === "default") {
-    cy.wait("@getCompetitiveAll",   { timeout: 15000 });
-    cy.wait("@getCompetitiveCards", { timeout: 10000 });
-  }
-  if (apiState === "empty") {
-    cy.wait("@getCompetitiveAllEmpty",   { timeout: 15000 });
-    cy.wait("@getCompetitiveCardsEmpty", { timeout: 10000 });
-  }
-  if (apiState === "error") {
-    cy.wait("@getCompetitiveAllError",   { timeout: 15000 });
-    cy.wait("@getCompetitiveCardsError", { timeout: 10000 });
-  }
-
-}
-
-describe("Posicionamiento Competitivo", () => {
-  context("Validación de Contratos de API (Fixtures)", () => {
-
-    it("fixtures deben cumplir con modelo", () => {
-      cy.fixture("competitive-all.json").then((data: any[]) => {
-        expect(data).to.be.an("array").and.not.be.empty;
-
-        const requiredKeys = [
-          "category",
-          "brandSales",
-          "categorySales",
-          "salesShare",
-          "volumeShare",
-          "averageBrandPrice",
-          "averageBenchmarkPrice",
-        ];
-
-        data.forEach((item, idx) => {
-          expect(item, `item[${idx}]`).to.include.keys(...requiredKeys);
-          expect(item.salesShare, `salesShare[${idx}]`).to.be.within(0, 100);
-          expect(item.brandSales, `brandSales[${idx}] debe ser <= categorySales`)
-            .to.be.lte(item.categorySales);
+        const columns = ["Categoría", "Ventas marca", "Ventas categoría", "Share", "Precio marca", "Precio benchmark", "Oportunidad"];
+        columns.forEach((col) => {
+          cy.contains("th", col).should("be.visible");
         });
       });
 
-      cy.fixture("competitive-cards.json").then((data: any) => {
-        if (data.topSharePercentage !== null) {
-          expect(data.topSharePercentage)
-            .to.be.a("number")
-            .and.within(0, 100);
-        }
+      it("renders all fixture rows in the detail table", () => {
+        cy.visit("/competitive-positioning");
+        cy.wait("@compAll");
+
+        ["Jeans", "Shirts", "Sweaters", "Pants"].forEach((category) => {
+          cy.contains("td", category).should("exist");
+        });
       });
+    });
+
+    context("Data filters", () => {
+      beforeEach(() => {
+        cy.visit("/competitive-positioning");
+        cy.wait("@compAll");
+      });
+
+      // Topbar (filter time)
+      it("applying a Time Range filter from Topbar re-fetches data with correct days", () => {
+        cy.mockCompetitiveData();
+        cy.contains("button", "Últimos 90 días").should("be.visible").click();
+        cy.contains("[role='menuitem']", "Últimos 30 días").should("be.visible").click();
+
+        cy.wait("@compAll").then((interception) => {
+          const url = new URL(interception.request.url);
+          expect(url.searchParams.get("days")).to.eq("30");
+        });
+      });
+
+      // Other filters (País, Departamento, Categoría)
+      it("applying Country, Department and Category filters re-fetches data with correct params", () => {
+        // PAÍS
+        cy.mockCompetitiveData();
+        cy.get("[data-slot='select-trigger']").eq(2).click();
+        cy.get("[data-slot='select-item']").contains("United States").should("be.visible").realClick();
+
+        cy.wait("@compAll").then((interception) => {
+          const url = new URL(interception.request.url);
+          expect(url.searchParams.get("country")).to.eq("United States");
+        });
+
+        // DEPARTAMENT
+        cy.mockCompetitiveData();
+        cy.get("[data-slot='select-trigger']").eq(1).click();
+        cy.get("[data-slot='select-item']").contains("Men").should("be.visible").realClick();
+
+        cy.wait("@compAll").then((interception) => {
+          const url = new URL(interception.request.url);
+          expect(url.searchParams.get("department")).to.eq("Men");
+        });
+
+        // CATEGORY
+        cy.mockCompetitiveData();
+        cy.get("[data-slot='select-trigger']").first().click();
+        cy.get("[data-slot='select-item']").contains("Jeans").should("be.visible").realClick();
+
+        cy.wait("@compAll").then((interception) => {
+          const url = new URL(interception.request.url);
+          expect(url.searchParams.get("category")).to.eq("Jeans");
+        });
+      });
+    });
+
+    context("Backend error (500)", () => {
+      it("the page does not crash when endpoints return server error", () => {
+        cy.mockCompetitiveData({ statusCode: 500 });
+        cy.visit("/competitive-positioning");
+
+        cy.contains("Posicionamiento Competitivo").should("be.visible");
+        cy.get("body").should("not.contain", "Unhandled");
+      });
+    });
+  });
+
+  // Retailer Admin
+  context("Role: Retailer Admin", () => {
+    beforeEach(() => {
+      // "retailer_admin" (brand = null)
+      cy.mockAuthenticatedSession("retailer_admin");
+      cy.mockCompetitiveData();
+    });
+
+    it("shows prompt message (empty state) by default", () => {
+      cy.visit("/competitive-positioning");
+      cy.contains("Selecciona una marca en el menú superior").should("be.visible");
+    });
+
+    it("fetches data and renders dashboard when a brand is selected from global menu", () => {
+      cy.visit("/competitive-positioning");
+      cy.contains("Selecciona una marca en el menú superior").should("be.visible");
+      cy.get("header").contains("button","Todas las marcas").click(); // Trigger selector
+      cy.get("[role='menuitem']").contains("Calvin Klein").click(); // brand option
+      cy.wait("@compAll").then((interception) => {
+        const url = new URL(interception.request.url);
+        expect(url.searchParams.get("brand")).to.eq("Calvin Klein");
+      });
+
+      cy.contains("Selecciona una marca en el menú superior").should("not.exist");
+      cy.contains("Jeans").should("be.visible");
     });
   });
 });
