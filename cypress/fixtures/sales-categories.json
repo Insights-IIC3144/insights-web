@@ -1,0 +1,7 @@
+[
+  { "category": "Jeans", "revenue": 312400, "percentage": 31.2 },
+  { "category": "Tops & Tees", "revenue": 248900, "percentage": 24.8 },
+  { "category": "Outerwear & Coats", "revenue": 198600, "percentage": 19.8 },
+  { "category": "Sweaters", "revenue": 152300, "percentage": 15.2 },
+  { "category": "Dresses", "revenue": 88200, "percentage": 8.8 }
+]

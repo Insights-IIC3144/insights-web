@@ -39,7 +39,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Revenue diario">
+      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Ingresos diarios">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />
@@ -63,7 +63,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
         </div>
       </Panel>
 
-      <Panel title="Revenue por categoría" description="Top categorías">
+      <Panel title="Ingresos por categoría" description="Top categorías">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />

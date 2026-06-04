@@ -47,10 +47,10 @@ export function Filters({ showTraffic, showGender, onChange }: Props) {
                 <SlidersHorizontal className="h-3.5 w-3.5" /> Filtros
             </div>
             <FilterSelect placeholder="Categoría" options={categories.map(o => ({ label: o, value: o }))} value={selectedFilters.category} onChange={(v) => handleFilterChange("category", v)} />
-            <FilterSelect placeholder="Department" options={departments.map(o => ({ label: o, value: o }))} value={selectedFilters.department} onChange={(v) => handleFilterChange("department", v)} />
+            <FilterSelect placeholder="Departamento" options={departments.map(o => ({ label: o, value: o }))} value={selectedFilters.department} onChange={(v) => handleFilterChange("department", v)} />
             <FilterSelect placeholder="País" options={countries.map(o => ({ label: o, value: o }))} value={selectedFilters.country} onChange={(v) => handleFilterChange("country", v)} />
             {showGender && <FilterSelect placeholder="Gender" options={genders.map(o => ({ label: o, value: o }))} value={selectedFilters.gender} onChange={(v) => handleFilterChange("gender", v)} />}
-            {showTraffic && <FilterSelect placeholder="Traffic source" options={trafficSources.map(o => ({ label: o, value: o }))} value={selectedFilters.trafficSource} onChange={(v) => handleFilterChange("trafficSource", v)} />}
+            {showTraffic && <FilterSelect placeholder="Fuente de tráfico" options={trafficSources.map(o => ({ label: o, value: o }))} value={selectedFilters.trafficSource} onChange={(v) => handleFilterChange("trafficSource", v)} />}
             <div className="flex-1" />
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleClear}>
                 Limpiar

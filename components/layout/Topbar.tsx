@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Calendar, ChevronDown, Download, LogOut, Search, Store, User as UserIcon
+  Calendar, ChevronDown, LogOut, Moon, Store, Sun, User as UserIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useUserContext } from "@/context/UserContext";
 import Link from "next/link";
+import { type UserProfile } from "@/types/shared";
 
 const RANGE_OPTIONS = [
   { label: "Últimos 7 días", days: 7 },
@@ -23,6 +25,11 @@ const RANGE_OPTIONS = [
   { label: "Últimos 180 días", days: 180 },
   { label: "Último año", days: 365 },
 ];
+
+const ROLE_MAP: Record<UserProfile['role'], string> = {
+  "brand": "Marca",
+  "retailer_admin": "Retailer"
+}
 
 export function Topbar() {
   const {
@@ -35,6 +42,7 @@ export function Topbar() {
   } = useUserContext();
   const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
   const { user } = useUser();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const handleRangeChange = (option: typeof RANGE_OPTIONS[0]) => {
     setRange(option);
@@ -168,12 +176,23 @@ export function Topbar() {
                   <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
                     <div className="flex flex-col gap-0.5">
                       <span>🏪 {profile.retailerName}</span>
-                      <span className="capitalize opacity-70">{profile.role}</span>
+                      <span className="capitalize opacity-70">{ROLE_MAP[profile.role]}</span>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                 </>
               )}
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="cursor-pointer"
+              >
+                {resolvedTheme === "dark"
+                  ? <Sun className="h-4 w-4 mr-2" />
+                  : <Moon className="h-4 w-4 mr-2" />}
+                {resolvedTheme === "dark" ? "Modo claro" : "Modo oscuro"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/perfil" className="cursor-pointer">
                   <UserIcon className="h-4 w-4 mr-2" /> Perfil
@@ -181,7 +200,7 @@ export function Topbar() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-destructive focus:text-destructive cursor-pointer"
+                className="text-destructive focus:text-destructive cursor-pointer focus:bg-destructive/10"
               >
                 <LogOut className="h-4 w-4 mr-2" /> Cerrar sesión
               </DropdownMenuItem>

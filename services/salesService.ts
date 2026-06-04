@@ -3,12 +3,12 @@ import { SalesKpi, SalesByCategory, SalesPerformanceByDimension } from "@/types/
 import { FilterParams } from "@/types/shared";
 
 export const salesService = {
-  getKpis: (params: FilterParams) => 
+  getKpis: (params: FilterParams) =>
     api.get<SalesKpi[]>('/sales/kpis', params as any),
-    
-  getCategorySales: (params: FilterParams) => 
+
+  getCategorySales: (params: FilterParams) =>
     api.get<SalesByCategory[]>('/sales/category-sales', params as any),
 
-  getPerformance: (params: FilterParams) => 
+  getPerformance: (params: FilterParams) =>
     api.get<SalesPerformanceByDimension[]>('/sales/performance', params as any),
 };
