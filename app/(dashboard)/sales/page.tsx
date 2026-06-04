@@ -6,11 +6,18 @@ import { PageHeader } from "@/components/ui-extra/PageHeader";
 import { SalesKpiGrid } from "@/components/dashboard/SalesKpiGrid";
 import { SalesCharts } from "@/components/dashboard/SalesCharts";
 import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
+import { BestWorstProducts } from "@/components/dashboard/BestWorstProducts";
 import { useSalesData } from "@/hooks/useSalesData";
 
 export default function SalesDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { kpis, categorySales, performance, loading } = useSalesData(activeFilters);
+  const [granularity, setGranularity] = useState("monthly");
+  const [topLimit, setTopLimit] = useState(5);
+  const { kpis, categorySales, performance, topProducts, loading } = useSalesData(
+    activeFilters,
+    granularity,
+    topLimit
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -24,8 +31,20 @@ export default function SalesDashboard() {
       </div>
 
       <SalesKpiGrid data={kpis} loading={loading} />
-      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} />
+      <SalesCharts
+        kpis={kpis}
+        categorySales={categorySales}
+        loading={loading}
+        granularity={granularity}
+        onGranularityChange={setGranularity}
+      />
       <PerformanceTable performance={performance} loading={loading} />
+      <BestWorstProducts
+        data={topProducts}
+        loading={loading}
+        limit={topLimit}
+        onLimitChange={setTopLimit}
+      />
     </div>
   );
 }
