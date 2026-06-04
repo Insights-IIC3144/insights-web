@@ -20,3 +20,9 @@ export interface CompetitiveCategory {
     averageBrandPrice: number;
     averageBenchmarkPrice: number;
 }
+
+export interface CompetitiveInsightDto {
+  category: string;
+  opportunityTitle: string;
+  opportunityDescription: string;
+}

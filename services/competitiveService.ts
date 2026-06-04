@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { FilterParams } from "@/types/shared";
-import { CompetitiveCategory, CompetitiveCardsData } from "@/types/competitive";
+import { CompetitiveCategory, CompetitiveCardsData, CompetitiveInsightDto } from "@/types/competitive";
 
 export const competitiveService = {
      getAll: (params: FilterParams) =>
@@ -8,4 +8,7 @@ export const competitiveService = {
 
     getCards: (params: FilterParams & { brand: string }) =>
         api.get<CompetitiveCardsData>("/competitive/performance-cards", params as any),
+
+    getInsights: (params: FilterParams & { brand: string }) =>
+        api.get<CompetitiveInsightDto[]>("/competitive/insights", params as any),
 };

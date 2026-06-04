@@ -1,44 +1,70 @@
 import { useState, useEffect, useMemo } from "react";
 import { competitiveService } from "@/services/competitiveService";
-import { CompetitiveCategory } from "@/types/competitive";
+import { CompetitiveCategory, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
 
 export function useCompetitiveData(activeFilters: Record<string, string>) {
     const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
+    const [insights, setInsights] = useState<CompetitiveInsightDto[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingInsights, setLoadingInsights] = useState(true);
     const { days, selectedBrand: brand } = useUserContext();
 
     useEffect(() => {
         if (!brand || brand.trim() === "") {
             setCategories([]);
+            setInsights([]);
             setLoading(false);
+            setLoadingInsights(false);
             return;
         }
 
-        const fetchData = async () => {
-        setLoading(true);
-        try {
+        let cancelled = false;
+
+        const fetchData = () => {
+            setLoading(true);
+            setLoadingInsights(true);
+            
             const params: FilterParams & { brand: string } = {
                 brand,
                 ...Object.fromEntries(
                     Object.entries(activeFilters).filter(([, v]) => v !== "")
                 ),
-                };
-                if (days > 0) params.days = days;
-            params.brand = brand;
+            };
+            if (days > 0) params.days = days;
 
-            const data = await competitiveService.getAll(params);
-            setCategories(data || []);
-        } catch (err) {
-            console.error("Error fetching competitive data:", err);
-            setCategories([]);
-        } finally {
-            setLoading(false);
-        }
+            // Load categories data
+            competitiveService.getAll(params)
+                .then(data => {
+                    if (cancelled) return;
+                    setCategories(data || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Error fetching competitive data:", err);
+                    if (cancelled) return;
+                    setCategories([]);
+                    setLoading(false);
+                });
+
+            // Load AI insights data in parallel
+            competitiveService.getInsights(params)
+                .then(data => {
+                    if (cancelled) return;
+                    setInsights(data || []);
+                    setLoadingInsights(false);
+                })
+                .catch(err => {
+                    console.error("Error fetching competitive insights:", err);
+                    if (cancelled) return;
+                    setInsights([]);
+                    setLoadingInsights(false);
+                });
         };
 
         fetchData();
+        return () => { cancelled = true; };
     }, [activeFilters, days, brand]);
 
     const stats = useMemo(() => {
@@ -78,7 +104,7 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         }));
 
         const salesShareByCategory = detailByCategory.map((r) => ({ category: r.category, sharePct: r.salesSharePct }));
-        const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct).slice(0, 3);
+        const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct);
 
         return {
             kpis: {
@@ -93,5 +119,5 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         };
     }, [categories]);
 
-    return { loading, stats };
+    return { loading, loadingInsights, insights, stats };
 }
