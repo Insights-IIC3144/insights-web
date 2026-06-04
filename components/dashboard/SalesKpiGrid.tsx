@@ -35,36 +35,42 @@ export function SalesKpiGrid({ data, loading }: Props) {
         value={fmtMoney(revenueNet)}
         hint={`Bruto: ${fmtMoney(revenueGross)}`}
         icon={<DollarSign className="h-4 w-4" />}
+        tooltip="Ingresos generados por la marca después de descartar devoluciones y cancelaciones. Es el valor neto realmente percibido por las ventas del período."
       />
       <KpiCard
         label="Total Pedidos"
         value={fmtNum(totalOrders)}
         hint=""
         icon={<ShoppingCart className="h-4 w-4" />}
+        tooltip="Número total de pedidos realizados en el período. Cada pedido puede contener uno o más productos."
       />
       <KpiCard
         label="Tasa de Pérdida"
         value={`${((lossRate ?? 0) * 100).toFixed(1)}%`}
         hint=""
         icon={<AlertTriangle className="h-4 w-4" />}
+        tooltip="Porcentaje de ítems devueltos o cancelados respecto al total de pedidos. Una tasa alta puede indicar problemas con la calidad del producto o el proceso de venta."
       />
       <KpiCard
         label="Ticket Promedio"
         value={fmtMoney(aov)}
         hint=""
         icon={<TrendingUp className="h-4 w-4" />}
+        tooltip="Ingreso neto promedio por pedido. Se obtiene dividiendo los ingresos netos totales entre el número de pedidos del período."
       />
       <KpiCard
         label="Clientes Únicos"
         value={fmtNum(uniqueCustomers)}
         hint=""
         icon={<Users className="h-4 w-4" />}
+        tooltip="Cantidad de clientes distintos que realizaron al menos una compra en el período. Excluye compras repetidas del mismo cliente."
       />
       <KpiCard
         label="Unidades Vendidas"
         value={fmtNum(unitsSold)}
         hint=""
         icon={<Package className="h-4 w-4" />}
+        tooltip="Total de unidades físicas vendidas en el período, sin considerar devoluciones ni cancelaciones. Un pedido puede contener múltiples unidades."
       />
     </div>
   );
