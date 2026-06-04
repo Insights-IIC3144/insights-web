@@ -24,6 +24,7 @@ interface Props {
   detailByCategory: CategoryDetail[];
   topCategories: CategoryDetail[];
   loading: boolean;
+  onCategorySelect?: (category: string) => void;
 }
 
 const tooltipStyle = {
@@ -35,12 +36,12 @@ const tooltipStyle = {
 
 function getOportunidad(c: CategoryDetail) {
   if (c.salesSharePct < 15) return "Baja participación, evaluar surtido";
-  if (c.priceGapPct > 5)    return "Precio sobre benchmark";
-  if (c.priceGapPct < -5)   return "Precio bajo benchmark, margen";
+  if (c.priceGapPct > 5) return "Precio sobre benchmark";
+  if (c.priceGapPct < -5) return "Precio bajo benchmark, margen";
   return "Posición competitiva";
 }
 
-export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topCategories, loading }: Props) {
+export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topCategories, loading, onCategorySelect }: Props) {
   return (
     <>
       {/* Top categories insight cards */}
@@ -48,24 +49,24 @@ export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topC
         {loading
           ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
           : topCategories.map((c) => (
-              <div key={c.category} className="panel p-5 bg-primary-muted border-primary/20">
-                <div className="flex items-start gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
-                    <div className="font-semibold text-sm mt-0.5">{getOportunidad(c)}</div>
-                  </div>
+            <div key={c.category} className="panel p-5 bg-primary-muted border-primary/20">
+              <div className="flex items-start gap-2 mb-2">
+                <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                <div>
+                  <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
+                  <div className="font-semibold text-sm mt-0.5">{getOportunidad(c)}</div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Tu share es{" "}
-                  <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
-                  Precio promedio marca{" "}
-                  <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
-                  vs benchmark{" "}
-                  <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-                </p>
               </div>
-            ))}
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Tu share es{" "}
+                <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
+                Precio promedio marca{" "}
+                <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
+                vs benchmark{" "}
+                <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+              </p>
+            </div>
+          ))}
       </div>
 
       {/* Charts row */}
@@ -85,7 +86,7 @@ export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topC
                   <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" interval={0} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
-                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -103,8 +104,8 @@ export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topC
                 <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
-                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} />
-                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} />
+                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           )}

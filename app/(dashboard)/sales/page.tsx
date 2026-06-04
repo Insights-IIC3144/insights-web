@@ -20,11 +20,11 @@ export default function SalesDashboard() {
       />
 
       <div className="flex items-center justify-between gap-4">
-        <Filters onChange={setActiveFilters} />
+        <Filters outerValue={activeFilters} onChange={setActiveFilters} />
       </div>
 
       <SalesKpiGrid data={kpis} loading={loading} />
-      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} />
+      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} onCategorySelect={(cat) => setActiveFilters(prev => ({ ...prev, category: cat }))} />
       <PerformanceTable performance={performance} loading={loading} />
     </div>
   );

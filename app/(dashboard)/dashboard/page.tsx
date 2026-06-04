@@ -22,6 +22,7 @@ export default function ExecutiveDashboard() {
       <Filters 
         showGender 
         showTraffic 
+        outerValue={activeFilters}
         onChange={setActiveFilters} 
       />
 
@@ -33,7 +34,8 @@ export default function ExecutiveDashboard() {
       <ExecutiveCharts 
         kpis={kpis} 
         categorySales={categorySales} 
-        loading={loading} 
+        loading={loading}
+        onCategorySelect={(cat) => setActiveFilters(prev => ({ ...prev, category: cat }))}
       />
 
       <ExecutivePerformanceCards activeFilters={activeFilters} />
