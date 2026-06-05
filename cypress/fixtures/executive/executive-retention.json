@@ -1,0 +1,14 @@
+{
+  "recurringBuyers": 120,
+  "avgProductsPerClient": 2.45,
+  "topRetentionChannel": "Email",
+  "competitiveCards": {
+    "topShareCategory": "Jeans",
+    "topSharePercentage": 15.4,
+    "bestGrowthCategory": "Sweaters",
+    "bestGrowthPercentage": 12.5,
+    "worstGrowthCategory": "Outerwear & Coats",
+    "worstGrowthPercentage": -3.2
+  },
+  "hasBrand": true
+}

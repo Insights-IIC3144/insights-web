@@ -16,6 +16,16 @@ declare global {
         all?: object | null;
         statusCode?: number;
       }): void;
+
+      // cmds de executive-dashboard
+      mockExecutiveData(overrides?: {
+        kpis?: object | null;
+        categorySales?: object | null;
+        audiences?: object | null;
+        retention?: object | null;
+        competitiveCards?: object | null;
+        statusCode?: number;
+      }): void;
     }
 
     // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
@@ -76,7 +86,7 @@ Cypress.Commands.add(
     if (overrides && "kpis" in overrides) {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body: overrides.kpis }).as("salesKpis");
     } else {
-      cy.intercept("GET", "/api/proxy/sales/kpis*", { fixture: "sales-kpis.json" }).as("salesKpis");
+      cy.intercept("GET", "/api/proxy/sales/kpis*", { fixture: "sales/sales-kpis.json" }).as("salesKpis");
     }
 
     if (overrides && "categories" in overrides) {
@@ -85,7 +95,7 @@ Cypress.Commands.add(
         body: overrides.categories,
       }).as("salesCategories");
     } else {
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales-categories.json" }).as(
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales/sales-categories.json" }).as(
         "salesCategories"
       );
     }
@@ -96,7 +106,7 @@ Cypress.Commands.add(
         body: overrides.performance,
       }).as("salesPerformance");
     } else {
-      cy.intercept("GET", "/api/proxy/sales/performance*", { fixture: "sales-performance.json" }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/performance*", { fixture: "sales/sales-performance.json" }).as("salesPerformance");
     }
   }
 );
@@ -110,7 +120,6 @@ Cypress.Commands.add(
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
 
-    // competitive/all
     if (statusCode !== 200) {
       cy.intercept("GET", "**/competitive/all*", {
         statusCode,
@@ -126,8 +135,67 @@ Cypress.Commands.add(
       }).as("compAll");
     } else {
       cy.intercept("GET", "**/competitive/all*", {
-        fixture: "competitive-all.json"
+        fixture: "competitive/competitive-all.json"
       }).as("compAll");
+    }
+  }
+);
+
+// executive
+Cypress.Commands.add(
+  "mockExecutiveData",
+  (overrides?: {
+    kpis?: object | null;
+    categorySales?: object | null;
+    audiences?: object | null;
+    retention?: object | null;
+    competitiveCards?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+
+    if (statusCode !== 200) {
+      const errorResponse = { statusCode, body: { error: "Server error" } };
+      cy.intercept("GET", "/api/proxy/executive/kpis*", errorResponse).as("execKpis");
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", errorResponse).as("execCategorySales");
+      cy.intercept("GET", "/api/proxy/executive/audiences*", errorResponse).as("execAudiences");
+      cy.intercept("GET", "/api/proxy/executive/retention*", errorResponse).as("execRetention");
+      return;
+    }
+
+    // KPIs
+    if (overrides && "kpis" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body: overrides.kpis }).as("execKpis");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { fixture: "executive/executive-kpis.json" }).as("execKpis");
+    }
+
+    // Category Sales
+    if (overrides && "categorySales" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode: 200, body: overrides.categorySales }).as("execCategorySales");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { fixture: "executive/executive-sales-categories.json" }).as("execCategorySales");
+    }
+
+    // Audiences
+    if (overrides && "audiences" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode: 200, body: overrides.audiences }).as("execAudiences");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { fixture: "executive/executive-audiences.json" }).as("execAudiences");
+    }
+
+    // Retention
+    if (overrides && "retention" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode: 200, body: overrides.retention }).as("execRetention");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/retention*", { fixture: "executive/executive-retention.json" }).as("execRetention");
+    }
+
+    // Competitive Cards
+    if (overrides && "competitiveCards" in overrides) {
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode: 200, body: overrides.competitiveCards }).as("execCompetitiveCards");
+    } else {
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { fixture: "competitive/competitive-cards.json" }).as("execCompetitiveCards");
     }
   }
 );

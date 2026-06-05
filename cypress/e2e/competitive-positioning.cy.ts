@@ -18,7 +18,7 @@ describe("Competitive Positioning Dashboard", () => {
       it("shows loading skeletons while data is being fetched", () => {
         cy.intercept("GET", "**/competitive/all*", {
           delay: 500,
-          fixture: "competitive-all.json",
+          fixture: "competitive/competitive-all.json",
         }).as("compAllDelayed");
 
         cy.visit("/competitive-positioning");
