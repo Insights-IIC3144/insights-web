@@ -1,11 +1,12 @@
 "use client";
 
 import { NavLink } from "@/components/NavLink";
-import { LayoutDashboard, BarChart3, TrendingUp, Sparkles } from "lucide-react";
+import { LayoutDashboard, BarChart3, TrendingUp, Sparkles, ShoppingBag } from "lucide-react";
 
 const items = [
   { href: "/dashboard", label: "Dashboard Ejecutivo", icon: LayoutDashboard, end: true, ai: false },
   { href: "/sales", label: "Dashboard de Ventas", icon: TrendingUp, end: false, ai: false },
+  { href: "/catalog", label: "Análisis de Catálogo", icon: ShoppingBag, end: false, ai: true },
   { href: "/competitive-positioning", label: "Posicionamiento Competitivo", icon: BarChart3, end: false, ai: false },
 ];
 

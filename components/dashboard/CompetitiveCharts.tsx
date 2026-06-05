@@ -1,4 +1,4 @@
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Panel } from "@/components/ui-extra/Panel";
 import { ChartCard } from "@/components/ui-extra/ChartCard";
@@ -19,12 +19,16 @@ interface CategoryDetail {
   averageBenchmarkPrice: number;
 }
 
+import { CompetitiveInsightDto } from "@/types/competitive";
+
 interface Props {
   salesShareByCategory: { category: string; sharePct: number }[];
   detailByCategory: CategoryDetail[];
   topCategories: CategoryDetail[];
   loading: boolean;
   onCategorySelect?: (category: string) => void;
+  insights?: CompetitiveInsightDto[];
+  loadingInsights?: boolean;
 }
 
 const tooltipStyle = {
@@ -41,7 +45,20 @@ function getOportunidad(c: CategoryDetail) {
   return "Posición competitiva";
 }
 
-export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topCategories, loading, onCategorySelect }: Props) {
+export function CompetitiveCharts({
+  salesShareByCategory,
+  detailByCategory,
+  topCategories,
+  loading,
+  onCategorySelect,
+  insights = [],
+  loadingInsights = false
+}: Props) {
+
+  const getInsightForCategory = (category: string) => {
+    return insights.find(i => i.category === category);
+  };
+
   return (
     <>
       {/* Top categories insight cards */}
@@ -112,6 +129,67 @@ export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topC
         </ChartCard>
       </div>
 
+      {/* Top categories insight cards */}
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          {loadingInsights ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+              <h3 className="text-lg font-semibold text-indigo-600">Generando Insights...</h3>
+            </>
+          ) : (
+            <>
+              <div className="h-8 w-8 rounded-md bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                <Sparkles className="h-4 w-4 text-indigo-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-black tracking-tight">Insights de IA por Categoría</h3>
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap justify-center items-stretch gap-5">
+          {loading
+            ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="w-full md:w-[calc(33.333%-1rem)] h-28 rounded-xl flex-shrink-0" />)
+            : topCategories.map((c) => {
+              const insight = getInsightForCategory(c.category);
+              return (
+                <div key={c.category} className="w-full md:w-[calc(50%-0.67rem)] lg:w-[calc(33.333%-0.84rem)] flex flex-col">
+                  <div className="panel p-5 min-h-[140px] flex flex-col justify-center h-full">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="w-full">
+                        <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
+                        {!loadingInsights && (
+                          <div className="font-semibold text-sm mt-0.5">
+                            {insight?.opportunityTitle || "Posición competitiva"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
+                        <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                      </div>
+                    </div>
+
+                    {loadingInsights ? (
+                      <div className="flex justify-center my-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                        {insight?.opportunityDescription || (
+                          <>
+                            Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.
+                            Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+                          </>
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+
       {/* Detail table */}
       <div className="panel mb-5">
         <div className="p-5 border-b">
@@ -137,19 +215,31 @@ export function CompetitiveCharts({ salesShareByCategory, detailByCategory, topC
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {detailByCategory.map((c) => (
-                  <TableRow key={c.category} className="border-b last:border-0">
-                    <TableCell className="font-medium py-4 px-6">{c.category}</TableCell>
-                    <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.brandSales)}</TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.categorySales)}</TableCell>
-                    <TableCell className="text-right py-4 px-6">
-                      <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.averageBrandPrice)}</TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.averageBenchmarkPrice)}</TableCell>
-                    <TableCell className="text-xs py-4 px-6">{getOportunidad(c)}</TableCell>
-                  </TableRow>
-                ))}
+                {detailByCategory.map((c) => {
+                  const insight = getInsightForCategory(c.category);
+                  return (
+                    <TableRow key={c.category} className="border-b last:border-0">
+                      <TableCell className="font-medium py-4 px-6">{c.category}</TableCell>
+                      <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.brandSales)}</TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.categorySales)}</TableCell>
+                      <TableCell className="text-right py-4 px-6">
+                        <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.averageBrandPrice)}</TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.averageBenchmarkPrice)}</TableCell>
+                      <TableCell className="text-xs py-4 px-6">
+                        {loadingInsights ? (
+                          <div className="flex items-center gap-2 text-indigo-500">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>Analizando...</span>
+                          </div>
+                        ) : (
+                          insight?.opportunityTitle || "Posición competitiva"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
