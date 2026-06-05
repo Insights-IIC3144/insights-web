@@ -108,17 +108,10 @@ export function CompetitiveCharts({
       {/* Top categories insight cards */}
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-3">
-          {loadingInsights ? (
+          {loadingInsights && (
             <>
               <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
               <h3 className="text-lg font-semibold text-indigo-600">Generando Insights...</h3>
-            </>
-          ) : (
-            <>
-              <div className="h-8 w-8 rounded-md bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                <Sparkles className="h-4 w-4 text-indigo-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-black tracking-tight">Insights de IA por Categoría</h3>
             </>
           )}
         </div>
@@ -140,8 +133,11 @@ export function CompetitiveCharts({
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
-                        <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                        {insight?.opportunityTitle ? (
+                          <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
+                        ) : (
+                          <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                        )}
                       </div>
                     </div>
 
