@@ -1,17 +1,60 @@
 import { useState, useEffect, useMemo } from "react";
 import { competitiveService } from "@/services/competitiveService";
-import { CompetitiveCategory } from "@/types/competitive";
+import { CompetitiveCategory, CompetitiveWithPrior } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
 
+function computeKpis(categories: CompetitiveCategory[]) {
+  let sumBrandSales = 0;
+  let sumCategorySales = 0;
+  let sumBrandVolume = 0;
+  let sumCategoryVolume = 0;
+  let sumBenchSales = 0;
+  let sumBenchVolume = 0;
+
+  categories.forEach((c) => {
+    sumBrandSales += c.brandSales;
+    sumCategorySales += c.categorySales;
+    sumBrandVolume += c.brandVolume;
+    sumCategoryVolume += c.categoryVolume;
+    sumBenchSales += c.salesBenchmark;
+    sumBenchVolume += c.volumeBenchmark;
+  });
+
+  const overallSalesShare = sumCategorySales ? (sumBrandSales / sumCategorySales) * 100 : 0;
+  const overallVolumeShare = sumCategoryVolume ? (sumBrandVolume / sumCategoryVolume) * 100 : 0;
+  const avgPriceBrand = sumBrandVolume ? (sumBrandSales / sumBrandVolume) : 0;
+  const avgPriceBench = sumBenchVolume ? (sumBenchSales / sumBenchVolume) : 0;
+  const priceGapPct = avgPriceBench ? ((avgPriceBrand - avgPriceBench) / avgPriceBench) * 100 : 0;
+
+  return { overallSalesShare, overallVolumeShare, avgPriceBrand, priceGapPct };
+}
+
+function computeDeltas(
+  current: ReturnType<typeof computeKpis>,
+  prior: ReturnType<typeof computeKpis>
+) {
+  return {
+    overallSalesShare: current.overallSalesShare - prior.overallSalesShare,
+    overallVolumeShare: current.overallVolumeShare - prior.overallVolumeShare,
+    avgPriceBrand:
+      prior.avgPriceBrand !== 0
+        ? ((current.avgPriceBrand - prior.avgPriceBrand) / prior.avgPriceBrand) * 100
+        : 0,
+    priceGapPct: current.priceGapPct - prior.priceGapPct,
+  };
+}
+
 export function useCompetitiveData(activeFilters: Record<string, string>) {
-    const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
+    const [currentCategories, setCurrentCategories] = useState<CompetitiveCategory[]>([]);
+    const [priorCategories, setPriorCategories] = useState<CompetitiveCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const { days, selectedBrand: brand } = useUserContext();
 
     useEffect(() => {
         if (!brand || brand.trim() === "") {
-            setCategories([]);
+            setCurrentCategories([]);
+            setPriorCategories([]);
             setLoading(false);
             return;
         }
@@ -28,11 +71,13 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
                 if (days > 0) params.days = days;
             params.brand = brand;
 
-            const data = await competitiveService.getAll(params);
-            setCategories(data || []);
+            const data: CompetitiveWithPrior | null = await competitiveService.getAllWithPrior(params);
+            setCurrentCategories(data?.current || []);
+            setPriorCategories(data?.prior || []);
         } catch (err) {
             console.error("Error fetching competitive data:", err);
-            setCategories([]);
+            setCurrentCategories([]);
+            setPriorCategories([]);
         } finally {
             setLoading(false);
         }
@@ -42,33 +87,13 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
     }, [activeFilters, days, brand]);
 
     const stats = useMemo(() => {
-        if (!categories.length) return null;
+        if (!currentCategories.length) return null;
 
-        let sumBrandSales = 0;
-        let sumCategorySales = 0;
-        let sumBrandVolume = 0;
-        let sumCategoryVolume = 0;
-        let sumBenchSales = 0;
-        let sumBenchVolume = 0;
+        const currentKpis = computeKpis(currentCategories);
+        const priorKpis = priorCategories.length ? computeKpis(priorCategories) : currentKpis;
+        const deltas = computeDeltas(currentKpis, priorKpis);
 
-        categories.forEach((c) => {
-            sumBrandSales += c.brandSales;
-            sumCategorySales += c.categorySales;
-            sumBrandVolume += c.brandVolume;
-            sumCategoryVolume += c.categoryVolume;
-            sumBenchSales += c.salesBenchmark;
-            sumBenchVolume += c.volumeBenchmark;
-        });
-
-        const overallSalesShare = sumCategorySales ? (sumBrandSales / sumCategorySales) * 100 : 0;
-        const overallVolumeShare = sumCategoryVolume ? (sumBrandVolume / sumCategoryVolume) * 100 : 0;
-
-        const avgPriceBrand = sumBrandVolume ? (sumBrandSales / sumBrandVolume) : 0;
-        const avgPriceBench = sumBenchVolume ? (sumBenchSales / sumBenchVolume) : 0;
-
-        const priceGapPct = avgPriceBench ? ((avgPriceBrand - avgPriceBench) / avgPriceBench) * 100 : 0;
-
-        const detailByCategory = categories.map((c) => ({
+        const detailByCategory = currentCategories.map((c) => ({
             ...c,
             salesSharePct: c.salesShare * 100,
             volumeSharePct: c.volumeShare * 100,
@@ -81,17 +106,13 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct).slice(0, 3);
 
         return {
-            kpis: {
-                overallSalesShare,
-                overallVolumeShare,
-                avgPriceBrand,
-                priceGapPct,
-            },
+            kpis: currentKpis,
+            deltas,
             detailByCategory,
             salesShareByCategory,
             topCategories,
         };
-    }, [categories]);
+    }, [currentCategories, priorCategories]);
 
     return { loading, stats };
 }

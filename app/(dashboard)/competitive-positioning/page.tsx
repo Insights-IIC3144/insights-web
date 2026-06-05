@@ -20,7 +20,7 @@ export default function CompetitivePositioningPage() {
 
       <Filters outerValue={activeFilters} onChange={setActiveFilters} />
 
-      <CompetitiveKpiGrid kpis={stats?.kpis ?? null} loading={loading} />
+      <CompetitiveKpiGrid kpis={stats?.kpis ?? null} deltas={stats?.deltas ?? null} loading={loading} />
 
       {!loading && stats && (
         <CompetitiveCharts

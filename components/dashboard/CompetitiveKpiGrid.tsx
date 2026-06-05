@@ -10,12 +10,20 @@ interface CompetitiveKpis {
   priceGapPct: number;
 }
 
+interface CompetitiveDeltas {
+  overallSalesShare: number;
+  overallVolumeShare: number;
+  avgPriceBrand: number;
+  priceGapPct: number;
+}
+
 interface Props {
   kpis: CompetitiveKpis | null;
+  deltas?: CompetitiveDeltas | null;
   loading: boolean;
 }
 
-export function CompetitiveKpiGrid({ kpis, loading }: Props) {
+export function CompetitiveKpiGrid({ kpis, deltas, loading }: Props) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
@@ -31,24 +39,28 @@ export function CompetitiveKpiGrid({ kpis, loading }: Props) {
       <KpiCard
         label="Share de ventas"
         value={fmtPct(kpis?.overallSalesShare ?? 0)}
+        delta={deltas?.overallSalesShare}
         icon={<Target className="h-4 w-4" />}
         tooltip="Participación de mercado en valor monetario. Representa los ingresos de la marca como porcentaje del total vendido en dinero dentro de sus categorías."
       />
       <KpiCard
         label="Unidades share"
         value={fmtPct(kpis?.overallVolumeShare ?? 0)}
+        delta={deltas?.overallVolumeShare}
         icon={<Activity className="h-4 w-4" />}
         tooltip="Participación de mercado en volumen. Representa el total de unidades físicas vendidas por la marca como porcentaje del total de unidades de las categorías."
       />
       <KpiCard
         label="Precio promedio marca"
         value={fmtMoney(kpis?.avgPriceBrand ?? 0)}
+        delta={deltas?.avgPriceBrand}
         icon={<DollarSign className="h-4 w-4" />}
         tooltip="Precio de venta unitario promedio de la marca. Se calcula dividiendo los ingresos totales recaudados entre el volumen total de unidades vendidas."
       />
       <KpiCard
         label="Δ Precio benchmark"
         value={fmtPct(kpis?.priceGapPct ?? 0)}
+        delta={deltas?.priceGapPct}
         icon={<TrendingUp className="h-4 w-4" />}
         tooltip="Brecha de precio frente a la competencia. Muestra porcentualmente qué tan caro o barato es el precio promedio de la marca en comparación con el promedio ponderado del resto de los productos en las categorías."
       />
