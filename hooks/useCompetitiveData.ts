@@ -98,8 +98,7 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
                     setInsights(data || []);
                     setLoadingInsights(false);
                 })
-                .catch(err => {
-                    console.error("Error fetching competitive insights:", err);
+                .catch(() => {
                     if (cancelled) return;
                     setInsights([]);
                     setLoadingInsights(false);
@@ -127,7 +126,7 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         }));
 
         const salesShareByCategory = detailByCategory.map((r) => ({ category: r.category, sharePct: r.salesSharePct }));
-        const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct);
+        const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct).slice(0, 3);
 
         return {
             kpis: currentKpis,

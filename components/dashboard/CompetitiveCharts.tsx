@@ -39,10 +39,11 @@ const tooltipStyle = {
 };
 
 function getOportunidad(c: CategoryDetail) {
-  if (c.salesSharePct < 15) return "Baja participación, evaluar surtido";
-  if (c.priceGapPct > 5) return "Precio sobre benchmark";
-  if (c.priceGapPct < -5) return "Precio bajo benchmark, margen";
-  return "Posición competitiva";
+  // TODO: make this fallback more robust, consider multiple metrics and create more specific insights
+  if (c.priceGapPct > 10) return "Precio sobre benchmark, oportunidad de margen";
+  if (c.priceGapPct < -10) return "Precio bajo benchmark, evaluar estrategia de precios";
+  if (c.salesSharePct < 5) return "Baja participación, evaluar surtido";
+  return "No se cuenta con un insight en este momento";
 }
 
 export function CompetitiveCharts({
@@ -61,31 +62,6 @@ export function CompetitiveCharts({
 
   return (
     <>
-      {/* Top categories insight cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-        {loading
-          ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
-          : topCategories.map((c) => (
-            <div key={c.category} className="panel p-5 bg-primary-muted border-primary/20">
-              <div className="flex items-start gap-2 mb-2">
-                <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
-                <div>
-                  <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
-                  <div className="font-semibold text-sm mt-0.5">{getOportunidad(c)}</div>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Tu share es{" "}
-                <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
-                Precio promedio marca{" "}
-                <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
-                vs benchmark{" "}
-                <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-              </p>
-            </div>
-          ))}
-      </div>
-
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <Panel
@@ -159,7 +135,7 @@ export function CompetitiveCharts({
                         <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
                         {!loadingInsights && (
                           <div className="font-semibold text-sm mt-0.5">
-                            {insight?.opportunityTitle || "Posición competitiva"}
+                            {insight?.opportunityTitle || getOportunidad(c)}
                           </div>
                         )}
                       </div>
@@ -234,7 +210,7 @@ export function CompetitiveCharts({
                             <span>Analizando...</span>
                           </div>
                         ) : (
-                          insight?.opportunityTitle || "Posición competitiva"
+                          insight?.opportunityTitle || getOportunidad(c)
                         )}
                       </TableCell>
                     </TableRow>
