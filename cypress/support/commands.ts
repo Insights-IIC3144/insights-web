@@ -22,6 +22,10 @@ declare global {
         performance?: object | null;
         statusCode?: number;
       }): void;
+      mockCompetitiveData(overrides?: {
+        all?: object | null;
+        statusCode?: number;
+      }): void;
     }
 
     // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
@@ -104,6 +108,36 @@ Cypress.Commands.add(
       }).as("salesPerformance");
     } else {
       cy.intercept("GET", "/api/proxy/sales/performance*", { fixture: "sales-performance.json" }).as("salesPerformance");
+    }
+  }
+);
+
+// competitive-positioning
+Cypress.Commands.add(
+  "mockCompetitiveData",
+  (overrides?: {
+    all?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+
+    if (statusCode !== 200) {
+      cy.intercept("GET", "/api/proxy/competitive/all*", { 
+        statusCode, 
+        body: { error: "Internal Server Error" } 
+      }).as("compAll");
+      return;
+    }
+
+    if (overrides && "all" in overrides) {
+      cy.intercept("GET", "/api/proxy/competitive/all*", { 
+        statusCode: 200, 
+        body: overrides.all 
+      }).as("compAll");
+    } else {
+      cy.intercept("GET", "/api/proxy/competitive/all*", { 
+        fixture: "competitive/competitive-all.json" 
+      }).as("compAll");
     }
   }
 );

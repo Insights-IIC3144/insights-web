@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
+import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface CategoryDetail {
   category: string;
@@ -18,8 +19,6 @@ interface CategoryDetail {
   averageBrandPrice: number;
   averageBenchmarkPrice: number;
 }
-
-import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface Props {
   salesShareByCategory: { category: string; sharePct: number }[];
@@ -49,6 +48,14 @@ export function CompetitiveCharts({
   const getInsightForCategory = (category: string) => {
     return insights.find(i => i.category === category);
   };
+
+  const getOportunidad = (c: CategoryDetail) => {
+    if (typeof window !== "undefined" && typeof (window as any).getOportunidad === "function") {
+      return (window as any).getOportunidad(c);
+    }
+    return fmtPct(c.priceGapPct || 0);
+  };
+
   return (
     <>
       {/* Top categories insight cards */}
@@ -139,45 +146,45 @@ export function CompetitiveCharts({
         <div className="flex flex-wrap justify-center items-stretch gap-5">
           {loading
             ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="w-full md:w-[calc(33.333%-1rem)] h-28 rounded-xl flex-shrink-0" />)
-          : topCategories.map((c) => {
-              const insight = getInsightForCategory(c.category);
-              return (
-                <div key={c.category} className="w-full md:w-[calc(50%-0.67rem)] lg:w-[calc(33.333%-0.84rem)] flex flex-col">
-                  <div className="panel p-5 min-h-[140px] flex flex-col justify-center h-full">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="w-full">
-                      <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
-                      {!loadingInsights && (
-                        <div className="font-semibold text-sm mt-0.5">
-                          {insight?.opportunityTitle || "Posición competitiva"}
+            : topCategories.map((c) => {
+                const insight = getInsightForCategory(c.category);
+                return (
+                  <div key={c.category} className="w-full md:w-[calc(50%-0.67rem)] lg:w-[calc(33.333%-0.84rem)] flex flex-col">
+                    <div className="panel p-5 min-h-[140px] flex flex-col justify-center h-full">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="w-full">
+                          <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
+                          {!loadingInsights && (
+                            <div className="font-semibold text-sm mt-0.5">
+                              {insight?.opportunityTitle || "Posición competitiva"}
+                            </div>
+                          )}
                         </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
+                          <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                        </div>
+                      </div>
+                      
+                      {loadingInsights ? (
+                        <div className="flex justify-center my-4">
+                          <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                          {insight?.opportunityDescription || (
+                            <>
+                              Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>. 
+                              Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+                            </>
+                          )}
+                        </p>
                       )}
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
-                      <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
                     </div>
                   </div>
-                  
-                  {loadingInsights ? (
-                    <div className="flex justify-center my-4">
-                      <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                      {insight?.opportunityDescription || (
-                        <>
-                          Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>. 
-                          Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-                        </>
-                      )}
-                    </p>
-                  )}
-                </div>
-                </div>
-              );
-            })}
-      </div>
+                );
+              })}
+        </div>
       </div>
 
       {/* Detail table */}
@@ -235,7 +242,6 @@ export function CompetitiveCharts({
           </div>
         )}
       </div>
-
     </>
   );
 }
