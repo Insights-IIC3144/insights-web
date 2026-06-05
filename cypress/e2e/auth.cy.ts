@@ -20,7 +20,8 @@ describe("Authentication and route protection", () => {
     });
   });
 
-  context("Login page", () => {
+context("Login page", () => {
+
     beforeEach(() => {
       cy.visit("/login");
     });
@@ -41,21 +42,24 @@ describe("Authentication and route protection", () => {
       cy.contains("Continuar con correo corporativo").should("be.visible");
     });
 
-    it("clicking Google initiates the Auth0 redirect with the correct connection", () => {
-      cy.contains("Continuar con Google")
-        .closest("a, button")
-        .should("have.attr", "href")
-        .and("include", "/api/auth/login")
-        .and("include", "connection=google-oauth2");
+   it("clicking Google initiates the Auth0 redirect with the correct connection", () => {
+      cy.intercept("GET", "/api/auth/login*").as("auth0GoogleRedirect");
+      cy.contains("Continuar con Google").click();
+
+      cy.wait("@auth0GoogleRedirect").then((interception) => {
+        const url = new URL(interception.request.url, window.location.origin);
+        expect(url.searchParams.get("connection")).to.eq("google-oauth2");
+      });
     });
 
     it("clicking corporate email initiates the Auth0 redirect", () => {
-      cy.contains("Continuar con correo corporativo")
-        .closest("a, button")
-        .should("have.attr", "href")
-        .and("include", "/api/auth/login");
-    });
+      cy.intercept("GET", "/api/auth/login*").as("auth0CorporateRedirect");
+      cy.contains("Continuar con correo corporativo").click();
 
+      cy.wait("@auth0CorporateRedirect").then((interception) => {
+        expect(interception.request.url).to.include("/api/auth/login");
+      });
+    });
     it("shows the unauthorized access popup when ?error=unauthorized is present", () => {
       cy.visit("/login?error=unauthorized");
       cy.contains("Acceso denegado").should("be.visible");

@@ -20,7 +20,7 @@ describe("Sales Dashboard", () => {
     it("shows loading skeletons while data is being fetched", () => {
       cy.intercept("GET", "/api/proxy/sales/kpis*", {
         delay: 600,
-        fixture: "sales-kpis.json",
+        fixture: "sales/sales-kpis.json",
       }).as("salesKpisDelayed");
 
       cy.visit("/sales");

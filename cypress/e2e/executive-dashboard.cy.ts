@@ -2,17 +2,6 @@
  * E2E Tests: Executive Dashboard (/dashboard)
  */
 describe("Executive Dashboard (/dashboard)", () => {
-
-  // Corrección crítica para evitar que Next.js/Turbopack aborte el test por ChunkLoadErrors de desarrollo locales
-  beforeEach(() => {
-    Cypress.on("uncaught:exception", (err) => {
-      if (err.message.includes("Failed to load chunk") || err.message.includes("react-server-dom-turbopack")) {
-        return false; // Evita que Cypress falle automáticamente el test
-      }
-      return true;
-    });
-  });
-
   context("Role: Brand User", () => {
     beforeEach(() => {
       cy.mockAuthenticatedSession("brand");
@@ -51,13 +40,13 @@ describe("Executive Dashboard (/dashboard)", () => {
         cy.visit("/dashboard");
         cy.wait("@execKpis");
 
-        // Corrección: Validamos de forma flexible para soportar separadores de miles regionales ($15,000 o $15.000)
+        // $15,000 or $15.000 valid 
         cy.contains("Ventas totales").should("be.visible");
         cy.get("body").contains("15").should("be.visible");
-        
+
         cy.contains("Órdenes").should("be.visible");
         cy.contains("75").should("be.visible");
-        
+
         cy.contains("Ticket promedio").should("be.visible");
         cy.get("body").contains("200").should("be.visible");
       });
@@ -71,7 +60,7 @@ describe("Executive Dashboard (/dashboard)", () => {
       it("displays descriptive sub-metrics inside audiences and customer retention panels", () => {
         const customAudiences = { mainChannel: "Online", mainCity: "Santiago", mainAgeRange: "25-34", ageRangePercentage: 42.5 };
         const customRetention = { recurringBuyers: 1250, avgProductsPerClient: 2.34, topRetentionChannel: "Retail" };
-        
+
         cy.mockExecutiveData({ audiences: customAudiences, retention: customRetention });
         cy.visit("/dashboard");
         cy.wait(["@execAudiences", "@execRetention"]);
@@ -81,7 +70,6 @@ describe("Executive Dashboard (/dashboard)", () => {
         cy.contains("Santiago").should("be.visible");
         cy.contains("25-34").should("be.visible");
 
-        // Corrección: Validamos el número de compradores recurrentes de forma inmune a la localización del separador de miles
         cy.contains("Retención de clientes").should("be.visible");
         cy.get("body").contains("250").should("be.visible");
       });
@@ -118,9 +106,8 @@ describe("Executive Dashboard (/dashboard)", () => {
       });
 
       it("applying a Time Range filter from Topbar re-fetches data with correct days query param", () => {
-        // Redefinimos un interceptor fresco con un alias específico para romper la caché del wait anterior
         cy.intercept("GET", "/api/proxy/executive/kpis*").as("timeFilterUpdate");
-        
+
         cy.contains("button", "Últimos 90 días").should("be.visible").click();
         cy.contains("[role='menuitem']", "Últimos 30 días").should("be.visible").click();
 
@@ -131,9 +118,9 @@ describe("Executive Dashboard (/dashboard)", () => {
       });
 
       it("applying Country, Department and Category filters updates network query parameters", () => {
-        // Redefinimos un interceptor único para la acción interactiva de filtros
+        // interceptor filters
         cy.intercept("GET", "/api/proxy/executive/kpis*").as("cascadeFilterUpdate");
-        
+
         cy.get("[data-slot='select-trigger']").first().click();
         cy.get("[data-slot='select-item']").contains("Jeans").should("be.visible").realClick();
 
@@ -169,7 +156,7 @@ describe("Executive Dashboard (/dashboard)", () => {
 
     it("fetches dataset with brand query param upon selecting a brand from global top menu", () => {
       cy.visit("/dashboard");
-      cy.wait("@execKpis"); // Limpiamos la llamada por defecto del montaje inicial
+      cy.wait("@execKpis");
 
       cy.intercept("GET", "/api/proxy/executive/kpis*").as("adminBrandSelection");
 

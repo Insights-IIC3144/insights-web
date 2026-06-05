@@ -11,7 +11,7 @@ interface UserContextValue {
   setDays: (days: number) => void
   selectedBrand: string
   setSelectedBrand: (brand: string) => void
-  availableBrands: string[] // <-- Nuevo: Lista de marcas para el dropdown
+  availableBrands: string[]
 }
 
 const UserContext = createContext<UserContextValue>({
