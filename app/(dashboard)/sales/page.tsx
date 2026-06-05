@@ -10,7 +10,7 @@ import { useSalesData } from "@/hooks/useSalesData";
 
 export default function SalesDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { kpis, categorySales, performance, loading } = useSalesData(activeFilters);
+  const { kpis, deltas, categorySales, performance, loading } = useSalesData(activeFilters);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -23,7 +23,7 @@ export default function SalesDashboard() {
         <Filters outerValue={activeFilters} onChange={setActiveFilters} />
       </div>
 
-      <SalesKpiGrid data={kpis} loading={loading} />
+      <SalesKpiGrid data={kpis} deltas={deltas} loading={loading} />
       <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} onCategorySelect={(cat) => setActiveFilters(prev => ({ ...prev, category: cat }))} />
       <PerformanceTable performance={performance} loading={loading} />
     </div>
