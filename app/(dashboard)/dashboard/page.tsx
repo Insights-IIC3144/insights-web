@@ -10,7 +10,7 @@ import { ExecutivePerformanceCards } from "@/components/dashboard/ExecutivePerfo
 
 export default function ExecutiveDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { kpis, categorySales, loading } = useExecutiveData(activeFilters);
+  const { kpis, deltas, categorySales, loading } = useExecutiveData(activeFilters);
 
   return (
     <div className="space-y-6">
@@ -28,6 +28,7 @@ export default function ExecutiveDashboard() {
 
       <ExecutiveKpiGrid 
         data={kpis} 
+        deltas={deltas} 
         loading={loading} 
       />
 
