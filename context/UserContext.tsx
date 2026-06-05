@@ -57,7 +57,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
             .then(res => res.json())
             .then(filters => {
               if (!cancelled && filters.brands) {
-                setAvailableBrands(filters.brands)
+                const sortedBrands = [...filters.brands].sort((a: string, b: string) => 
+                  a.localeCompare(b)
+                );
+                setAvailableBrands(sortedBrands);
               }
             })
             .catch(err => console.error("Error cargando filtros en segundo plano:", err))
