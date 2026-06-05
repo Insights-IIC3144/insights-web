@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AreaChart, Area, LineChart, Line, ComposedChart, Bar,
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+  BarChart, ResponsiveContainer, Tooltip,
   XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
 import { SalesKpi, SalesByCategory } from "@/types/sales";
@@ -22,13 +22,6 @@ const TOOLTIP_STYLE = {
   color: "hsl(var(--popover-foreground))",
 };
 
-const PIE_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-];
 /*
 function ChartCard({
   title,
@@ -113,28 +106,18 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
             <Skeleton className="h-[300px] w-full" />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={catData}
-                  dataKey="revenue"
-                  nameKey="category"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {catData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
+              <BarChart data={catData} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
+                <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={110} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos"]} />
-                <Legend />
-              </PieChart>
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
-        <ChartCard title="Órdenes vs Ingresos Netos"
+        <ChartCard title="Ingresos Netos vs Órdenes"
         subtitle="Compara el volumen de órdenes con los ingresos netos. 
         Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen.">
           {loading ? (
@@ -153,8 +136,8 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
                   }
                 />
                 <Legend />
-                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="revenue" />
-                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="orders" />
+                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="Ingresos netos" />
+                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Órdenes" />
               </ComposedChart>
             </ResponsiveContainer>
           )}

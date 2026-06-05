@@ -51,12 +51,37 @@ export function CompetitiveCharts({
   };
   return (
     <>
+      {/* Top categories insight cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+        {loading
+          ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
+          : topCategories.map((c) => (
+              <div key={c.category} className="panel p-5 bg-primary-muted border-primary/20">
+                <div className="flex items-start gap-2 mb-2">
+                  <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
+                    <div className="font-semibold text-sm mt-0.5">{getOportunidad(c)}</div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Tu share es{" "}
+                  <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
+                  Precio promedio marca{" "}
+                  <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
+                  vs benchmark{" "}
+                  <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+                </p>
+              </div>
+            ))}
+      </div>
+
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <Panel
           className="lg:col-span-2"
           title="Share de ventas por categoría"
-          description="% del revenue de la categoría capturado por tu marca"
+          description="% de los ingresos de la categoría capturados por tu marca"
         >
           <div className="h-72">
             {loading ? (
@@ -211,7 +236,6 @@ export function CompetitiveCharts({
         )}
       </div>
 
-      
     </>
   );
 }

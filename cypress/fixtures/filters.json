@@ -1,0 +1,8 @@
+{
+  "categories": ["Tops & Tees", "Jeans", "Outerwear & Coats", "Sweaters", "Activewear", "Dresses"],
+  "departments": ["Women", "Men"],
+  "countries": ["United States", "Brasil", "China", "España", "Australia"],
+  "trafficSources": ["Search", "Organic", "Email", "Facebook", "Display"],
+  "genders": ["Mujer", "Hombre"],
+  "brands": ["Calvin Klein", "Allegra K", "Levi's", "Carhartt", "Hanes"]
+}
