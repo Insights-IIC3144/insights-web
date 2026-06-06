@@ -1,0 +1,7 @@
+[
+  { "category": "Jeans", "revenue": 5000 },
+  { "category": "Shirts", "revenue": 4000 },
+  { "category": "Sweaters", "revenue": 3000 },
+  { "category": "Pants", "revenue": 2000 },
+  { "category": "Shoes", "revenue": 1000 }
+]
