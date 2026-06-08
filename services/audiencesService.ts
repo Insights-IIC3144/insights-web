@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AudiencesKpis, AudiencesGender, AudiencesAge, AudiencesRfm } from "@/types/audiences";
+import { AudiencesKpis, AudiencesGender, AudiencesAge, AudiencesRfm, AudiencesFunnel } from "@/types/audiences";
 import { FilterParams } from "@/types/shared";
 
 export const audiencesService = {
@@ -14,4 +14,7 @@ export const audiencesService = {
 
   getRfmCohorts: (params: FilterParams) =>
     api.get<AudiencesRfm[]>('/audiences/rfm-cohorts', params as any),
+
+  getFunnel: (params: FilterParams) =>
+    api.get<AudiencesFunnel[]>('/audiences/funnel', params as any),
 };

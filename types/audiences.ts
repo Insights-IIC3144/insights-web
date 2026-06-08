@@ -26,3 +26,12 @@ export interface AudiencesRfm {
   avgTicket: number;
   customerCount: number;
 }
+
+export interface AudiencesFunnel {
+  trafficSource: string;
+  visitas: number;
+  productViews: number;
+  addToCart: number;
+  purchases: number;
+  conversionRate: number;
+}
