@@ -26,9 +26,14 @@ export const catalogService = {
   },
 
   getInsights: async (params: FilterParams): Promise<AiInsightDto[]> => {
-    const qs = buildQueryString(params);
-    const res = await fetch(`/api/proxy/catalog/insights?${qs}`);
-    
+    // Route through the cached insights endpoint — only brand+category are cache discriminators.
+    // Days and department are intentionally omitted from the insights call.
+    const insightParams = new URLSearchParams();
+    if (params.brand) insightParams.append("brand", params.brand);
+    if (params.category) insightParams.append("category", params.category);
+
+    const res = await fetch(`/api/catalog-insights?${insightParams}`);
+
     if (!res.ok) {
       if (res.status === 404) return [];
       throw new Error(`Failed to fetch catalog insights: ${res.status}`);
