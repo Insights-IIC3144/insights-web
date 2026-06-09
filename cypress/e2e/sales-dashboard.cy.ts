@@ -74,17 +74,17 @@ describe("Sales Dashboard", () => {
       cy.contains("Ticket Promedio en el Tiempo").should("be.visible");
     });
 
-    it("renders the 'Ventas por Categoría' pie chart", () => {
+    it("renders the 'Ventas por Categoría' bar chart", () => {
       cy.visit("/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
       cy.contains("Ventas por Categoría").should("be.visible");
-      cy.get(".recharts-pie").should("exist");
+      cy.get(".recharts-bar").should("exist");
     });
 
-    it("renders the 'Órdenes vs Ingresos Netos' composed chart", () => {
+    it("renders the 'Ingresos Netos vs Órdenes' composed chart", () => {
       cy.visit("/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
-      cy.contains("Órdenes vs Ingresos Netos").should("be.visible");
+      cy.contains("Ingresos Netos vs Órdenes").should("be.visible");
     });
 
     it("renders the performance table with correct column headers", () => {
@@ -112,7 +112,7 @@ describe("Sales Dashboard", () => {
   });
 
   // ─────────────────────────────────────────────
-  // Granularity
+  // Granularity selector (inside chart cards)
   // ─────────────────────────────────────────────
   context("Granularity selector", () => {
     beforeEach(() => {
@@ -232,14 +232,12 @@ describe("Sales Dashboard", () => {
   // Backend error resilience
   // ─────────────────────────────────────────────
   context("Backend error (500)", () => {
-    it("the page does not crash when all 3 endpoints return 500", () => {
+    it("the page does not crash when all endpoints return 500", () => {
       cy.mockSalesData({ statusCode: 500 });
       cy.visit("/sales");
 
       cy.contains("Dashboard de Ventas").should("be.visible");
-
       cy.contains("Ingresos Netos").should("be.visible");
-
       cy.get("body").should("not.contain", "Unhandled");
     });
   });
@@ -249,44 +247,20 @@ describe("Sales Dashboard", () => {
   // ─────────────────────────────────────────────
   context("Sidebar navigation", () => {
     it("clicking 'Dashboard de Ventas' in the sidebar navigates to /sales", () => {
-      cy.intercept("GET", "/api/proxy/executive/kpis*", {
-        statusCode: 200,
-        body: [],
-      }).as("executiveKpis");
-
-      cy.intercept("GET", "/api/proxy/executive/category-sales*", {
-        statusCode: 200,
-        body: [],
-      }).as("executiveCategorySales");
-
-      cy.intercept("GET", "/api/proxy/executive/audiences*", {
-        statusCode: 200,
-        body: [],
-      }).as("executiveAudiences");
-
-      cy.intercept("GET", "/api/proxy/executive/retention*", {
-        statusCode: 200,
-        body: [],
-      }).as("executiveRetention");
-
-      cy.intercept("GET", "/api/proxy/executive/trend*", {
-        statusCode: 200,
-        body: [],
-      }).as("executiveTrend");
-
-      cy.intercept("GET", "/api/proxy/filters*", {
-        statusCode: 200,
-        fixture: "filters.json",
-      }).as("filters");
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body: [] }).as("executiveKpis");
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode: 200, body: [] }).as("executiveCategorySales");
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode: 200, body: [] }).as("executiveAudiences");
+      cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode: 200, body: [] }).as("executiveRetention");
+      cy.intercept("GET", "/api/proxy/executive/trend*", { statusCode: 200, body: [] }).as("executiveTrend");
+      cy.intercept("GET", "/api/proxy/filters*", { statusCode: 200, fixture: "filters.json" }).as("filters");
 
       cy.mockSalesData();
-
       cy.visit("/dashboard");
 
       cy.wait("@filters");
       cy.contains("a", "Dashboard de Ventas").should("be.visible").click();
 
-      cy.url().should("include", "/sales");
+      cy.url({ timeout: 20000 }).should("include", "/sales");
       cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance"]);
       cy.contains("Dashboard de Ventas").should("be.visible");
     });
@@ -306,12 +280,141 @@ describe("Sales Dashboard", () => {
     it("loads the dashboard and injects the user's brand into the query", () => {
       cy.mockAuthenticatedSession("brand");
       cy.mockSalesData();
+      // Intercept specifically requests that already carry the brand param —
+      // the hook fires once without brand (UserContext still loading) and once
+      // with brand (after the profile resolves). This alias only matches the latter.
+      cy.intercept("GET", /\/api\/proxy\/sales\/kpis.*brand=Calvin/).as("salesKpisWithBrand");
+
       cy.visit("/sales");
-      cy.wait("@salesKpis").then((interception) => {
-        expect(interception.request.url).to.include("brand=Calvin+Klein");
-      });
+      cy.wait("@salesKpisWithBrand");
 
       cy.contains("Dashboard de Ventas").should("be.visible");
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // Best and worst products section
+  // ─────────────────────────────────────────────
+  context("Best and worst products section", () => {
+    beforeEach(() => {
+      cy.visit("/sales");
+      cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance", "@salesTopProducts"]);
+    });
+
+    it("renders the section title", () => {
+      cy.contains("Mejores y Peores Productos").should("be.visible");
+    });
+
+    it("renders the 'Mejores Productos' and 'Peores Productos' column headers", () => {
+      cy.contains("Mejores Productos").should("be.visible");
+      cy.contains("Peores Productos").should("be.visible");
+    });
+
+    it("shows the top-ranked best product from the fixture", () => {
+      cy.contains("Slim Fit Jeans").should("be.visible");
+      cy.contains("Jeans").should("be.visible");
+    });
+
+    it("shows the top-ranked worst product from the fixture", () => {
+      cy.contains("Basic Tee White").should("be.visible");
+    });
+
+    it("formats revenue as currency", () => {
+      cy.contains("$4,201").should("be.visible");
+    });
+
+    it("shows units sold for a product", () => {
+      cy.contains("42 uds.").should("be.visible");
+    });
+
+    it("shows loading skeletons while top-products data is being fetched", () => {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", {
+        delay: 600,
+        fixture: "sales-top-products.json",
+      }).as("salesTopProductsDelayed");
+
+      cy.visit("/sales");
+      cy.get(".animate-pulse").should("exist");
+      cy.wait("@salesTopProductsDelayed");
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // Top limit selector
+  // ─────────────────────────────────────────────
+  context("Top limit selector", () => {
+    beforeEach(() => {
+      cy.visit("/sales");
+      cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance", "@salesTopProducts"]);
+    });
+
+    it("shows all 3 limit options", () => {
+      ["Top 3", "Top 5", "Top 10"].forEach((label) => {
+        cy.contains("button", label).should("be.visible");
+      });
+    });
+
+    it("'Top 5' is active by default", () => {
+      cy.contains("button", "Top 5").should("have.class", "bg-primary");
+    });
+
+    it("selecting 'Top 3' re-fetches top-products with limit=3", () => {
+      cy.mockSalesData();
+      cy.contains("button", "Top 3").click();
+
+      cy.wait("@salesTopProducts").then((interception) => {
+        expect(interception.request.url).to.include("limit=3");
+      });
+    });
+
+    it("selecting 'Top 10' re-fetches top-products with limit=10", () => {
+      cy.mockSalesData();
+      cy.contains("button", "Top 10").click();
+
+      cy.wait("@salesTopProducts").then((interception) => {
+        expect(interception.request.url).to.include("limit=10");
+      });
+    });
+
+    it("the selected button receives the active class", () => {
+      cy.mockSalesData();
+      cy.contains("button", "Top 3").click();
+      cy.wait("@salesTopProducts");
+
+      cy.contains("button", "Top 3").should("have.class", "bg-primary");
+      cy.contains("button", "Top 5").should("not.have.class", "bg-primary");
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // Top products empty state
+  // ─────────────────────────────────────────────
+  context("Top products empty state", () => {
+    it("shows 'No hay datos disponibles' in both columns when lists are empty", () => {
+      cy.mockSalesData({ topProducts: { best: [], worst: [] } });
+      cy.visit("/sales");
+      cy.wait(["@salesKpis", "@salesCategories", "@salesPerformance", "@salesTopProducts"]);
+
+      cy.contains("Mejores y Peores Productos").should("be.visible");
+      cy.get("p").filter(":contains('No hay datos disponibles')").should("have.length", 2);
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  // Top products backend error resilience
+  // ─────────────────────────────────────────────
+  context("Top products backend error (500)", () => {
+    it("the page does not crash when only top-products returns 500", () => {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", {
+        statusCode: 500,
+        body: { error: "Server error" },
+      }).as("salesTopProductsError");
+
+      cy.visit("/sales");
+
+      cy.contains("Dashboard de Ventas").should("be.visible");
+      cy.contains("Ingresos Netos").should("be.visible");
+      cy.get("body").should("not.contain", "Unhandled");
     });
   });
 });

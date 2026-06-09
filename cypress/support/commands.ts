@@ -20,6 +20,7 @@ declare global {
         kpis?: object | null;
         categories?: object | null;
         performance?: object | null;
+        topProducts?: object | null;
         statusCode?: number;
       }): void;
     }
@@ -63,20 +64,16 @@ Cypress.Commands.add(
     kpis?: object | null;
     categories?: object | null;
     performance?: object | null;
+    topProducts?: object | null;
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
 
     if (statusCode !== 200) {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode, body: { error: "Server error" } }).as("salesKpis");
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", {
-        statusCode,
-        body: { error: "Server error" },
-      }).as("salesCategories");
-      cy.intercept("GET", "/api/proxy/sales/performance*", {
-        statusCode,
-        body: { error: "Server error" },
-      }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { statusCode, body: { error: "Server error" } }).as("salesCategories");
+      cy.intercept("GET", "/api/proxy/sales/performance*", { statusCode, body: { error: "Server error" } }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { statusCode, body: { error: "Server error" } }).as("salesTopProducts");
       return;
     }
 
@@ -87,23 +84,21 @@ Cypress.Commands.add(
     }
 
     if (overrides && "categories" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", {
-        statusCode: 200,
-        body: overrides.categories,
-      }).as("salesCategories");
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { statusCode: 200, body: overrides.categories }).as("salesCategories");
     } else {
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales-categories.json" }).as(
-        "salesCategories"
-      );
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales-categories.json" }).as("salesCategories");
     }
 
     if (overrides && "performance" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/performance*", {
-        statusCode: 200,
-        body: overrides.performance,
-      }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/performance*", { statusCode: 200, body: overrides.performance }).as("salesPerformance");
     } else {
       cy.intercept("GET", "/api/proxy/sales/performance*", { fixture: "sales-performance.json" }).as("salesPerformance");
+    }
+
+    if (overrides && "topProducts" in overrides) {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { statusCode: 200, body: overrides.topProducts }).as("salesTopProducts");
+    } else {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { fixture: "sales-top-products.json" }).as("salesTopProducts");
     }
   }
 );
