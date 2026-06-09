@@ -2,17 +2,10 @@
 
 /**
  * Simula una sesión autenticada interceptando las llamadas de contexto y API.
- *
- * El middleware de Next.js (proxy.ts) corre en el edge y no es interceptable por
- * Cypress. Para esquivarlo, el servidor debe arrancarse con CYPRESS_TESTING=true
- * (ver scripts del package.json). Una vez pasada esa barrera, todas las llamadas
- * de datos del cliente sí son interceptables aquí.
  */
 
-// ─── Declaraciones de tipos para los comandos personalizados ─────────────────
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       mockAuthenticatedSession(role?: "retailer_admin" | "brand"): void;
@@ -25,7 +18,6 @@ declare global {
       }): void;
     }
 
-    // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
     interface DefineCustomEnvVariables {
       CYPRESS_TESTING: boolean;
     }

@@ -280,9 +280,6 @@ describe("Sales Dashboard", () => {
     it("loads the dashboard and injects the user's brand into the query", () => {
       cy.mockAuthenticatedSession("brand");
       cy.mockSalesData();
-      // Intercept specifically requests that already carry the brand param —
-      // the hook fires once without brand (UserContext still loading) and once
-      // with brand (after the profile resolves). This alias only matches the latter.
       cy.intercept("GET", /\/api\/proxy\/sales\/kpis.*brand=Calvin/).as("salesKpisWithBrand");
 
       cy.visit("/sales");
