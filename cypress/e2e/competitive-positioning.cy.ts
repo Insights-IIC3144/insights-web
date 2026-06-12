@@ -21,18 +21,11 @@ describe("Competitive Positioning Dashboard", () => {
     return true;
   });
 
-  const interceptarDatosCompetitivos = (options = {}) => {
-    cy.intercept("GET", "**/competitive/all*", {
-      fixture: "competitive/competitive-all.json",
-      ...options
-    }).as("compAll");
-  };
-
   // Brand User
   context("Role: Brand User", () => {
     beforeEach(() => {
       cy.mockAuthenticatedSession("brand");
-      interceptarDatosCompetitivos();
+      cy.mockCompetitiveData();
     });
 
     context("Initial page load", () => {
@@ -63,6 +56,7 @@ describe("Competitive Positioning Dashboard", () => {
       it("renders the detail table with exact column headers", () => {
         cy.visit("/competitive-positioning");
         cy.wait("@compAll");
+        //cy.contains("Share de ventas", { timeout: 10000 }).should("be.visible");
 
         const columns = ["Categoría", "Ventas marca", "Ventas categoría", "Share", "Precio marca", "Precio benchmark", "Oportunidad"];
         columns.forEach((col) => {
@@ -73,6 +67,7 @@ describe("Competitive Positioning Dashboard", () => {
       it("renders all fixture rows in the detail table", () => {
         cy.visit("/competitive-positioning");
         cy.wait("@compAll");
+        //cy.contains("Share de ventas", { timeout: 10000 }).should("be.visible");
 
         ["Jeans", "Shirts", "Sweaters", "Pants"].forEach((category) => {
           cy.contains(category, { timeout: 10000 }).should("be.visible");
@@ -87,10 +82,7 @@ describe("Competitive Positioning Dashboard", () => {
         cy.contains("Share de ventas", { timeout: 10000 }).should("be.visible");
       });
 
-      // Topbar (filter time)
       it("applying a Time Range filter from Topbar re-fetches data with correct days", () => {
-        interceptarDatosCompetitivos();
-        
         cy.contains("button", "Últimos 90 días", { timeout: 10000 }).should("be.visible").click({ force: true });
         cy.get("[role='menuitem']").contains("Últimos 30 días").should("be.visible").click({ force: true });
 
@@ -100,12 +92,9 @@ describe("Competitive Positioning Dashboard", () => {
         });
       });
 
-      // PAÍS
       it("applying Country filter re-fetches data with correct params", () => {
-        interceptarDatosCompetitivos();
-        
-        cy.get("[data-slot='select-trigger']").eq(2).should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']", { timeout: 8000 }).contains("United States").should("be.visible").click({ force: true });
+        cy.get("[data-slot='select-trigger']").eq(2).click();
+        cy.get("[data-slot='select-item']").contains(/^United States$/).should("be.visible").realClick();
 
         cy.wait("@compAll").then((interception) => {
           const url = new URL(interception.request.url);
@@ -113,12 +102,9 @@ describe("Competitive Positioning Dashboard", () => {
         });
       });
 
-      // DEPARTAMENTO
       it("applying Department filter re-fetches data with correct params", () => {
-        interceptarDatosCompetitivos();
-        
-        cy.get("[data-slot='select-trigger']").eq(1).should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']", { timeout: 8000 }).contains("Men").should("be.visible").click({ force: true });
+        cy.get("[data-slot='select-trigger']").eq(1).click();
+        cy.get("[data-slot='select-item']").contains(/^Men$/).should("be.visible").realClick();
 
         cy.wait("@compAll").then((interception) => {
           const url = new URL(interception.request.url);
@@ -126,12 +112,9 @@ describe("Competitive Positioning Dashboard", () => {
         });
       });
 
-      // CATEGORÍA
       it("applying Category filter re-fetches data with correct params", () => {
-        interceptarDatosCompetitivos();
-        
-        cy.get("[data-slot='select-trigger']").first().should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']", { timeout: 8000 }).contains("Jeans").should("be.visible").click({ force: true });
+        cy.get("[data-slot='select-trigger']").first().click();
+        cy.get("[data-slot='select-item']").contains(/^Jeans$/).should("be.visible").realClick();
 
         cy.wait("@compAll").then((interception) => {
           const url = new URL(interception.request.url);
@@ -139,28 +122,21 @@ describe("Competitive Positioning Dashboard", () => {
         });
       });
 
-     // COMBINATION OF FILTERS
       it("applying multiple filters consecutively accumulates all query parameters", () => {
-        // Time Range (Topbar)
-        interceptarDatosCompetitivos();
         cy.contains("button", "Últimos 90 días", { timeout: 10000 }).should("be.visible").click({ force: true });
         cy.get("[role='menuitem']").contains("Últimos 30 días").should("be.visible").click({ force: true });
         cy.wait("@compAll");
 
-        // País
-        interceptarDatosCompetitivos();
-        cy.get("[data-slot='select-trigger']").eq(2).should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']").contains("United States").should("be.visible").click({ force: true });
+        cy.get("[data-slot='select-trigger']").eq(2).click();
+        cy.get("[data-slot='select-item']").contains(/^United States$/).should("be.visible").realClick();
         cy.wait("@compAll");
-        // Department
-        interceptarDatosCompetitivos();
-        cy.get("[data-slot='select-trigger']").eq(1).should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']").contains("Men").should("be.visible").click({ force: true });
+
+        cy.get("[data-slot='select-trigger']").eq(1).click();
+        cy.get("[data-slot='select-item']").contains(/^Men$/).should("be.visible").realClick();
         cy.wait("@compAll");
-        // Category
-        interceptarDatosCompetitivos();
-        cy.get("[data-slot='select-trigger']").first().should("be.visible").click({ force: true });
-        cy.get("[data-slot='select-item']").contains("Jeans").should("be.visible").click({ force: true });
+
+        cy.get("[data-slot='select-trigger']").first().click();
+        cy.get("[data-slot='select-item']").contains(/^Jeans$/).should("be.visible").realClick();
 
         cy.wait("@compAll").then((interception) => {
           const url = new URL(interception.request.url);
@@ -174,7 +150,7 @@ describe("Competitive Positioning Dashboard", () => {
 
     context("Backend error (500)", () => {
       it("the page does not crash when endpoints return server error", () => {
-        interceptarDatosCompetitivos({ statusCode: 500 });
+        cy.mockCompetitiveData({ statusCode: 500 });
         cy.visit("/competitive-positioning", { failOnStatusCode: false });
 
         cy.contains("Posicionamiento Competitivo", { timeout: 10000 }).should("be.visible");
@@ -187,7 +163,7 @@ describe("Competitive Positioning Dashboard", () => {
   context("Role: Retailer Admin", () => {
     beforeEach(() => {
       cy.mockAuthenticatedSession("retailer_admin");
-      interceptarDatosCompetitivos();
+      cy.mockCompetitiveData();
     });
 
     it("shows prompt message (empty state) by default", () => {

@@ -130,23 +130,30 @@ Cypress.Commands.add(
     const statusCode = overrides?.statusCode ?? 200;
 
     if (statusCode !== 200) {
-      cy.intercept("GET", "/api/proxy/competitive/all*", { 
-        statusCode, 
-        body: { error: "Internal Server Error" } 
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        statusCode,
+        body: { error: "Internal Server Error" },
       }).as("compAll");
+      cy.intercept("GET", "/api/proxy/competitive/insights*", {
+        statusCode,
+        body: { error: "Internal Server Error" },
+      }).as("compInsights");
       return;
     }
 
     if (overrides && "all" in overrides) {
-      cy.intercept("GET", "/api/proxy/competitive/all*", { 
-        statusCode: 200, 
-        body: overrides.all 
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        statusCode: 200,
+        body: overrides.all,
       }).as("compAll");
     } else {
-      cy.intercept("GET", "/api/proxy/competitive/all*", { 
-        fixture: "competitive/competitive-all.json" 
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        fixture: "competitive/competitive-all.json",
       }).as("compAll");
     }
+    cy.intercept("GET", "/api/proxy/competitive/insights*", {
+      body: [],
+    }).as("compInsights");
   }
 );
 
@@ -162,45 +169,46 @@ Cypress.Commands.add(
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
-
+ 
     if (statusCode !== 200) {
       const errorBody = { error: "Internal Server Error" };
       cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode, body: errorBody }).as("execKpis");
       cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode, body: errorBody }).as("execCategorySales");
       cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode, body: errorBody }).as("execAudiences");
       cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode, body: errorBody }).as("execRetention");
-      cy.intercept("GET", "**/api/proxy/competitive/all*", { statusCode, body: errorBody }).as("execCompetitiveCards");
+      // FIX: ruta corregida de competitive/all → competitive/performance-cards
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode, body: errorBody }).as("execCompetitiveCards");
       return;
     }
-
+ 
     if (overrides && "kpis" in overrides) {
       cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body: overrides.kpis }).as("execKpis");
     } else {
       cy.intercept("GET", "/api/proxy/executive/kpis*", { fixture: "executive/executive-kpis.json" }).as("execKpis");
     }
-
+ 
     if (overrides && "categorySales" in overrides) {
       cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode: 200, body: overrides.categorySales }).as("execCategorySales");
     } else {
       cy.intercept("GET", "/api/proxy/executive/category-sales*", { fixture: "executive/executive-category-sales.json" }).as("execCategorySales");
     }
-
+ 
     if (overrides && "audiences" in overrides) {
       cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode: 200, body: overrides.audiences }).as("execAudiences");
     } else {
       cy.intercept("GET", "/api/proxy/executive/audiences*", { fixture: "executive/executive-audiences.json" }).as("execAudiences");
     }
-
+ 
     if (overrides && "retention" in overrides) {
       cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode: 200, body: overrides.retention }).as("execRetention");
     } else {
       cy.intercept("GET", "/api/proxy/executive/retention*", { fixture: "executive/executive-retention.json" }).as("execRetention");
     }
-
+ 
     if (overrides && "competitiveCards" in overrides) {
-      cy.intercept("GET", "**/api/proxy/competitive/all*", { statusCode: 200, body: overrides.competitiveCards }).as("execCompetitiveCards");
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode: 200, body: overrides.competitiveCards }).as("execCompetitiveCards");
     } else {
-      cy.intercept("GET", "**/api/proxy/competitive/all*", { fixture: "executive/executive-competitive-cards.json" }).as("execCompetitiveCards");
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { fixture: "executive/executive-competitive-cards.json" }).as("execCompetitiveCards");
     }
   }
 );
