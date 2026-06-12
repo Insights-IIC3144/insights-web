@@ -1,21 +1,24 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui-extra/InfoTooltip";
 
 interface KpiCardProps {
     label: string;
     value: string;
-    delta?: number; // percentage change vs previous period
+    delta?: number;
     hint?: string;
     icon?: React.ReactNode;
+    tooltip?: string;
 }
 
-export function KpiCard({ label, value, delta, hint, icon }: KpiCardProps) {
+export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardProps) {
     const positive = (delta ?? 0) >= 0;
     return (
         <div className="kpi-card">
             <div className="flex items-start justify-between gap-2">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium">
                     {label}
+                    {tooltip && <InfoTooltip text={tooltip} />}
                 </div>
                 {icon && <div className="text-muted-foreground">{icon}</div>}
             </div>

@@ -6,13 +6,16 @@ import { CATEGORIES, COUNTRIES, DEPARTMENTS, TRAFFIC_SOURCES } from "@/lib/mock"
 import { FilterParams, FiltersData } from "@/types/shared";
 import { filterService } from "@/services/filterService";
 
+const AGE_RANGES = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
 interface Props {
     showTraffic?: boolean;
     showGender?: boolean;
+    showAge?: boolean;
     onChange?: (filters: Record<string, string>) => void;
 }
 
-export function Filters({ showTraffic, showGender, onChange }: Props) {
+export function Filters({ showTraffic, showGender, showAge, onChange }: Props) {
     const [filters, setFilters] = useState<FiltersData | null>(null);
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
 
@@ -50,6 +53,7 @@ export function Filters({ showTraffic, showGender, onChange }: Props) {
             <FilterSelect placeholder="Departamento" options={departments.map(o => ({ label: o, value: o }))} value={selectedFilters.department} onChange={(v) => handleFilterChange("department", v)} />
             <FilterSelect placeholder="País" options={countries.map(o => ({ label: o, value: o }))} value={selectedFilters.country} onChange={(v) => handleFilterChange("country", v)} />
             {showGender && <FilterSelect placeholder="Gender" options={genders.map(o => ({ label: o, value: o }))} value={selectedFilters.gender} onChange={(v) => handleFilterChange("gender", v)} />}
+            {showAge && <FilterSelect placeholder="Edad" options={AGE_RANGES.map(o => ({ label: o, value: o }))} value={selectedFilters.ageRange} onChange={(v) => handleFilterChange("ageRange", v)} />}
             {showTraffic && <FilterSelect placeholder="Fuente de tráfico" options={trafficSources.map(o => ({ label: o, value: o }))} value={selectedFilters.trafficSource} onChange={(v) => handleFilterChange("trafficSource", v)} />}
             <div className="flex-1" />
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleClear}>

@@ -22,6 +22,14 @@ declare global {
         performance?: object | null;
         statusCode?: number;
       }): void;
+      mockAudiencesData(overrides?: {
+        kpis?: object | null;
+        gender?: object | null;
+        age?: object | null;
+        rfm?: object | null;
+        funnel?: object | null;
+        statusCode?: number;
+      }): void;
       mockCompetitiveData(overrides?: {
         all?: object | null;
         statusCode?: number;
@@ -120,6 +128,81 @@ Cypress.Commands.add(
   }
 );
 
+Cypress.Commands.add(
+  "mockAudiencesData",
+  (overrides?: {
+    kpis?: object | null;
+    gender?: object | null;
+    age?: object | null;
+    rfm?: object | null;
+    funnel?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+
+    if (statusCode !== 200) {
+      cy.intercept("GET", "/api/proxy/audiences/kpis*", { statusCode, body: { error: "Server error" } }).as("audiencesKpis");
+      cy.intercept("GET", "/api/proxy/audiences/gender-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesGender");
+      cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesAge");
+      cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode, body: { error: "Server error" } }).as("audiencesRfm");
+      cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode, body: { error: "Server error" } }).as("audiencesFunnel");
+      return;
+    }
+
+    if (overrides && "kpis" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/kpis*", { statusCode: 200, body: overrides.kpis }).as("audiencesKpis");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/kpis*", {
+        statusCode: 200,
+        body: { uniqueCustomers: 12480, ordersPerCustomer: 1.8, avgRecencyDays: 42, avgTicketPerCustomer: 128.5 },
+      }).as("audiencesKpis");
+    }
+
+    if (overrides && "gender" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/gender-breakdown*", { statusCode: 200, body: overrides.gender }).as("audiencesGender");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/gender-breakdown*", {
+        statusCode: 200,
+        body: [
+          { gender: "F", customerCount: 7120, percentage: 57.1 },
+          { gender: "M", customerCount: 5360, percentage: 42.9 },
+        ],
+      }).as("audiencesGender");
+    }
+
+    if (overrides && "age" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode: 200, body: overrides.age }).as("audiencesAge");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", {
+        statusCode: 200,
+        body: [
+          { ageRange: "18-24", customerCount: 2100 },
+          { ageRange: "25-34", customerCount: 4300 },
+          { ageRange: "35-44", customerCount: 3200 },
+          { ageRange: "45+", customerCount: 2880 },
+        ],
+      }).as("audiencesAge");
+    }
+
+    if (overrides && "rfm" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode: 200, body: overrides.rfm }).as("audiencesRfm");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", {
+        statusCode: 200,
+        body: [
+          { recencyDays: 15, avgFrequency: 3.2, avgTicket: 145.0, customerCount: 980 },
+          { recencyDays: 60, avgFrequency: 1.8, avgTicket: 112.0, customerCount: 2340 },
+        ],
+      }).as("audiencesRfm");
+    }
+
+    if (overrides && "funnel" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode: 200, body: overrides.funnel }).as("audiencesFunnel");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/funnel*", { fixture: "audiences-funnel.json" }).as("audiencesFunnel");
+    }
+  }
+);
 // competitive-positioning
 Cypress.Commands.add(
   "mockCompetitiveData",
@@ -176,7 +259,6 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode, body: errorBody }).as("execCategorySales");
       cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode, body: errorBody }).as("execAudiences");
       cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode, body: errorBody }).as("execRetention");
-      // FIX: ruta corregida de competitive/all → competitive/performance-cards
       cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode, body: errorBody }).as("execCompetitiveCards");
       return;
     }
