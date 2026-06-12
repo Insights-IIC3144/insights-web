@@ -27,6 +27,8 @@ export function useCatalogData(localFilters: Record<string, string>) {
 
       setLoadingProducts(true);
       setLoadingInsights(true);
+      setProducts([]);
+      setInsights([]);
 
       const params = {
         days,
@@ -77,6 +79,7 @@ export function useCatalogData(localFilters: Record<string, string>) {
   const refetchInsights = () => {
     if (!days) return;
     setLoadingInsights(true);
+    setInsights([]);
     const params = {
       days,
       brand: brand === "" ? "all" : brand,
@@ -111,6 +114,26 @@ export function useCatalogData(localFilters: Record<string, string>) {
       });
   };
 
+  const replaceInsight = async (oldInsightId: string, excludeType?: string) => {
+    if (!days) return;
+    const excludeTitles = insights.map(i => i.title);
+    const params = {
+      days,
+      brand: brand === "" ? "all" : brand,
+      category: localFilters.category,
+      department: localFilters.department,
+    };
+    try {
+      const newInsights = await catalogService.regenerateInsight(params, excludeTitles, excludeType);
+      if (newInsights && newInsights.length > 0) {
+        setInsights(prev => prev.map(i => i.id === oldInsightId ? { ...newInsights[0], id: oldInsightId } : i));
+      }
+    } catch (err) {
+      console.error("Error regenerating insight:", err);
+      throw err; // Let the component handle the error state
+    }
+  };
+
   return {
     products,
     insights,
@@ -122,5 +145,6 @@ export function useCatalogData(localFilters: Record<string, string>) {
     loadingProducts,
     loadingInsights,
     refetchInsights,
+    replaceInsight,
   };
 }

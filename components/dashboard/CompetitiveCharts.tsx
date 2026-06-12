@@ -1,5 +1,7 @@
-import { Lightbulb, Loader2, Sparkles } from "lucide-react";
+import React, { useState } from "react";
+import { Lightbulb, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { Panel } from "@/components/ui-extra/Panel";
 import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,6 +30,7 @@ interface Props {
   loading: boolean;
   insights?: CompetitiveInsightDto[];
   loadingInsights?: boolean;
+  onRegenerate?: (category: string) => Promise<void>;
 }
 
 const tooltipStyle = {
@@ -43,39 +46,28 @@ export function CompetitiveCharts({
   topCategories, 
   loading,
   insights = [],
-  loadingInsights = false
+  loadingInsights = false,
+  onRegenerate
 }: Props) {
-  
+  const [regeneratingCategories, setRegeneratingCategories] = useState<Record<string, boolean>>({});
+
   const getInsightForCategory = (category: string) => {
     return insights.find(i => i.category === category);
   };
+
+  const handleRegenerate = async (category: string) => {
+    if (!onRegenerate) return;
+    setRegeneratingCategories(prev => ({ ...prev, [category]: true }));
+    try {
+      await onRegenerate(category);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRegeneratingCategories(prev => ({ ...prev, [category]: false }));
+    }
+  };
   return (
     <>
-      {/* Top categories insight cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-        {loading
-          ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
-          : topCategories.map((c) => (
-              <div key={c.category} className="panel p-5 bg-primary-muted border-primary/20">
-                <div className="flex items-start gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
-                    <div className="font-semibold text-sm mt-0.5">{getOportunidad(c)}</div>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Tu share es{" "}
-                  <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.{" "}
-                  Precio promedio marca{" "}
-                  <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span>{" "}
-                  vs benchmark{" "}
-                  <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-                </p>
-              </div>
-            ))}
-      </div>
-
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
         <Panel
@@ -154,12 +146,22 @@ export function CompetitiveCharts({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {onRegenerate && (
+                        <button 
+                          onClick={() => handleRegenerate(c.category)}
+                          disabled={regeneratingCategories[c.category]}
+                          className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 mt-0.5 p-1 bg-white hover:bg-slate-50 rounded border border-primary/20 shadow-sm"
+                          title="Generar nuevo insight"
+                        >
+                          <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
+                        </button>
+                      )}
                       <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
                       <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
                     </div>
                   </div>
                   
-                  {loadingInsights ? (
+                  {loadingInsights || regeneratingCategories[c.category] ? (
                     <div className="flex justify-center my-4">
                       <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
                     </div>
@@ -218,7 +220,7 @@ export function CompetitiveCharts({
                         <TableCell className="text-right tabular-nums py-4 px-6">{fmtMoney(c.averageBrandPrice)}</TableCell>
                         <TableCell className="text-right tabular-nums text-muted-foreground py-4 px-6">{fmtMoney(c.averageBenchmarkPrice)}</TableCell>
                         <TableCell className="text-xs py-4 px-6">
-                          {loadingInsights ? (
+                          {loadingInsights || regeneratingCategories[c.category] ? (
                             <div className="flex items-center gap-2 text-indigo-500">
                               <Loader2 className="h-3 w-3 animate-spin" />
                               <span>Analizando...</span>

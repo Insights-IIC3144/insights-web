@@ -9,7 +9,7 @@ import { useCompetitiveData } from "@/hooks/useCompetitiveData";
 
 export default function CompetitivePositioningPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { loading, loadingInsights, insights, stats } = useCompetitiveData(activeFilters);
+  const { loading, loadingInsights, insights, stats, replaceInsight } = useCompetitiveData(activeFilters);
 
   return (
     <div>
@@ -30,6 +30,7 @@ export default function CompetitivePositioningPage() {
           loading={loading}
           insights={insights}
           loadingInsights={loadingInsights}
+          onRegenerate={replaceInsight}
         />
       )}
 

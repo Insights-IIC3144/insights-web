@@ -25,6 +25,8 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         const fetchData = () => {
             setLoading(true);
             setLoadingInsights(true);
+            setCategories([]);
+            setInsights([]);
             
             const params: FilterParams & { brand: string } = {
                 brand,
@@ -119,5 +121,35 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         };
     }, [categories]);
 
-    return { loading, loadingInsights, insights, stats };
+    const replaceInsight = async (targetCategory: string) => {
+        if (!brand) return;
+        const excludeTitles = insights.map(i => i.opportunityTitle);
+        const params: FilterParams & { brand: string, category: string } = {
+            brand,
+            category: targetCategory,
+            ...Object.fromEntries(
+                Object.entries(activeFilters).filter(([, v]) => v !== "")
+            ),
+        };
+        if (days > 0) params.days = days;
+
+        try {
+            const newInsights = await competitiveService.regenerateInsight(params, excludeTitles);
+            if (newInsights && newInsights.length > 0) {
+                setInsights(prev => {
+                    const exists = prev.some(i => i.category === targetCategory);
+                    if (exists) {
+                        return prev.map(i => i.category === targetCategory ? newInsights[0] : i);
+                    } else {
+                        return [...prev, newInsights[0]];
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Error regenerating competitive insight:", err);
+            throw err;
+        }
+    };
+
+    return { loading, loadingInsights, insights, stats, replaceInsight };
 }

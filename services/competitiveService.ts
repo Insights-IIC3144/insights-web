@@ -11,4 +11,13 @@ export const competitiveService = {
 
     getInsights: (params: FilterParams & { brand: string }) =>
         api.get<CompetitiveInsightDto[]>("/competitive/insights", params as any),
+
+    regenerateInsight: (params: FilterParams & { brand: string, category: string }, excludeTitles: string[]) =>
+        api.post<CompetitiveInsightDto[]>("/competitive/insights/regenerate", {
+            brand: params.brand,
+            days: params.days,
+            category: params.category,
+            department: params.department,
+            excludeTitles
+        }),
 };
