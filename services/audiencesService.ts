@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { AudiencesKpis, AudiencesGender, AudiencesAge, AudiencesRfm, AudiencesFunnel } from "@/types/audiences";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 import { FilterParams } from "@/types/shared";
 
 export const audiencesService = {

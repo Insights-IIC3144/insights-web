@@ -9,14 +9,14 @@ import { RfmBubbleChart } from "@/components/dashboard/RfmBubbleChart";
 import { FunnelTable } from "@/components/dashboard/FunnelTable";
 import { AiActionCards } from "@/components/dashboard/AiActionCards";
 import { useAudiencesData } from "@/hooks/useAudiencesData";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 
 const SECTION_IDS = ["audiences-kpis", "audiences-charts", "rfm-chart", "funnel-table"];
 
 function scrollToInsightSection(insight: AiInsightDto) {
   const sectionId = insight.affectedItems?.[0]?.id;
-  const targetId = SECTION_IDS.includes(sectionId ?? "") ? sectionId! : "audiences-kpis";
-  const el = document.getElementById(targetId);
+  if (!sectionId || !SECTION_IDS.includes(String(sectionId))) return;
+  const el = document.getElementById(String(sectionId));
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "start" });
     el.classList.add("ring-2", "ring-indigo-400", "ring-offset-2", "rounded-xl");

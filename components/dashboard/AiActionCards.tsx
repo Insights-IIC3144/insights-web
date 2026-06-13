@@ -1,5 +1,5 @@
 import { Panel } from "@/components/ui-extra/Panel";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
@@ -96,7 +96,7 @@ export function AiActionCards({ insights, loading, onRefresh, onAction, actionLa
 function ActionCard({
   insight,
   onAction,
-  actionLabel,
+  actionLabel = "Ver en dashboard",
 }: {
   insight: AiInsightDto;
   onAction?: (insight: AiInsightDto) => void;
@@ -210,7 +210,7 @@ function ActionCard({
               onClick={() => onAction(insight)}
               className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm"
             >
-              {actionLabel ?? "Ver en dashboard"}
+              {actionLabel}
             </button>
           ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length > 1 ? (
             <DropdownMenu>

@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { audiencesService } from "@/services/audiencesService";
 import { AudiencesKpis, AudiencesGender, AudiencesAge, AudiencesRfm, AudiencesFunnel } from "@/types/audiences";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
 
@@ -15,15 +15,18 @@ export function useAudiencesData(activeFilters: Record<string, string>) {
   const [loading, setLoading] = useState(true);
   const [loadingInsights, setLoadingInsights] = useState(true);
   const { days, selectedBrand: brand } = useUserContext();
+  const mountedRef = useRef(true);
 
-  const buildParams = (): FilterParams => {
+  useEffect(() => () => { mountedRef.current = false; }, []);
+
+  const buildParams = useCallback((): FilterParams => {
     const params: FilterParams = Object.fromEntries(
       Object.entries(activeFilters).filter(([, v]) => v !== "")
     );
     if (days > 0) params.days = days;
     if (brand) params.brand = brand;
     return params;
-  };
+  }, [activeFilters, days, brand]);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,23 +77,24 @@ export function useAudiencesData(activeFilters: Record<string, string>) {
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilters, days, brand]);
+  }, [buildParams]);
 
-  const refetchInsights = () => {
+  const refetchInsights = useCallback(() => {
     setLoadingInsights(true);
     const params = buildParams();
     audiencesService.getInsights(params)
       .then((res) => {
+        if (!mountedRef.current) return;
         if (res) setInsights(res);
         setLoadingInsights(false);
       })
       .catch((err) => {
         console.error("Error refetching audiences insights:", err);
+        if (!mountedRef.current) return;
         setInsights([]);
         setLoadingInsights(false);
       });
-  };
+  }, [buildParams]);
 
   return { kpis, gender, age, rfm, funnel, loading, insights, loadingInsights, refetchInsights };
 }
