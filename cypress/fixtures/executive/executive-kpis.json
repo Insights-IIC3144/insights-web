@@ -1,0 +1,23 @@
+[
+  { 
+    "date": "2026-06-01",
+    "revenue": 6000,
+    "totalOrders": 30,
+    "unitsSold": 60,
+    "uniqueCustomers": 25 
+  },
+
+  { 
+    "date": "2026-06-02",
+    "revenue": 4000,
+    "totalOrders": 20,
+    "unitsSold": 40,
+    "uniqueCustomers": 15
+  },
+  {
+    "date": "2026-06-03",
+    "revenue": 5000,
+    "totalOrders": 25,
+    "unitsSold": 50,
+    "uniqueCustomers": 20 }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "trafficSource": "Email",
+    "visitas": 34238,
+    "productViews": 28500,
+    "addToCart": 18300,
+    "purchases": 4200,
+    "conversionRate": 12.27
+  },
+  {
+    "trafficSource": "Adwords",
+    "visitas": 22772,
+    "productViews": 19000,
+    "addToCart": 11000,
+    "purchases": 2800,
+    "conversionRate": 12.29
+  },
+  {
+    "trafficSource": "YouTube",
+    "visitas": 7748,
+    "productViews": 6300,
+    "addToCart": 3800,
+    "purchases": 900,
+    "conversionRate": 11.62
+  },
+  {
+    "trafficSource": "Facebook",
+    "visitas": 7477,
+    "productViews": 6100,
+    "addToCart": 3500,
+    "purchases": 820,
+    "conversionRate": 10.97
+  },
+  {
+    "trafficSource": "Organic",
+    "visitas": 3750,
+    "productViews": 2900,
+    "addToCart": 1600,
+    "purchases": 380,
+    "conversionRate": 10.13
+  }
+]

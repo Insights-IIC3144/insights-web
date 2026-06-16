@@ -1,5 +1,5 @@
 import { Panel } from "@/components/ui-extra/Panel";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
@@ -14,9 +14,11 @@ interface AiActionCardsProps {
   insights: AiInsightDto[];
   loading: boolean;
   onRefresh?: () => void;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
 }
 
-export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsProps) {
+export function AiActionCards({ insights, loading, onRefresh, onAction, actionLabel }: AiActionCardsProps) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -64,10 +66,9 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
     );
   }
 
-  // Sort insights by impact score descending and limit to 6 for symmetry
   const sortedInsights = [...insights]
     .sort((a, b) => b.impactScore - a.impactScore)
-    .slice(0, 6);
+    .slice(0, 3);
 
   return (
     <div className="space-y-4">
@@ -80,11 +81,11 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
 
       <div className="flex flex-wrap justify-center items-stretch gap-4">
         {sortedInsights.map((insight) => (
-          <div 
-            key={insight.id} 
+          <div
+            key={insight.id}
             className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col"
           >
-            <ActionCard insight={insight} />
+            <ActionCard insight={insight} onAction={onAction} actionLabel={actionLabel} />
           </div>
         ))}
       </div>
@@ -92,7 +93,15 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
   );
 }
 
-function ActionCard({ insight }: { insight: AiInsightDto }) {
+function ActionCard({
+  insight,
+  onAction,
+  actionLabel = "Ver en dashboard",
+}: {
+  insight: AiInsightDto;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
+}) {
   const { setSelectedBrand, availableBrands, selectedBrand } = useUserContext();
 
   const isWarning = insight.type === "warning";
@@ -128,7 +137,8 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
   if (insight.affectedItems && insight.affectedItems.length > 0) {
     insight.affectedItems.forEach(item => {
       const productName = item.name;
-      const matchedBrand = sortedBrands.find(b => 
+      if (!productName) return;
+      const matchedBrand = sortedBrands.find(b =>
         productName.toLowerCase().includes(b.toLowerCase())
       );
       
@@ -189,28 +199,20 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
         </div>
 
         <h4 className="text-base font-medium text-black mb-1.5">{insight.title}</h4>
-        
-        {insight.affectedItems && insight.affectedItems.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs font-medium text-brand-blue mb-1">
-              Afecta a {insight.affectedItems.length} producto(s):
-            </p>
-            <ul className="text-xs text-panel-muted list-disc list-inside space-y-0.5 max-h-16 overflow-y-auto pr-2">
-              {insight.affectedItems.map(item => (
-                <li key={item.id} className="truncate" title={item.name}>
-                  {item.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
+
         <p className="text-sm text-panel-foreground leading-relaxed mb-4">
           {insight.description}
         </p>
 
         <div className="mt-auto flex flex-col gap-2">
-          {(!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length > 1 ? (
+          {onAction ? (
+            <button
+              onClick={() => onAction(insight)}
+              className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm"
+            >
+              {actionLabel}
+            </button>
+          ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length > 1 ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm">
@@ -220,7 +222,7 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="center">
                 {brandsToFilter.map(brand => (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={brand}
                     onClick={() => {
                       setSelectedBrand(brand);
@@ -234,7 +236,7 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length === 1 ? (
-            <button 
+            <button
               onClick={() => {
                 setSelectedBrand(brandsToFilter[0]);
                 window.scrollTo({ top: 0, behavior: "smooth" });
