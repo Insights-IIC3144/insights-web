@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
+import { getOpportunity } from "@/lib/opportunity";
 import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface CategoryDetail {
@@ -36,14 +37,6 @@ const tooltipStyle = {
   borderRadius: "8px",
   fontSize: "12px",
 };
-
-function getOportunidad(c: CategoryDetail) {
-  // TODO: make this fallback more robust, consider multiple metrics and create more specific insights
-  if (c.priceGapPct > 10) return "Precio sobre benchmark, oportunidad de margen";
-  if (c.priceGapPct < -10) return "Precio bajo benchmark, evaluar estrategia de precios";
-  if (c.salesSharePct < 5) return "Baja participación, evaluar surtido";
-  return "No se cuenta con un insight en este momento";
-}
 
 export function CompetitiveCharts({
   salesShareByCategory,
@@ -127,7 +120,7 @@ export function CompetitiveCharts({
                         <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
                         {!loadingInsights && (
                           <div className="font-semibold text-sm mt-0.5">
-                            {insight?.opportunityTitle || getOportunidad(c)}
+                            {insight?.opportunityTitle || getOpportunity(c)}
                           </div>
                         )}
                       </div>
@@ -205,7 +198,7 @@ export function CompetitiveCharts({
                             <span>Analizando...</span>
                           </div>
                         ) : (
-                          insight?.opportunityTitle || getOportunidad(c)
+                          insight?.opportunityTitle || getOpportunity(c)
                         )}
                       </TableCell>
                     </TableRow>
