@@ -7,6 +7,7 @@ import { SalesKpiGrid } from "@/components/dashboard/SalesKpiGrid";
 import { SalesCharts } from "@/components/dashboard/SalesCharts";
 import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
 import { useSalesData } from "@/hooks/useSalesData";
+import { toggleFilter } from "@/lib/utils";
 
 export default function SalesDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -24,7 +25,7 @@ export default function SalesDashboard() {
       </div>
 
       <SalesKpiGrid data={kpis} deltas={deltas} loading={loading} />
-      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} onCategorySelect={(cat) => setActiveFilters(prev => ({ ...prev, category: cat }))} />
+      <SalesCharts kpis={kpis} categorySales={categorySales} loading={loading} onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))} />
       <PerformanceTable performance={performance} loading={loading} />
     </div>
   );

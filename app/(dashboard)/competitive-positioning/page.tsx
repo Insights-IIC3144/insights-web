@@ -6,6 +6,7 @@ import { Filters } from "@/components/ui-extra/Filters";
 import { CompetitiveKpiGrid } from "@/components/dashboard/CompetitiveKpiGrid";
 import { CompetitiveCharts } from "@/components/dashboard/CompetitiveCharts";
 import { useCompetitiveData } from "@/hooks/useCompetitiveData";
+import { toggleFilter } from "@/lib/utils";
 
 export default function CompetitivePositioningPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -28,7 +29,7 @@ export default function CompetitivePositioningPage() {
           detailByCategory={stats.detailByCategory}
           topCategories={stats.topCategories}
           loading={loading}
-          onCategorySelect={(cat) => setActiveFilters(prev => ({ ...prev, category: cat }))}
+          onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))}
           insights={insights}
           loadingInsights={loadingInsights}
         />
