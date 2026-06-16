@@ -1,14 +1,14 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "@/components/ui-extra/InfoTooltip";
 
 interface KpiCardProps {
     label: string;
     value: string;
-    delta?: number; // percentage change vs previous period
+    delta?: number;
     hint?: string;
     icon?: React.ReactNode;
-    tooltip?: React.ReactNode;
+    tooltip?: string;
 }
 
 export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardProps) {
@@ -16,22 +16,10 @@ export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardPro
     return (
         <div className="kpi-card">
             <div className="flex items-start justify-between gap-2">
-                {tooltip ? (
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger
-                                render={<div className="text-xs uppercase tracking-wider text-muted-foreground font-medium cursor-help" />}
-                            >
-                                {label}
-                            </TooltipTrigger>
-                            <TooltipContent>{tooltip}</TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                ) : (
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                        {label}
-                    </div>
-                )}
+                <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                    {label}
+                    {tooltip && <InfoTooltip text={tooltip} />}
+                </div>
                 {icon && <div className="text-muted-foreground">{icon}</div>}
             </div>
             <div className="mt-2 text-2xl font-semibold tracking-tight tabular text-foreground">

@@ -42,3 +42,38 @@ $ vercel --prod
 ```
 
 Next time only `vercel --prod` is necessary.
+---
+# Development
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+---
+
+# Testing
+We use Cypress for End-to-End (E2E) testing.
+Important: The frontend server must be running (npm run dev) before executing any of the test commands below.
+
+## Run all tests
+```bash
+npx cypress run
+```
+
+## Run a specific test file
+
+To run a single test spec, use the `--spec` flag followed by the path to the file:
+
+```bash
+npx cypress run --spec "cypress/e2e/competitive-positioning.cy.ts"
+```
+
+## Open Cypress Test Runner (Interactive UI)
+
+To open the interactive runner and see the browser executing tests in real-time:
+
+```bash
+npx cypress open
+```

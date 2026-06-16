@@ -8,6 +8,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
+import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface CategoryDetail {
   category: string;
@@ -18,8 +19,6 @@ interface CategoryDetail {
   averageBrandPrice: number;
   averageBenchmarkPrice: number;
 }
-
-import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface Props {
   salesShareByCategory: { category: string; sharePct: number }[];
@@ -217,7 +216,6 @@ export function CompetitiveCharts({
           </div>
         )}
       </div>
-
     </>
   );
 }

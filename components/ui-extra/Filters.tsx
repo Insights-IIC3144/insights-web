@@ -6,14 +6,17 @@ import { CATEGORIES, COUNTRIES, DEPARTMENTS, TRAFFIC_SOURCES } from "@/lib/mock"
 import { FilterParams, FiltersData } from "@/types/shared";
 import { filterService } from "@/services/filterService";
 
+const AGE_RANGES = ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"];
+
 interface Props {
     showTraffic?: boolean;
     showGender?: boolean;
+    showAge?: boolean;
     outerValue?: Record<string, string>;
     onChange?: (filters: Record<string, string>) => void;
 }
 
-export function Filters({ showTraffic, showGender, outerValue, onChange }: Props) {
+export function Filters({ showTraffic, showGender, showAge, outerValue, onChange }: Props) {
     const [filters, setFilters] = useState<FiltersData | null>(null);
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
 
@@ -70,6 +73,12 @@ export function Filters({ showTraffic, showGender, outerValue, onChange }: Props
                     options={genders.map(o => ({ label: o, value: o }))}
                     value={activeFilters.gender}
                     onChange={(v) => handleFilterChange("gender", v)} />}
+            {showAge &&
+                <FilterSelect
+                    placeholder="Edad"
+                    options={AGE_RANGES.map(o => ({ label: o, value: o }))}
+                    value={activeFilters.ageRange}
+                    onChange={(v) => handleFilterChange("ageRange", v)} />}
             {showTraffic &&
                 <FilterSelect
                     placeholder="Fuente de tráfico"
@@ -91,7 +100,7 @@ function FilterSelect({ placeholder, options, value, onChange }: {
     onChange?: (v: string) => void;
 }) {
     return (
-        <Select value={value || ""} onValueChange={onChange}>
+        <Select value={value || ""} onValueChange={(v) => onChange?.(v ?? "")}>
             <SelectTrigger className="h-8 w-auto min-w-[130px] text-xs">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
