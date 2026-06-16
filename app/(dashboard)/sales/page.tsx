@@ -8,12 +8,13 @@ import { SalesCharts } from "@/components/dashboard/SalesCharts";
 import { PerformanceTable } from "@/components/dashboard/PerformanceTable";
 import { BestWorstProducts } from "@/components/dashboard/BestWorstProducts";
 import { useSalesData } from "@/hooks/useSalesData";
+import { toggleFilter } from "@/lib/utils";
 
 export default function SalesDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [granularity, setGranularity] = useState("monthly");
   const [topLimit, setTopLimit] = useState(5);
-  const { kpis, categorySales, performance, topProducts, loading } = useSalesData(
+  const { kpis, deltas, categorySales, performance, topProducts, loading } = useSalesData(
     activeFilters,
     granularity,
     topLimit
@@ -27,16 +28,17 @@ export default function SalesDashboard() {
       />
 
       <div className="flex items-center justify-between gap-4">
-        <Filters onChange={setActiveFilters} />
+        <Filters value={activeFilters} onChange={setActiveFilters} />
       </div>
 
-      <SalesKpiGrid data={kpis} loading={loading} />
+      <SalesKpiGrid data={kpis} deltas={deltas} loading={loading} />
       <SalesCharts
         kpis={kpis}
         categorySales={categorySales}
         loading={loading}
         granularity={granularity}
         onGranularityChange={setGranularity}
+        onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))}
       />
       <PerformanceTable performance={performance} loading={loading} />
       <BestWorstProducts

@@ -7,10 +7,11 @@ import { ExecutiveKpiGrid } from "@/components/dashboard/ExecutiveKpiGrid";
 import { ExecutiveCharts } from "@/components/dashboard/ExecutiveCharts";
 import { useExecutiveData } from "@/hooks/useExecutiveData";
 import { ExecutivePerformanceCards } from "@/components/dashboard/ExecutivePerformanceCards";
+import { toggleFilter } from "@/lib/utils";
 
 export default function ExecutiveDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { kpis, categorySales, loading } = useExecutiveData(activeFilters);
+  const { kpis, deltas, categorySales, loading } = useExecutiveData(activeFilters);
 
   return (
     <div className="space-y-6">
@@ -22,18 +23,21 @@ export default function ExecutiveDashboard() {
       <Filters 
         showGender 
         showTraffic 
+        value={activeFilters}
         onChange={setActiveFilters} 
       />
 
       <ExecutiveKpiGrid 
         data={kpis} 
+        deltas={deltas} 
         loading={loading} 
       />
 
       <ExecutiveCharts 
         kpis={kpis} 
         categorySales={categorySales} 
-        loading={loading} 
+        loading={loading}
+        onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))}
       />
 
       <ExecutivePerformanceCards activeFilters={activeFilters} />

@@ -15,6 +15,7 @@ interface Props {
   loading: boolean;
   granularity: string;
   onGranularityChange: (g: string) => void;
+  onCategorySelect?: (category: string) => void;
 }
 
 const TOOLTIP_STYLE = {
@@ -26,7 +27,7 @@ const TOOLTIP_STYLE = {
 };
 
 
-export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange }: Props) {
+export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange, onCategorySelect }: Props) {
   const trendData = kpis.map((k) => ({
     label: k.date,
     revenue: k.revenueNet ?? 0,
@@ -88,7 +89,7 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard title="Ventas por Categoría"
-        subtitle="Distribución de ingresos por categoría de producto.
+          subtitle="Distribución de ingresos por categoría de producto.
         Útil para identificar las categorías más rentables y detectar cambios en el comportamiento de compra.">
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
@@ -99,7 +100,7 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
                 <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={110} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos"]} />
-                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} />
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           )}

@@ -1,3 +1,8 @@
+export interface SalesKpisWithPrior {
+  current: SalesKpi[];
+  prior: SalesKpi[];
+}
+
 export interface SalesKpi {
   date: string;
   brand: string;

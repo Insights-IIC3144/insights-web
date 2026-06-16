@@ -10,12 +10,4 @@ export interface CatalogProductDto {
   marketShare?: number;
 }
 
-export interface AiInsightDto {
-  id: string;
-  scope: "brand" | "product";
-  affectedItems: { id: string | number; name: string; url?: string }[];
-  type: "warning" | "opportunity" | "price" | "cannibalization" | "market_share" | "dead_stock" | "cross_sell" | "returns" | "return_rate";
-  title: string;
-  description: string;
-  impactScore: number;
-}
+export type { AiInsightDto } from "@/types/insights";
