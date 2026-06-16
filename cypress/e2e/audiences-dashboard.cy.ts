@@ -32,16 +32,16 @@ describe("Audiences Dashboard", () => {
 
     it("shows all 4 KPI card labels", () => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
 
-      ["Clientes Únicos", "Órdenes por Cliente", "Recencia Promedio", "Ticket Promedio"].forEach((label) => {
+      ["Clientes Únicos", "Órdenes / Cliente", "Recencia Promedio", "Ticket / Cliente"].forEach((label) => {
         cy.contains(label).should("be.visible");
       });
     });
 
     it("shows non-empty KPI values", () => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
 
       cy.get(".kpi-card").should("have.length.at.least", 4);
       cy.get(".kpi-card").each(($card) => {
@@ -51,14 +51,14 @@ describe("Audiences Dashboard", () => {
 
     it("renders the gender breakdown chart", () => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
 
       cy.contains("Género").should("be.visible");
     });
 
     it("renders the age breakdown chart", () => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
 
       cy.contains("Edad").should("be.visible");
     });
@@ -70,7 +70,7 @@ describe("Audiences Dashboard", () => {
   context("Funnel de tráfico", () => {
     beforeEach(() => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
     });
 
     it("renders the 'Funnel de tráfico' panel", () => {
@@ -117,7 +117,7 @@ describe("Audiences Dashboard", () => {
   context("Data filters", () => {
     beforeEach(() => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
     });
 
     it("the filter panel is visible", () => {
@@ -128,7 +128,7 @@ describe("Audiences Dashboard", () => {
       cy.mockAudiencesData();
 
       cy.get("[data-slot='select-trigger']").contains("Género").closest("[data-slot='select-trigger']").click();
-      cy.get("[data-slot='select-item']").contains("Femenino").should("be.visible").realClick();
+      cy.get("[data-slot='select-item']").contains("Mujer").should("be.visible").realClick();
 
       cy.wait("@audiencesFunnel").then((interception) => {
         expect(interception.request.url).to.include("gender=");
@@ -150,7 +150,7 @@ describe("Audiences Dashboard", () => {
       cy.mockAudiencesData();
 
       cy.get("[data-slot='select-trigger']").contains("Género").closest("[data-slot='select-trigger']").click();
-      cy.get("[data-slot='select-item']").contains("Femenino").should("be.visible").realClick();
+      cy.get("[data-slot='select-item']").contains("Mujer").should("be.visible").realClick();
       cy.wait("@audiencesFunnel");
 
       cy.mockAudiencesData();
@@ -181,7 +181,7 @@ describe("Audiences Dashboard", () => {
   context("Sidebar navigation", () => {
     it("the 'Audiencias' sidebar link is active when the URL is /audiences", () => {
       cy.visit("/audiences");
-      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel"]);
+      cy.wait(["@audiencesKpis", "@audiencesGender", "@audiencesAge", "@audiencesRfm", "@audiencesFunnel", "@audiencesInsights"]);
 
       cy.contains("a", "Audiencias").should("have.class", "bg-sidebar-accent");
     });
@@ -195,7 +195,15 @@ describe("Audiences Dashboard", () => {
       cy.mockAuthenticatedSession("brand");
       cy.mockAudiencesData();
       cy.visit("/audiences");
-      cy.wait("@audiencesKpis").then((interception) => {
+      const waitForBrandedKpis = (): Cypress.Chainable<any> =>
+        cy.wait("@audiencesKpis").then((interception) => {
+          if (!interception.request.url.includes("brand=")) {
+            return waitForBrandedKpis();
+          }
+          return interception;
+        });
+
+      waitForBrandedKpis().then((interception) => {
         expect(interception.request.url).to.include("brand=Calvin+Klein");
       });
 

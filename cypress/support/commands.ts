@@ -22,6 +22,7 @@ declare global {
         age?: object | null;
         rfm?: object | null;
         funnel?: object | null;
+        insights?: object | null;
         statusCode?: number;
       }): void;
       mockCompetitiveData(overrides?: {
@@ -123,6 +124,7 @@ Cypress.Commands.add(
     age?: object | null;
     rfm?: object | null;
     funnel?: object | null;
+    insights?: object | null;
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
@@ -133,6 +135,7 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesAge");
       cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode, body: { error: "Server error" } }).as("audiencesRfm");
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode, body: { error: "Server error" } }).as("audiencesFunnel");
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode, body: { error: "Server error" } }).as("audiencesInsights");
       return;
     }
 
@@ -187,6 +190,12 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode: 200, body: overrides.funnel }).as("audiencesFunnel");
     } else {
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { fixture: "audiences-funnel.json" }).as("audiencesFunnel");
+    }
+
+    if (overrides && "insights" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: overrides.insights }).as("audiencesInsights");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: [] }).as("audiencesInsights");
     }
   }
 );
