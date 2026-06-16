@@ -3,6 +3,7 @@ import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
+import { pctChange } from "@/lib/utils";
 
 function computeKpis(categories: CompetitiveCategory[]) {
     let sumBrandSales = 0;
@@ -35,13 +36,10 @@ function computeDeltas(
     prior: ReturnType<typeof computeKpis>
 ) {
     return {
-        overallSalesShare: current.overallSalesShare - prior.overallSalesShare,
-        overallVolumeShare: current.overallVolumeShare - prior.overallVolumeShare,
-        avgPriceBrand:
-            prior.avgPriceBrand !== 0
-                ? ((current.avgPriceBrand - prior.avgPriceBrand) / prior.avgPriceBrand) * 100
-                : 0,
-        priceGapPct: current.priceGapPct - prior.priceGapPct,
+        overallSalesShare: pctChange(current.overallSalesShare, prior.overallSalesShare),
+        overallVolumeShare: pctChange(current.overallVolumeShare, prior.overallVolumeShare),
+        avgPriceBrand: pctChange(current.avgPriceBrand, prior.avgPriceBrand),
+        priceGapPct: pctChange(current.priceGapPct, prior.priceGapPct),
     };
 }
 

@@ -3,6 +3,7 @@ import { executiveService } from "@/services/executiveService";
 import { ExecutiveKpi, ExecutiveKpisWithPrior, CategorySales } from "@/types/executive";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
+import { pctChange } from "@/lib/utils";
 
 function aggregateKpis(data: ExecutiveKpi[]) {
   const totalRevenue = data.reduce((sum, d) => sum + (d.revenue || 0), 0);
@@ -18,16 +19,11 @@ function computeDeltas(
   prior: ReturnType<typeof aggregateKpis>
 ) {
   return {
-    totalRevenue: prior.totalRevenue !== 0
-      ? ((current.totalRevenue - prior.totalRevenue) / prior.totalRevenue) * 100 : 0,
-    totalOrders: prior.totalOrders !== 0
-      ? ((current.totalOrders - prior.totalOrders) / prior.totalOrders) * 100 : 0,
-    totalUnits: prior.totalUnits !== 0
-      ? ((current.totalUnits - prior.totalUnits) / prior.totalUnits) * 100 : 0,
-    uniqueCustomers: prior.uniqueCustomers !== 0
-      ? ((current.uniqueCustomers - prior.uniqueCustomers) / prior.uniqueCustomers) * 100 : 0,
-    aov: prior.aov !== 0
-      ? ((current.aov - prior.aov) / prior.aov) * 100 : 0,
+    totalRevenue: pctChange(current.totalRevenue, prior.totalRevenue),
+    totalOrders: pctChange(current.totalOrders, prior.totalOrders),
+    totalUnits: pctChange(current.totalUnits, prior.totalUnits),
+    uniqueCustomers: pctChange(current.uniqueCustomers, prior.uniqueCustomers),
+    aov: pctChange(current.aov, prior.aov),
   };
 }
 

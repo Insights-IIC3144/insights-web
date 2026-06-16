@@ -3,6 +3,7 @@ import { salesService } from "@/services/salesService";
 import { SalesKpi, SalesKpisWithPrior, SalesByCategory, SalesPerformanceByDimension } from "@/types/sales";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
+import { pctChange } from "@/lib/utils";
 
 function aggregateKpis(data: SalesKpi[]) {
   const revenueNet = data.reduce((sum, d) => sum + (d.revenueNet || 0), 0);
@@ -20,17 +21,12 @@ function computeDeltas(
   prior: ReturnType<typeof aggregateKpis>
 ) {
   return {
-    revenueNet: prior.revenueNet !== 0
-      ? ((current.revenueNet - prior.revenueNet) / prior.revenueNet) * 100 : 0,
-    totalOrders: prior.totalOrders !== 0
-      ? ((current.totalOrders - prior.totalOrders) / prior.totalOrders) * 100 : 0,
-    unitsSold: prior.unitsSold !== 0
-      ? ((current.unitsSold - prior.unitsSold) / prior.unitsSold) * 100 : 0,
-    uniqueCustomers: prior.uniqueCustomers !== 0
-      ? ((current.uniqueCustomers - prior.uniqueCustomers) / prior.uniqueCustomers) * 100 : 0,
-    lossRate: (current.lossRate - prior.lossRate) * 100,
-    aov: prior.aov !== 0
-      ? ((current.aov - prior.aov) / prior.aov) * 100 : 0,
+    revenueNet: pctChange(current.revenueNet, prior.revenueNet),
+    totalOrders: pctChange(current.totalOrders, prior.totalOrders),
+    unitsSold: pctChange(current.unitsSold, prior.unitsSold),
+    uniqueCustomers: pctChange(current.uniqueCustomers, prior.uniqueCustomers),
+    lossRate: pctChange(current.lossRate, prior.lossRate),
+    aov: pctChange(current.aov, prior.aov),
   };
 }
 
