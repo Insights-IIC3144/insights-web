@@ -18,7 +18,7 @@ export default function CompetitivePositioningPage() {
         subtitle="Tu marca comparada contra el benchmark agregado de otras marcas en TheLook. Sin nombres individuales."
       />
 
-      <Filters outerValue={activeFilters} onChange={setActiveFilters} />
+      <Filters value={activeFilters} onChange={setActiveFilters} />
 
       <CompetitiveKpiGrid kpis={stats?.kpis ?? null} deltas={stats?.deltas ?? null} loading={loading} />
 

@@ -22,7 +22,7 @@ export default function ExecutiveDashboard() {
       <Filters 
         showGender 
         showTraffic 
-        outerValue={activeFilters}
+        value={activeFilters}
         onChange={setActiveFilters} 
       />
 

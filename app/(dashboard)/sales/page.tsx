@@ -20,7 +20,7 @@ export default function SalesDashboard() {
       />
 
       <div className="flex items-center justify-between gap-4">
-        <Filters outerValue={activeFilters} onChange={setActiveFilters} />
+        <Filters value={activeFilters} onChange={setActiveFilters} />
       </div>
 
       <SalesKpiGrid data={kpis} deltas={deltas} loading={loading} />

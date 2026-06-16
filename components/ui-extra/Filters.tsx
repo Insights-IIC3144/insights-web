@@ -12,26 +12,28 @@ interface Props {
     showTraffic?: boolean;
     showGender?: boolean;
     showAge?: boolean;
-    outerValue?: Record<string, string>;
+    value?: Record<string, string>;
+    defaultValue?: Record<string, string>;
     onChange?: (filters: Record<string, string>) => void;
 }
 
-export function Filters({ showTraffic, showGender, showAge, outerValue, onChange }: Props) {
+export function Filters({ showTraffic, showGender, showAge, value, defaultValue, onChange }: Props) {
     const [filters, setFilters] = useState<FiltersData | null>(null);
-    const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+    const [internalFilters, setInternalFilters] = useState<Record<string, string>>(defaultValue ?? {});
 
-    const activeFilters = outerValue ?? selectedFilters;
+    const isControlled = value !== undefined;
+    const activeFilters = isControlled ? value : internalFilters;
 
-    const handleFilterChange = (key: string, value: string) => {
-        const val = value === "all" ? "" : value;
-        const newFilters = { ...activeFilters, [key]: val };
-        if (val === "") delete newFilters[key]; // Clean up empty filters
-        setSelectedFilters(newFilters);
-        if (onChange) onChange(newFilters);
+    const handleFilterChange = (key: string, val: string) => {
+        const cleanVal = val === "all" ? "" : val;
+        const next = { ...activeFilters, [key]: cleanVal };
+        if (cleanVal === "") delete next[key];
+        if (!isControlled) setInternalFilters(next);
+        if (onChange) onChange(next);
     };
 
     const handleClear = () => {
-        setSelectedFilters({});
+        if (!isControlled) setInternalFilters({});
         if (onChange) onChange({});
     };
 
