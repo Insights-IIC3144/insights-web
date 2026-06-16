@@ -7,6 +7,11 @@ export interface CompetitiveCardsData {
   worstGrowthPercentage: number | null;
 }
 
+export interface CompetitiveWithPrior {
+  current: CompetitiveCategory[];
+  prior: CompetitiveCategory[];
+}
+
 export interface CompetitiveCategory {
     category: string;
     brandSales: number;

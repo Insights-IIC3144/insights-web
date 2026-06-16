@@ -10,6 +10,7 @@ interface Props {
   kpis: ExecutiveKpi[];
   categorySales: CategorySales[];
   loading: boolean;
+  onCategorySelect?: (category: string) => void;
 }
 
 const tooltipStyle = {
@@ -21,7 +22,7 @@ const tooltipStyle = {
   boxShadow: "var(--shadow-elevated)",
 };
 
-export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
+export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect }: Props) {
   const trendData = kpis.map(k => ({
     label: k.date,
     revenue: k.revenue
@@ -31,7 +32,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
     acc[curr.category] = (acc[curr.category] || 0) + curr.revenue;
     return acc;
   }, {} as Record<string, number>);
-  
+
   const catData = Object.entries(catDataMap)
     .map(([category, revenue]) => ({ category, revenue }))
     .sort((a, b) => b.revenue - a.revenue)
@@ -74,7 +75,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
                 <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={110} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} />
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           )}
