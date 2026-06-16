@@ -91,7 +91,8 @@ Cypress.Commands.add(
     }
 
     if (overrides && "kpis" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body: overrides.kpis }).as("salesKpis");
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body }).as("salesKpis");
     } else {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { fixture: "sales-kpis.json" }).as("salesKpis");
     }
@@ -221,9 +222,10 @@ Cypress.Commands.add(
     }
 
     if (overrides && "all" in overrides) {
+      const body = Array.isArray(overrides.all) ? { current: overrides.all, prior: [] } : overrides.all;
       cy.intercept("GET", "/api/proxy/competitive/all*", {
         statusCode: 200,
-        body: overrides.all,
+        body,
       }).as("compAll");
     } else {
       cy.intercept("GET", "/api/proxy/competitive/all*", {
@@ -260,7 +262,8 @@ Cypress.Commands.add(
     }
  
     if (overrides && "kpis" in overrides) {
-      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body: overrides.kpis }).as("execKpis");
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body }).as("execKpis");
     } else {
       cy.intercept("GET", "/api/proxy/executive/kpis*", { fixture: "executive/executive-kpis.json" }).as("execKpis");
     }
