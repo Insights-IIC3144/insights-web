@@ -62,12 +62,6 @@ Important: The frontend server must be running (npm run dev) before executing an
 npx cypress run
 ```
 
-For headless mode run:
-
-```bash
-npm run cypress:run
-```
-
 ## Run a specific test file
 
 To run a single test spec, use the `--spec` flag followed by the path to the file:
