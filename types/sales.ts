@@ -27,3 +27,17 @@ export interface SalesPerformanceByDimension {
   orders: number;
   unitsSold: number;
 }
+
+export interface TopProductEntry {
+  productId: string;
+  productName: string;
+  category: string;
+  revenueNet: number;
+  unitsSold: number;
+  rank: number;
+}
+
+export interface TopProductsData {
+  best: TopProductEntry[];
+  worst: TopProductEntry[];
+}

@@ -7,11 +7,14 @@ import {
 import { SalesKpi, SalesByCategory } from "@/types/sales";
 import { fmtMoney, fmtNum } from "@/lib/format";
 import { ChartCard } from "../ui-extra/ChartCard";
+import { GranularitySelector } from "@/components/dashboard/GranularitySelector";
 
 interface Props {
   kpis: SalesKpi[];
   categorySales: SalesByCategory[];
   loading: boolean;
+  granularity: string;
+  onGranularityChange: (g: string) => void;
   onCategorySelect?: (category: string) => void;
 }
 
@@ -23,26 +26,8 @@ const TOOLTIP_STYLE = {
   color: "hsl(var(--popover-foreground))",
 };
 
-/*
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-card-foreground">{title}</h3>
-      </div>
-      {children}
-    </div>
-  );
-}
-  */
 
-export function SalesCharts({ kpis, categorySales, loading, onCategorySelect }: Props) {
+export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange, onCategorySelect }: Props) {
   const trendData = kpis.map((k) => ({
     label: k.date,
     revenue: k.revenueNet ?? 0,
@@ -56,9 +41,10 @@ export function SalesCharts({ kpis, categorySales, loading, onCategorySelect }: 
 
   return (
     <div className="flex flex-col gap-4">
-      <ChartCard title="Ventas en el Tiempo"
-        subtitle="Evolución de los ingresos netos según la granularidad seleccionada. 
-      Útil para identificar tendencias y estacionalidad."
+      <ChartCard
+        title="Ventas en el Tiempo"
+        subtitle="Evolución de los ingresos netos según la granularidad seleccionada. Útil para identificar tendencias y estacionalidad."
+        actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
       >
         {loading ? (
           <Skeleton className="h-[300px] w-full" />
@@ -81,9 +67,11 @@ export function SalesCharts({ kpis, categorySales, loading, onCategorySelect }: 
         )}
       </ChartCard>
 
-      <ChartCard title="Ticket Promedio en el Tiempo"
-        subtitle="Valor promedio por orden completada. 
-      Un aumento sostenido indica que los clientes están comprando productos de mayor valor.">
+      <ChartCard
+        title="Ticket Promedio en el Tiempo"
+        subtitle="Valor promedio por orden completada. Un aumento sostenido indica que los clientes están comprando productos de mayor valor."
+        actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
+      >
         {loading ? (
           <Skeleton className="h-[250px] w-full" />
         ) : (
@@ -118,9 +106,11 @@ export function SalesCharts({ kpis, categorySales, loading, onCategorySelect }: 
           )}
         </ChartCard>
 
-        <ChartCard title="Ingresos Netos vs Órdenes"
-          subtitle="Compara el volumen de órdenes con los ingresos netos. 
-        Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen.">
+        <ChartCard
+          title="Ingresos Netos vs Órdenes"
+          subtitle="Compara el volumen de órdenes con los ingresos netos. Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen."
+          actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
+        >
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
           ) : (
