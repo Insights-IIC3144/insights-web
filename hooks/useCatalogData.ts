@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CatalogProductDto, AiInsightDto } from "@/types/catalog";
 import { useUserContext } from "@/context/UserContext";
 import { catalogService } from "@/services/catalogService";
@@ -9,6 +9,11 @@ export function useCatalogData(localFilters: Record<string, string>) {
 
   const [products, setProducts] = useState<CatalogProductDto[]>([]);
   const [insights, setInsights] = useState<AiInsightDto[]>([]);
+  const insightsRef = useRef<AiInsightDto[]>([]);
+
+  useEffect(() => {
+    insightsRef.current = insights;
+  }, [insights]);
   
   // Estados de carga separados según el contrato
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -115,8 +120,8 @@ export function useCatalogData(localFilters: Record<string, string>) {
   };
 
   const replaceInsight = async (oldInsightId: string, excludeType?: string) => {
-    if (!days) return;
-    const excludeTitles = insights.map(i => i.title);
+    if (!days) throw new Error("Faltan días de filtro");
+    const excludeTitles = insightsRef.current.map(i => i.title);
     const params = {
       days,
       brand: brand === "" ? "all" : brand,

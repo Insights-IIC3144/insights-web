@@ -38,7 +38,8 @@ export function Topbar() {
     setDays,
     selectedBrand,
     setSelectedBrand,
-    availableBrands
+    availableBrands,
+    setPinnedInsight
   } = useUserContext();
   const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
   const { user } = useUser();
@@ -100,7 +101,10 @@ export function Topbar() {
 
                 {/* Opción para limpiar el filtro */}
                 <DropdownMenuItem
-                  onClick={() => setSelectedBrand("")}
+                  onClick={() => {
+                    setSelectedBrand("");
+                    if (setPinnedInsight) setPinnedInsight(null);
+                  }}
                   className={selectedBrand === "" ? "bg-muted font-medium" : ""}
                 >
                   Todas las marcas
@@ -116,7 +120,10 @@ export function Topbar() {
                   availableBrands.map((b) => (
                     <DropdownMenuItem
                       key={b}
-                      onClick={() => setSelectedBrand(b)}
+                      onClick={() => {
+                        setSelectedBrand(b);
+                        if (setPinnedInsight) setPinnedInsight(null);
+                      }}
                       className={b === selectedBrand ? "bg-muted font-medium" : ""}
                     >
                       {b}

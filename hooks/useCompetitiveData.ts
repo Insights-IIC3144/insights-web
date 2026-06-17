@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
@@ -7,6 +7,11 @@ import { FilterParams } from "@/types/shared";
 export function useCompetitiveData(activeFilters: Record<string, string>) {
     const [categories, setCategories] = useState<CompetitiveCategory[]>([]);
     const [insights, setInsights] = useState<CompetitiveInsightDto[]>([]);
+    const insightsRef = useRef<CompetitiveInsightDto[]>([]);
+
+    useEffect(() => {
+        insightsRef.current = insights;
+    }, [insights]);
     const [loading, setLoading] = useState(true);
     const [loadingInsights, setLoadingInsights] = useState(true);
     const { days, selectedBrand: brand } = useUserContext();
@@ -122,8 +127,8 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
     }, [categories]);
 
     const replaceInsight = async (targetCategory: string) => {
-        if (!brand) return;
-        const excludeTitles = insights.map(i => i.opportunityTitle);
+        if (!brand || brand.trim() === "") throw new Error("Debe seleccionar una marca para regenerar insights");
+        const excludeTitles = insightsRef.current.map(i => i.opportunityTitle);
         const params: FilterParams & { brand: string, category: string } = {
             brand,
             category: targetCategory,

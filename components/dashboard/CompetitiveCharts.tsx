@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Lightbulb, Loader2, Sparkles, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { Panel } from "@/components/ui-extra/Panel";
 import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -60,8 +61,9 @@ export function CompetitiveCharts({
     setRegeneratingCategories(prev => ({ ...prev, [category]: true }));
     try {
       await onRegenerate(category);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(e.message || "Error al regenerar el insight competitivo");
     } finally {
       setRegeneratingCategories(prev => ({ ...prev, [category]: false }));
     }

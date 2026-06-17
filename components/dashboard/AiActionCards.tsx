@@ -4,6 +4,7 @@ import { AiInsightDto } from "@/types/catalog";
 import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,8 +126,9 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
     setIsRegenerating(true);
     try {
       await onRegenerate(insight.id, insight.type);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
+      toast.error(e.message || "Error al regenerar el insight");
     } finally {
       setIsRegenerating(false);
     }
@@ -179,7 +181,7 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
       
       if (matchedBrand) {
         uniqueBrandsMap.set(matchedBrand, toTitleCase(matchedBrand));
-      } else {
+      } else if (availableBrands.length > 0) {
         // Fallback: Use the first word if no match is found
         const fallback = productName.split(' ')[0];
         uniqueBrandsMap.set(fallback, toTitleCase(fallback));
@@ -234,7 +236,7 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
 
         <h4 className="text-base font-medium text-black mb-1.5">{insight.title}</h4>
 
-        {insight.affectedItems && insight.affectedItems.length > 0 && brandsToFilter.length <= 1 && (
+        {insight.affectedItems && insight.affectedItems.length > 0 && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-medium text-brand-blue">
