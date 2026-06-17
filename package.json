@@ -10,9 +10,16 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "cypress:open": "CYPRESS_TESTING=true cypress open --env CYPRESS_TESTING=true",
-    "cypress:run": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true",
-    "test:e2e": "CYPRESS_TESTING=true start-server-and-test dev http://localhost:3000 cypress:run"
+    "cypress:open": "CYPRESS_TESTING=true cypress open --env CYPRESS_TESTING=true --browser chrome",
+    "cypress:run": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome",
+    "test:e2e": "CYPRESS_TESTING=true start-server-and-test dev http://localhost:3000 'cypress run --env CYPRESS_TESTING=true --browser chrome'",
+    "test:e2e:electron": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true",
+    "test:e2e:sales": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --spec 'cypress/e2e/sales-dashboard.cy.ts'",
+    "test:e2e:audiences": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --spec 'cypress/e2e/audiences-dashboard.cy.ts'",
+    "test:e2e:executive": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --spec 'cypress/e2e/executive-dashboard.cy.ts'",
+    "test:e2e:competitive": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --spec 'cypress/e2e/competitive-positioning.cy.ts'",
+    "test:e2e:auth": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --spec 'cypress/e2e/auth.cy.ts'",
+    "test:e2e:headed": "CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome --headed --no-exit"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",

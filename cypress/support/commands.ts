@@ -22,6 +22,7 @@ declare global {
         age?: object | null;
         rfm?: object | null;
         funnel?: object | null;
+        insights?: object | null;
         statusCode?: number;
       }): void;
       mockCompetitiveData(overrides?: {
@@ -90,7 +91,8 @@ Cypress.Commands.add(
     }
 
     if (overrides && "kpis" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body: overrides.kpis }).as("salesKpis");
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body }).as("salesKpis");
     } else {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { fixture: "sales-kpis.json" }).as("salesKpis");
     }
@@ -123,6 +125,7 @@ Cypress.Commands.add(
     age?: object | null;
     rfm?: object | null;
     funnel?: object | null;
+    insights?: object | null;
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
@@ -133,6 +136,7 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesAge");
       cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode, body: { error: "Server error" } }).as("audiencesRfm");
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode, body: { error: "Server error" } }).as("audiencesFunnel");
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode, body: { error: "Server error" } }).as("audiencesInsights");
       return;
     }
 
@@ -188,6 +192,12 @@ Cypress.Commands.add(
     } else {
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { fixture: "audiences-funnel.json" }).as("audiencesFunnel");
     }
+
+    if (overrides && "insights" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: overrides.insights }).as("audiencesInsights");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: [] }).as("audiencesInsights");
+    }
   }
 );
 // competitive-positioning
@@ -212,9 +222,10 @@ Cypress.Commands.add(
     }
 
     if (overrides && "all" in overrides) {
+      const body = Array.isArray(overrides.all) ? { current: overrides.all, prior: [] } : overrides.all;
       cy.intercept("GET", "/api/proxy/competitive/all*", {
         statusCode: 200,
-        body: overrides.all,
+        body,
       }).as("compAll");
     } else {
       cy.intercept("GET", "/api/proxy/competitive/all*", {
@@ -251,7 +262,8 @@ Cypress.Commands.add(
     }
  
     if (overrides && "kpis" in overrides) {
-      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body: overrides.kpis }).as("execKpis");
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body }).as("execKpis");
     } else {
       cy.intercept("GET", "/api/proxy/executive/kpis*", { fixture: "executive/executive-kpis.json" }).as("execKpis");
     }

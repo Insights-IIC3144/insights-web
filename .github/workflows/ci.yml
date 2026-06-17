@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Run E2E tests
+        run: |
+          CYPRESS_TESTING=true npx start-server-and-test \
+            "next dev --turbopack" \
+            http://localhost:3000 \
+            "cypress run --env CYPRESS_TESTING=true --browser chrome --config video=false,screenshotOnRunFailure=false"
