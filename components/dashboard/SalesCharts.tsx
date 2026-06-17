@@ -8,6 +8,7 @@ import { SalesKpi, SalesByCategory } from "@/types/sales";
 import { fmtMoney, fmtNum } from "@/lib/format";
 import { ChartCard } from "../ui-extra/ChartCard";
 import { GranularitySelector } from "@/components/dashboard/GranularitySelector";
+import { projectLinear } from "@/lib/projection";
 
 interface Props {
   kpis: SalesKpi[];
@@ -28,12 +29,35 @@ const TOOLTIP_STYLE = {
 
 
 export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange, onCategorySelect }: Props) {
-  const trendData = kpis.map((k) => ({
+  const historical = kpis.map((k) => ({
     label: k.date,
     revenue: k.revenueNet ?? 0,
     orders: k.totalOrders ?? 0,
     aov: k.avgOrderValue ?? 0,
   }));
+
+  const labels = historical.map((d) => d.label);
+  const projRevenue = projectLinear(labels, historical.map((d) => d.revenue), granularity);
+  const projAov = projectLinear(labels, historical.map((d) => d.aov), granularity);
+  const projOrders = projectLinear(labels, historical.map((d) => d.orders), granularity);
+
+  const trendData = [
+    ...historical.map((d, i) => ({
+      ...d,
+      revenueProj: i === historical.length - 1 ? d.revenue : undefined,
+      aovProj: i === historical.length - 1 ? d.aov : undefined,
+      ordersProj: i === historical.length - 1 ? d.orders : undefined,
+    })),
+    ...projRevenue.map((p, i) => ({
+      label: p.label,
+      revenue: undefined,
+      orders: undefined,
+      aov: undefined,
+      revenueProj: p.value,
+      aovProj: projAov[i]?.value,
+      ordersProj: projOrders[i]?.value,
+    })),
+  ];
 
   const catData = categorySales
     .sort((a, b) => b.revenue - a.revenue)
@@ -61,7 +85,8 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos netos"]} />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revenueGrad)" strokeWidth={2} />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revenueGrad)" strokeWidth={2} connectNulls={false} />
+              <Area type="monotone" dataKey="revenueProj" stroke="hsl(var(--chart-1))" fill="none" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} connectNulls={false} name="Proyección" />
             </AreaChart>
           </ResponsiveContainer>
         )}
@@ -81,7 +106,8 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ticket promedio"]} />
-              <Line type="monotone" dataKey="aov" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="aov" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} />
+              <Line type="monotone" dataKey="aovProj" stroke="hsl(var(--chart-2))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} dot={false} connectNulls={false} name="Proyección" />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -128,7 +154,9 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
                 />
                 <Legend />
                 <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="Ingresos netos" />
-                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Órdenes" />
+                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Órdenes" connectNulls={false} />
+                <Bar yAxisId="revenue" dataKey="revenueProj" fill="hsl(var(--chart-1))" opacity={0.35} radius={[4, 4, 0, 0]} name="Ingresos proyectados" />
+                <Line yAxisId="orders" type="monotone" dataKey="ordersProj" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} dot={false} name="Órdenes proyectadas" connectNulls={false} />
               </ComposedChart>
             </ResponsiveContainer>
           )}
