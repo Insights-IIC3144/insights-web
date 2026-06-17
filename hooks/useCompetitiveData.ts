@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
@@ -47,6 +47,11 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
     const [currentCategories, setCurrentCategories] = useState<CompetitiveCategory[]>([]);
     const [priorCategories, setPriorCategories] = useState<CompetitiveCategory[]>([]);
     const [insights, setInsights] = useState<CompetitiveInsightDto[]>([]);
+    const insightsRef = useRef<CompetitiveInsightDto[]>([]);
+
+    useEffect(() => {
+        insightsRef.current = insights;
+    }, [insights]);
     const [loading, setLoading] = useState(true);
     const [loadingInsights, setLoadingInsights] = useState(true);
     const { days, selectedBrand: brand } = useUserContext();
@@ -66,7 +71,10 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         const fetchData = () => {
             setLoading(true);
             setLoadingInsights(true);
-
+            setCurrentCategories([]);
+            setPriorCategories([]);
+            setInsights([]);
+            
             const params: FilterParams & { brand: string } = {
                 brand,
                 ...Object.fromEntries(
@@ -135,5 +143,35 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         };
     }, [currentCategories, priorCategories]);
 
-    return { loading, loadingInsights, insights, stats };
+    const replaceInsight = async (targetCategory: string) => {
+        if (!brand || brand.trim() === "") throw new Error("Debe seleccionar una marca para regenerar insights");
+        const excludeTitles = insightsRef.current.map(i => i.opportunityTitle);
+        const params: FilterParams & { brand: string, category: string } = {
+            brand,
+            category: targetCategory,
+            ...Object.fromEntries(
+                Object.entries(activeFilters).filter(([, v]) => v !== "")
+            ),
+        };
+        if (days > 0) params.days = days;
+
+        try {
+            const newInsights = await competitiveService.regenerateInsight(params, excludeTitles);
+            if (newInsights && newInsights.length > 0) {
+                setInsights(prev => {
+                    const exists = prev.some(i => i.category === targetCategory);
+                    if (exists) {
+                        return prev.map(i => i.category === targetCategory ? newInsights[0] : i);
+                    } else {
+                        return [...prev, newInsights[0]];
+                    }
+                });
+            }
+        } catch (err) {
+            console.error("Error regenerating competitive insight:", err);
+            throw err;
+        }
+    };
+
+    return { loading, loadingInsights, insights, stats, replaceInsight };
 }

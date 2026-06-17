@@ -10,7 +10,7 @@ import { toggleFilter } from "@/lib/utils";
 
 export default function CompetitivePositioningPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { loading, loadingInsights, insights, stats } = useCompetitiveData(activeFilters);
+  const { loading, loadingInsights, insights, stats, replaceInsight } = useCompetitiveData(activeFilters);
 
   return (
     <div>
@@ -32,6 +32,7 @@ export default function CompetitivePositioningPage() {
           onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))}
           insights={insights}
           loadingInsights={loadingInsights}
+          onRegenerate={replaceInsight}
         />
       )}
 

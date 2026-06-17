@@ -10,7 +10,7 @@ import { useCatalogData } from "@/hooks/useCatalogData";
 
 export default function CatalogDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { products, insights, kpis, loadingProducts, loadingInsights, refetchInsights } = useCatalogData(activeFilters);
+  const { products, insights, kpis, loadingProducts, loadingInsights, refetchInsights, replaceInsight } = useCatalogData(activeFilters);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -26,7 +26,7 @@ export default function CatalogDashboard() {
       <CatalogKpiGrid data={kpis} loading={loadingProducts} />
       
       {/* AI Action Cards Section */}
-      <AiActionCards insights={insights} loading={loadingInsights} onRefresh={refetchInsights} />
+      <AiActionCards insights={insights} loading={loadingInsights} onRefresh={refetchInsights} onRegenerate={replaceInsight} />
       
       {/* Product Table Section */}
       <CatalogTable products={products} loading={loadingProducts} />
