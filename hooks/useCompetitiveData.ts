@@ -71,7 +71,8 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         const fetchData = () => {
             setLoading(true);
             setLoadingInsights(true);
-            setCategories([]);
+            setCurrentCategories([]);
+            setPriorCategories([]);
             setInsights([]);
             
             const params: FilterParams & { brand: string } = {
