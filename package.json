@@ -14,14 +14,14 @@
     "cypress:open": "cross-env CYPRESS_TESTING=true cypress open --env CYPRESS_TESTING=true --browser chrome",
     "cypress:run": "cross-env CYPRESS_TESTING=true cypress run --env CYPRESS_TESTING=true --browser chrome",
     "coverage:check": "nyc check-coverage --branches 50 --lines 70 --functions 50 --statements 70",
-    "test:e2e": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome\"",
-    "test:e2e:sales": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/sales-dashboard.cy.ts\"",
-    "test:e2e:audiences": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/audiences-dashboard.cy.ts\"",
-    "test:e2e:executive": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/executive-dashboard.cy.ts\"",
-    "test:e2e:competitive": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/competitive-positioning.cy.ts\"",
-    "test:e2e:auth": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/auth.cy.ts\"",
-    "test:e2e:headed": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"next dev\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --headed --no-exit\""
-  },
+    "test:e2e": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome\"",
+    "test:e2e:sales": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/sales-dashboard.cy.ts\"",
+    "test:e2e:audiences": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/audiences-dashboard.cy.ts\"",
+    "test:e2e:executive": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/executive-dashboard.cy.ts\"",
+    "test:e2e:competitive": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/competitive-positioning.cy.ts\"",
+    "test:e2e:auth": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --spec cypress/e2e/auth.cy.ts\"",
+    "test:e2e:headed": "cross-env CYPRESS_TESTING=true concurrently --kill-others --success first \"npm run dev:babel\" \"wait-on http://localhost:3000 && cypress run --env CYPRESS_TESTING=true --browser chrome --headed --no-exit\""
+    },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
     "@base-ui/react": "^1.3.0",
