@@ -56,7 +56,7 @@ function advanceDate(dateStr: string, granularity: Granularity): string {
 }
 
 export function inferGranularity(labels: string[]): Granularity {
-  if (labels.length < 2) return "monthly";
+  if (labels.length < 2 || !labels[0]) return "monthly";
   const fmt = detectFormat(labels[0]);
   if (fmt === "YYYY") return "yearly";
   if (fmt === "YYYY-MM") return "monthly";
@@ -74,7 +74,7 @@ export function projectLinear(
   granularity: string,
   periods?: number
 ): { label: string; value: number }[] {
-  if (values.length < 2) return [];
+  if (values.length < 2 || !labels[labels.length - 1]) return [];
   const n =
     periods ?? Math.min(Math.max(Math.round(values.length * 0.25), 3), 6);
   const { slope, intercept } = leastSquares(values);
