@@ -1,0 +1,28 @@
+{
+  "all": true,
+  "include": [
+    "app/**/*.tsx",
+    "app/**/*.ts",
+    "components/**/*.tsx",
+    "components/**/*.ts",
+    "hooks/**/*.ts",
+    "services/**/*.ts",
+    "lib/**/*.ts",
+    "context/**/*.tsx",
+    "context/**/*.ts"
+  ],
+  "exclude": [
+    "app/api/**",
+    "app/layout.tsx",
+    "app/login/page.tsx",
+    "**/*.d.ts",
+    "lib/mock.ts",
+    "**/.gitkeep"
+  ],
+  "reporter": ["lcov", "text", "json-summary"],
+  "report-dir": "coverage",
+  "branches": 50,
+  "lines": 50,
+  "functions": 50,
+  "statements": 50
+}

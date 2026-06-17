@@ -1,16 +1,23 @@
 import { defineConfig } from "cypress";
+import codeCoverage from '@cypress/code-coverage/task';
 
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:3000",
+
+    setupNodeEvents(on, config) {
+      codeCoverage(on, config);
+      return config;
+    },
+
     supportFile: "cypress/support/e2e.ts",
     specPattern: "cypress/e2e/**/*.cy.ts",
     viewportWidth: 1280,
     viewportHeight: 800,
 
-    video: true,
+    video: false,
     videoCompression: 32,
-    screenshotOnRunFailure: true,
+    screenshotOnRunFailure: false,
     trashAssetsBeforeRuns: true,
 
     defaultCommandTimeout: 10000,
