@@ -11,6 +11,8 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
+import { getOpportunity } from "@/lib/opportunity";
+import { CompetitiveInsightDto } from "@/types/competitive";
 
 interface CategoryDetail {
   category: string;
@@ -22,13 +24,12 @@ interface CategoryDetail {
   averageBenchmarkPrice: number;
 }
 
-import { CompetitiveInsightDto } from "@/types/competitive";
-
 interface Props {
   salesShareByCategory: { category: string; sharePct: number }[];
   detailByCategory: CategoryDetail[];
   topCategories: CategoryDetail[];
   loading: boolean;
+  onCategorySelect?: (category: string) => void;
   insights?: CompetitiveInsightDto[];
   loadingInsights?: boolean;
   onRegenerate?: (category: string) => Promise<void>;
@@ -41,11 +42,12 @@ const tooltipStyle = {
   fontSize: "12px",
 };
 
-export function CompetitiveCharts({ 
-  salesShareByCategory, 
-  detailByCategory, 
-  topCategories, 
+export function CompetitiveCharts({
+  salesShareByCategory,
+  detailByCategory,
+  topCategories,
   loading,
+  onCategorySelect,
   insights = [],
   loadingInsights = false,
   onRegenerate
@@ -87,7 +89,7 @@ export function CompetitiveCharts({
                   <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" interval={0} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
-                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -105,8 +107,8 @@ export function CompetitiveCharts({
                 <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
-                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} />
-                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} />
+                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -116,24 +118,17 @@ export function CompetitiveCharts({
       {/* Top categories insight cards */}
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-3">
-          {loadingInsights ? (
+          {loadingInsights && (
             <>
               <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
               <h3 className="text-lg font-semibold text-indigo-600">Generando Insights...</h3>
-            </>
-          ) : (
-            <>
-              <div className="h-8 w-8 rounded-md bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                <Sparkles className="h-4 w-4 text-indigo-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-black tracking-tight">Insights de IA por Categoría</h3>
             </>
           )}
         </div>
         <div className="flex flex-wrap justify-center items-stretch gap-5">
           {loading
             ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="w-full md:w-[calc(33.333%-1rem)] h-28 rounded-xl flex-shrink-0" />)
-          : topCategories.map((c) => {
+            : topCategories.map((c) => {
               const insight = getInsightForCategory(c.category);
               return (
                 <div key={c.category} className="w-full md:w-[calc(50%-0.67rem)] lg:w-[calc(33.333%-0.84rem)] flex flex-col">
@@ -161,6 +156,21 @@ export function CompetitiveCharts({
                       <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
                       <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
                     </div>
+
+                    {loadingInsights ? (
+                      <div className="flex justify-center my-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                        {insight?.opportunityDescription || (
+                          <>
+                            Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.
+                            Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
+                          </>
+                        )}
+                      </p>
+                    )}
                   </div>
                   
                   {loadingInsights || regeneratingCategories[c.category] ? (
@@ -181,7 +191,7 @@ export function CompetitiveCharts({
                 </div>
               );
             })}
-      </div>
+        </div>
       </div>
 
       {/* Detail table */}
@@ -239,7 +249,6 @@ export function CompetitiveCharts({
           </div>
         )}
       </div>
-
     </>
   );
 }

@@ -2,17 +2,10 @@
 
 /**
  * Simula una sesión autenticada interceptando las llamadas de contexto y API.
- *
- * El middleware de Next.js (proxy.ts) corre en el edge y no es interceptable por
- * Cypress. Para esquivarlo, el servidor debe arrancarse con CYPRESS_TESTING=true
- * (ver scripts del package.json). Una vez pasada esa barrera, todas las llamadas
- * de datos del cliente sí son interceptables aquí.
  */
 
-// ─── Declaraciones de tipos para los comandos personalizados ─────────────────
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       mockAuthenticatedSession(role?: "retailer_admin" | "brand"): void;
@@ -20,6 +13,7 @@ declare global {
         kpis?: object | null;
         categories?: object | null;
         performance?: object | null;
+        topProducts?: object | null;
         statusCode?: number;
       }): void;
       mockAudiencesData(overrides?: {
@@ -28,11 +22,23 @@ declare global {
         age?: object | null;
         rfm?: object | null;
         funnel?: object | null;
+        insights?: object | null;
+        statusCode?: number;
+      }): void;
+      mockCompetitiveData(overrides?: {
+        all?: object | null;
+        statusCode?: number;
+      }): void;
+      mockExecutiveData(overrides?: {
+        kpis?: object | null;
+        categorySales?: object | null;
+        audiences?: object | null;
+        retention?: object | null;
+        competitiveCards?: object | null;
         statusCode?: number;
       }): void;
     }
 
-    // Typed env variables — enables the non-deprecated Cypress.env('KEY') overload
     interface DefineCustomEnvVariables {
       CYPRESS_TESTING: boolean;
     }
@@ -71,47 +77,42 @@ Cypress.Commands.add(
     kpis?: object | null;
     categories?: object | null;
     performance?: object | null;
+    topProducts?: object | null;
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
 
     if (statusCode !== 200) {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode, body: { error: "Server error" } }).as("salesKpis");
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", {
-        statusCode,
-        body: { error: "Server error" },
-      }).as("salesCategories");
-      cy.intercept("GET", "/api/proxy/sales/performance*", {
-        statusCode,
-        body: { error: "Server error" },
-      }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { statusCode, body: { error: "Server error" } }).as("salesCategories");
+      cy.intercept("GET", "/api/proxy/sales/performance*", { statusCode, body: { error: "Server error" } }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { statusCode, body: { error: "Server error" } }).as("salesTopProducts");
       return;
     }
 
     if (overrides && "kpis" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body: overrides.kpis }).as("salesKpis");
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/sales/kpis*", { statusCode: 200, body }).as("salesKpis");
     } else {
       cy.intercept("GET", "/api/proxy/sales/kpis*", { fixture: "sales-kpis.json" }).as("salesKpis");
     }
 
     if (overrides && "categories" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", {
-        statusCode: 200,
-        body: overrides.categories,
-      }).as("salesCategories");
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { statusCode: 200, body: overrides.categories }).as("salesCategories");
     } else {
-      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales-categories.json" }).as(
-        "salesCategories"
-      );
+      cy.intercept("GET", "/api/proxy/sales/category-sales*", { fixture: "sales-categories.json" }).as("salesCategories");
     }
 
     if (overrides && "performance" in overrides) {
-      cy.intercept("GET", "/api/proxy/sales/performance*", {
-        statusCode: 200,
-        body: overrides.performance,
-      }).as("salesPerformance");
+      cy.intercept("GET", "/api/proxy/sales/performance*", { statusCode: 200, body: overrides.performance }).as("salesPerformance");
     } else {
       cy.intercept("GET", "/api/proxy/sales/performance*", { fixture: "sales-performance.json" }).as("salesPerformance");
+    }
+
+    if (overrides && "topProducts" in overrides) {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { statusCode: 200, body: overrides.topProducts }).as("salesTopProducts");
+    } else {
+      cy.intercept("GET", "/api/proxy/sales/top-products*", { fixture: "sales-top-products.json" }).as("salesTopProducts");
     }
   }
 );
@@ -124,6 +125,7 @@ Cypress.Commands.add(
     age?: object | null;
     rfm?: object | null;
     funnel?: object | null;
+    insights?: object | null;
     statusCode?: number;
   }) => {
     const statusCode = overrides?.statusCode ?? 200;
@@ -134,6 +136,7 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesAge");
       cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode, body: { error: "Server error" } }).as("audiencesRfm");
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode, body: { error: "Server error" } }).as("audiencesFunnel");
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode, body: { error: "Server error" } }).as("audiencesInsights");
       return;
     }
 
@@ -188,6 +191,105 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode: 200, body: overrides.funnel }).as("audiencesFunnel");
     } else {
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { fixture: "audiences-funnel.json" }).as("audiencesFunnel");
+    }
+
+    if (overrides && "insights" in overrides) {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: overrides.insights }).as("audiencesInsights");
+    } else {
+      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: [] }).as("audiencesInsights");
+    }
+  }
+);
+// competitive-positioning
+Cypress.Commands.add(
+  "mockCompetitiveData",
+  (overrides?: {
+    all?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+
+    if (statusCode !== 200) {
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        statusCode,
+        body: { error: "Internal Server Error" },
+      }).as("compAll");
+      cy.intercept("GET", "/api/proxy/competitive/insights*", {
+        statusCode,
+        body: { error: "Internal Server Error" },
+      }).as("compInsights");
+      return;
+    }
+
+    if (overrides && "all" in overrides) {
+      const body = Array.isArray(overrides.all) ? { current: overrides.all, prior: [] } : overrides.all;
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        statusCode: 200,
+        body,
+      }).as("compAll");
+    } else {
+      cy.intercept("GET", "/api/proxy/competitive/all*", {
+        fixture: "competitive/competitive-all.json",
+      }).as("compAll");
+    }
+    cy.intercept("GET", "/api/proxy/competitive/insights*", {
+      body: [],
+    }).as("compInsights");
+  }
+);
+
+// executive-dashboard
+Cypress.Commands.add(
+  "mockExecutiveData",
+  (overrides?: {
+    kpis?: object | null;
+    categorySales?: object | null;
+    audiences?: object | null;
+    retention?: object | null;
+    competitiveCards?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+ 
+    if (statusCode !== 200) {
+      const errorBody = { error: "Internal Server Error" };
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode, body: errorBody }).as("execKpis");
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode, body: errorBody }).as("execCategorySales");
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode, body: errorBody }).as("execAudiences");
+      cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode, body: errorBody }).as("execRetention");
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode, body: errorBody }).as("execCompetitiveCards");
+      return;
+    }
+ 
+    if (overrides && "kpis" in overrides) {
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { statusCode: 200, body }).as("execKpis");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/kpis*", { fixture: "executive/executive-kpis.json" }).as("execKpis");
+    }
+ 
+    if (overrides && "categorySales" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { statusCode: 200, body: overrides.categorySales }).as("execCategorySales");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/category-sales*", { fixture: "executive/executive-category-sales.json" }).as("execCategorySales");
+    }
+ 
+    if (overrides && "audiences" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { statusCode: 200, body: overrides.audiences }).as("execAudiences");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/audiences*", { fixture: "executive/executive-audiences.json" }).as("execAudiences");
+    }
+ 
+    if (overrides && "retention" in overrides) {
+      cy.intercept("GET", "/api/proxy/executive/retention*", { statusCode: 200, body: overrides.retention }).as("execRetention");
+    } else {
+      cy.intercept("GET", "/api/proxy/executive/retention*", { fixture: "executive/executive-retention.json" }).as("execRetention");
+    }
+ 
+    if (overrides && "competitiveCards" in overrides) {
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { statusCode: 200, body: overrides.competitiveCards }).as("execCompetitiveCards");
+    } else {
+      cy.intercept("GET", "/api/proxy/competitive/performance-cards*", { fixture: "executive/executive-competitive-cards.json" }).as("execCompetitiveCards");
     }
   }
 );

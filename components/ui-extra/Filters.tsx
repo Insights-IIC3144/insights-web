@@ -12,23 +12,28 @@ interface Props {
     showTraffic?: boolean;
     showGender?: boolean;
     showAge?: boolean;
+    value?: Record<string, string>;
+    defaultValue?: Record<string, string>;
     onChange?: (filters: Record<string, string>) => void;
 }
 
-export function Filters({ showTraffic, showGender, showAge, onChange }: Props) {
+export function Filters({ showTraffic, showGender, showAge, value, defaultValue, onChange }: Props) {
     const [filters, setFilters] = useState<FiltersData | null>(null);
-    const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+    const [internalFilters, setInternalFilters] = useState<Record<string, string>>(defaultValue ?? {});
 
-    const handleFilterChange = (key: string, value: string) => {
-        const val = value === "all" ? "" : value;
-        const newFilters = { ...selectedFilters, [key]: val };
-        if (val === "") delete newFilters[key]; // Clean up empty filters
-        setSelectedFilters(newFilters);
-        if (onChange) onChange(newFilters);
+    const isControlled = value !== undefined;
+    const activeFilters = isControlled ? value : internalFilters;
+
+    const handleFilterChange = (key: string, val: string) => {
+        const cleanVal = val === "all" ? "" : val;
+        const next = { ...activeFilters, [key]: cleanVal };
+        if (cleanVal === "") delete next[key];
+        if (!isControlled) setInternalFilters(next);
+        if (onChange) onChange(next);
     };
 
     const handleClear = () => {
-        setSelectedFilters({});
+        if (!isControlled) setInternalFilters({});
         if (onChange) onChange({});
     };
 
@@ -49,12 +54,39 @@ export function Filters({ showTraffic, showGender, showAge, onChange }: Props) {
             <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-2">
                 <SlidersHorizontal className="h-3.5 w-3.5" /> Filtros
             </div>
-            <FilterSelect placeholder="Categoría" options={categories.map(o => ({ label: o, value: o }))} value={selectedFilters.category} onChange={(v) => handleFilterChange("category", v)} />
-            <FilterSelect placeholder="Departamento" options={departments.map(o => ({ label: o, value: o }))} value={selectedFilters.department} onChange={(v) => handleFilterChange("department", v)} />
-            <FilterSelect placeholder="País" options={countries.map(o => ({ label: o, value: o }))} value={selectedFilters.country} onChange={(v) => handleFilterChange("country", v)} />
-            {showGender && <FilterSelect placeholder="Gender" options={genders.map(o => ({ label: o, value: o }))} value={selectedFilters.gender} onChange={(v) => handleFilterChange("gender", v)} />}
-            {showAge && <FilterSelect placeholder="Edad" options={AGE_RANGES.map(o => ({ label: o, value: o }))} value={selectedFilters.ageRange} onChange={(v) => handleFilterChange("ageRange", v)} />}
-            {showTraffic && <FilterSelect placeholder="Fuente de tráfico" options={trafficSources.map(o => ({ label: o, value: o }))} value={selectedFilters.trafficSource} onChange={(v) => handleFilterChange("trafficSource", v)} />}
+            <FilterSelect
+                placeholder="Categoría"
+                options={categories.map(o => ({ label: o, value: o }))}
+                value={activeFilters.category}
+                onChange={(v) => handleFilterChange("category", v)} />
+            <FilterSelect
+                placeholder="Departamento"
+                options={departments.map(o => ({ label: o, value: o }))}
+                value={activeFilters.department}
+                onChange={(v) => handleFilterChange("department", v)} />
+            <FilterSelect
+                placeholder="País"
+                options={countries.map(o => ({ label: o, value: o }))}
+                value={activeFilters.country}
+                onChange={(v) => handleFilterChange("country", v)} />
+            {showGender &&
+                <FilterSelect
+                    placeholder="Género"
+                    options={genders.map(o => ({ label: o, value: o }))}
+                    value={activeFilters.gender}
+                    onChange={(v) => handleFilterChange("gender", v)} />}
+            {showAge &&
+                <FilterSelect
+                    placeholder="Edad"
+                    options={AGE_RANGES.map(o => ({ label: o, value: o }))}
+                    value={activeFilters.ageRange}
+                    onChange={(v) => handleFilterChange("ageRange", v)} />}
+            {showTraffic &&
+                <FilterSelect
+                    placeholder="Fuente de tráfico"
+                    options={trafficSources.map(o => ({ label: o, value: o }))}
+                    value={activeFilters.trafficSource}
+                    onChange={(v) => handleFilterChange("trafficSource", v)} />}
             <div className="flex-1" />
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleClear}>
                 Limpiar
@@ -70,7 +102,7 @@ function FilterSelect({ placeholder, options, value, onChange }: {
     onChange?: (v: string) => void;
 }) {
     return (
-        <Select value={value || ""} onValueChange={onChange}>
+        <Select value={value || ""} onValueChange={(v) => onChange?.(v ?? "")}>
             <SelectTrigger className="h-8 w-auto min-w-[130px] text-xs">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>

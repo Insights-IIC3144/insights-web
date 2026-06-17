@@ -1,10 +1,13 @@
 import { api } from "@/lib/api";
 import { FilterParams } from "@/types/shared";
-import { CompetitiveCategory, CompetitiveCardsData, CompetitiveInsightDto } from "@/types/competitive";
+import { CompetitiveCategory, CompetitiveCardsData, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 
 export const competitiveService = {
-     getAll: (params: FilterParams) =>
+    getAll: (params: FilterParams) =>
         api.get<CompetitiveCategory[]>("/competitive/all", params as any),
+
+    getAllWithPrior: (params: FilterParams) =>
+        api.get<CompetitiveWithPrior>("/competitive/all-with-prior", params as any),
 
     getCards: (params: FilterParams & { brand: string }) =>
         api.get<CompetitiveCardsData>("/competitive/performance-cards", params as any),

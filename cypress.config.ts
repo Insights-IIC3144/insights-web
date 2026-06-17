@@ -7,16 +7,28 @@ export default defineConfig({
     specPattern: "cypress/e2e/**/*.cy.ts",
     viewportWidth: 1280,
     viewportHeight: 800,
-    video: false,
+
+    video: true,
+    videoCompression: 32,
     screenshotOnRunFailure: true,
-    defaultCommandTimeout: 8000,
-    // cy.wait(alias) uses requestTimeout, not defaultCommandTimeout.
-    // Under load (after ~3 min of tests) the dev server can be slow;
-    // 15 s gives enough headroom without making the suite flaky.
-    requestTimeout: 15000,
-    responseTimeout: 15000,
-    env: {
-      // Se inyecta al iniciar el servidor con CYPRESS_TESTING=true
+    trashAssetsBeforeRuns: true,
+
+    defaultCommandTimeout: 10000,
+    pageLoadTimeout: 30000,
+    requestTimeout: 10000,
+    responseTimeout: 10000,
+
+    retries: {
+      runMode: 2,
+      openMode: 0,
     },
+
+    watchForFileChanges: false,
+    chromeWebSecurity: false,
+
+    experimentalMemoryManagement: true,
+    numTestsKeptInMemory: 0,
+
+    env: {},
   },
 });

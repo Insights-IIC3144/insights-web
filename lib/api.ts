@@ -52,7 +52,6 @@ class ApiClient {
 
       return data as T;
     } catch (error) {
-      console.error(`[API Error] en ${endpoint}:`, error);
       throw error;
     }
   }

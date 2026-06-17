@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Panel } from "@/components/ui-extra/Panel";
-import { AiInsightDto } from "@/types/catalog";
+import { AiInsightDto } from "@/types/insights";
 import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
@@ -175,7 +175,8 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
   if (insight.affectedItems && insight.affectedItems.length > 0) {
     insight.affectedItems.forEach(item => {
       const productName = item.name;
-      const matchedBrand = sortedBrands.find(b => 
+      if (!productName) return;
+      const matchedBrand = sortedBrands.find(b =>
         productName.toLowerCase().includes(b.toLowerCase())
       );
       
@@ -292,7 +293,7 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length === 1 ? (
-            <button 
+            <button
               onClick={() => {
                 if (setPinnedInsight) setPinnedInsight(insight);
                 setSelectedBrand(brandsToFilter[0][0]);
