@@ -22,9 +22,11 @@ interface AiActionCardsProps {
   loading: boolean;
   onRefresh?: () => void;
   onRegenerate?: (id: string, excludeType?: string) => Promise<void>;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
 }
 
-export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: AiActionCardsProps) {
+export function AiActionCards({ insights, loading, onRefresh, onRegenerate, onAction, actionLabel }: AiActionCardsProps) {
   const { pinnedInsight } = useUserContext();
 
   let finalInsights = insights || [];
@@ -109,7 +111,7 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
             key={insight.id}
             className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col"
           >
-            <ActionCard insight={insight} onRegenerate={onRegenerate} />
+            <ActionCard insight={insight} onRegenerate={onRegenerate} onAction={onAction} actionLabel={actionLabel} />
           </div>
         ))}
       </div>
@@ -117,7 +119,17 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
   );
 }
 
-function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegenerate?: (id: string, excludeType?: string) => Promise<void> }) {
+function ActionCard({
+  insight,
+  onRegenerate,
+  onAction,
+  actionLabel = "Ver en dashboard",
+}: {
+  insight: AiInsightDto;
+  onRegenerate?: (id: string, excludeType?: string) => Promise<void>;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
+}) {
   const { setSelectedBrand, availableBrands, selectedBrand, setPinnedInsight } = useUserContext();
   const [isRegenerating, setIsRegenerating] = useState(false);
 
@@ -267,7 +279,14 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
         </p>
 
         <div className="mt-auto flex flex-col gap-2">
-          {brandsToFilter.length > 1 ? (
+          {onAction ? (
+            <button
+              onClick={() => onAction(insight)}
+              className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm"
+            >
+              {actionLabel}
+            </button>
+          ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length > 1 ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
