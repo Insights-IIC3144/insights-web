@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { ExecutiveKpi, CategorySales } from "@/types/executive";
 import { fmtMoney } from "@/lib/format";
+import { projectLinear, inferGranularity } from "@/lib/projection";
 
 interface Props {
   kpis: ExecutiveKpi[];
@@ -23,10 +24,26 @@ const tooltipStyle = {
 };
 
 export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect }: Props) {
-  const trendData = kpis.map(k => ({
+  const historical = kpis.map(k => ({
     label: k.date,
-    revenue: k.revenue
+    revenue: k.revenue,
   })).sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
+
+  const labels = historical.map((d) => d.label);
+  const granularity = inferGranularity(labels);
+  const projRevenue = projectLinear(labels, historical.map((d) => d.revenue), granularity);
+
+  const trendData = [
+    ...historical.map((d, i) => ({
+      ...d,
+      revenueProj: i === historical.length - 1 ? d.revenue : undefined,
+    })),
+    ...projRevenue.map((p) => ({
+      label: p.label,
+      revenue: undefined,
+      revenueProj: p.value,
+    })),
+  ];
 
   const catDataMap = categorySales.reduce((acc, curr) => {
     acc[curr.category] = (acc[curr.category] || 0) + curr.revenue;
@@ -57,7 +74,8 @@ export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect
                 <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#g1)" />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#g1)" connectNulls={false} />
+                <Area type="monotone" dataKey="revenueProj" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} fill="none" connectNulls={false} />
               </AreaChart>
             </ResponsiveContainer>
           )}
