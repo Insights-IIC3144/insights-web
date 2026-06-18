@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "dev:babel": "cp .babelrc.coverage .babelrc && trap 'rm -f .babelrc' EXIT && next dev",
+    "dev:babel": "node scripts/dev-babel.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
