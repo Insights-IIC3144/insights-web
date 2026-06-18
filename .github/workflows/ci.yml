@@ -24,9 +24,16 @@ jobs:
           path: ~/.cache/Cypress
           key: cypress-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
-      - name: Run E2E tests
-        run: |
-          CYPRESS_TESTING=true npx start-server-and-test \
-            "next dev --turbopack" \
-            http://localhost:3000 \
-            "cypress run --env CYPRESS_TESTING=true --browser chrome --config video=false,screenshotOnRunFailure=false"
+      - name: Run E2E tests with coverage
+        run: npm run test:e2e
+
+      - name: Check coverage thresholds
+        run: npm run coverage:check
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/lcov-report/
+          retention-days: 14

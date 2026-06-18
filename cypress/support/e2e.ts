@@ -1,4 +1,5 @@
 import "cypress-real-events/support";
+import '@cypress/code-coverage/support';
 import "./commands";
 
 // Disable CSS animations and transitions globally so Cypress visibility
