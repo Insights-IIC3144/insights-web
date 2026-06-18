@@ -122,16 +122,20 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
         const priorKpis = priorCategories.length ? computeKpis(priorCategories) : currentKpis;
         const deltas = computeDeltas(currentKpis, priorKpis);
 
-        const detailByCategory = currentCategories.map((c) => ({
+        const detailByCategory = currentCategories
+            .map((c) => ({
             ...c,
             salesSharePct: c.salesShare * 100,
             volumeSharePct: c.volumeShare * 100,
             priceGapPct: c.averageBenchmarkPrice
                 ? ((c.averageBrandPrice - c.averageBenchmarkPrice) / c.averageBenchmarkPrice) * 100
                 : 0,
-        }));
+        }))
+            .sort((a, b) => b.averageBrandPrice - a.averageBrandPrice);
 
-        const salesShareByCategory = detailByCategory.map((r) => ({ category: r.category, sharePct: r.salesSharePct }));
+        const salesShareByCategory = detailByCategory
+            .map((r) => ({ category: r.category, sharePct: r.salesSharePct }))
+            .sort((a, b) => b.sharePct - a.sharePct);
         const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct).slice(0, 3);
 
         return {
