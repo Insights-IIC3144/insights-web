@@ -95,12 +95,12 @@ export function CompetitiveCharts({
               <Skeleton className="h-full w-full rounded-lg" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesShareByCategory} margin={{ top: 5, right: 10, left: 0, bottom: 30 }}>
+                <BarChart data={salesShareByCategory} margin={{ top: 5, right: 10, left: -15, bottom: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} height={60} tickFormatter={(v) => trimCategoryName(v)} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} ticks={shareTicks} tickFormatter={(v) => `${v}%`} domain={[0, maxShare]} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
-                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -118,7 +118,7 @@ export function CompetitiveCharts({
                 <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
-                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 <Line type="linear" dataKey="averageBenchmarkPrice" name="Benchmark" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-3))", strokeWidth: 1.5, stroke: "hsl(var(--background))" }} activeDot={{ r: 6 }} />
               </ComposedChart>
             </ResponsiveContainer>
