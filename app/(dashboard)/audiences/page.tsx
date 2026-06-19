@@ -45,6 +45,7 @@ export default function AudiencesDashboard() {
       <AiActionCards
         insights={insights}
         loading={loadingInsights}
+        mode="audiences"
         onRefresh={refetchInsights}
         onAction={scrollToInsightSection}
         actionLabel="Ver en dashboard"

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Panel } from "@/components/ui-extra/Panel";
 import { AiInsightDto } from "@/types/insights";
-import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
+import { PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "sonner";
@@ -20,18 +20,22 @@ import {
 interface AiActionCardsProps {
   insights: AiInsightDto[];
   loading: boolean;
+  mode: "audiences" | "catalog";
   onRefresh?: () => void;
   onRegenerate?: (id: string, excludeType?: string) => Promise<void>;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
 }
 
-export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: AiActionCardsProps) {
-  const { pinnedInsight } = useUserContext();
+export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate, onAction, actionLabel }: AiActionCardsProps) {
+  const { pinnedInsights, setPinnedInsight } = useUserContext();
+  const pinnedInsight = pinnedInsights[mode];
 
-  let finalInsights = insights || [];
+  let list = insights || [];
   if (pinnedInsight) {
-    const exists = finalInsights.some(i => i.id === pinnedInsight.id);
+    const exists = list.some(i => i.id === pinnedInsight.id);
     if (!exists) {
-      finalInsights = [pinnedInsight, ...finalInsights];
+      list = [pinnedInsight, ...list];
     }
   }
 
@@ -53,7 +57,7 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
     );
   }
 
-  if (!finalInsights || finalInsights.length === 0) {
+  if (!list || list.length === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
@@ -82,14 +86,12 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
     );
   }
 
-  // Sort insights by impact score descending
-  let sortedInsights = [...finalInsights].sort((a, b) => b.impactScore - a.impactScore);
-
-  // Always pin the selected insight to the very top, bypassing the sort
-  if (pinnedInsight) {
-    sortedInsights = sortedInsights.filter(i => i.id !== pinnedInsight.id);
-    sortedInsights.unshift(pinnedInsight);
-  }
+  // Sort by impact score descending, then by title alphabetically
+  let sortedInsights = [...list].sort((a, b) => {
+    const impactDiff = b.impactScore - a.impactScore;
+    if (impactDiff !== 0) return impactDiff;
+    return (a.title || "").localeCompare(b.title || "");
+  });
 
   // Limit to 6 for symmetry
   sortedInsights = sortedInsights.slice(0, 6);
@@ -109,7 +111,7 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
             key={insight.id}
             className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col"
           >
-            <ActionCard insight={insight} onRegenerate={onRegenerate} />
+            <ActionCard insight={insight} mode={mode} onRegenerate={onRegenerate} onAction={onAction} actionLabel={actionLabel} />
           </div>
         ))}
       </div>
@@ -117,7 +119,7 @@ export function AiActionCards({ insights, loading, onRefresh, onRegenerate }: Ai
   );
 }
 
-function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegenerate?: (id: string, excludeType?: string) => Promise<void> }) {
+function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { insight: AiInsightDto, mode: "audiences" | "catalog", onRegenerate?: (id: string, excludeType?: string) => Promise<void>, onAction?: (insight: AiInsightDto) => void, actionLabel?: string }) {
   const { setSelectedBrand, availableBrands, selectedBrand, setPinnedInsight } = useUserContext();
   const [isRegenerating, setIsRegenerating] = useState(false);
 
@@ -166,13 +168,16 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
       .join(' ');
   };
 
-  // Extract all unique brands from affected products using a Map: original -> display
-  const uniqueBrandsMap = new Map<string, string>();
-  
-  // Sort available brands by length descending to avoid matching short substrings like "H"
-  const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
+  const isAudiencesMode = mode === "audiences";
+  const hasAffectedItems = !!(insight.affectedItems?.length);
+  const showCatalogAffectedProducts = !isAudiencesMode && hasAffectedItems;
 
-  if (insight.affectedItems && insight.affectedItems.length > 0) {
+  // Brand extraction (only relevant for catalog mode with products)
+  const brandsToFilter: [string, string][] = [];
+  if (showCatalogAffectedProducts) {
+    const uniqueBrandsMap = new Map<string, string>();
+    const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
+
     insight.affectedItems.forEach(item => {
       const productName = item.name;
       if (!productName) return;
@@ -188,9 +193,24 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
         uniqueBrandsMap.set(fallback, toTitleCase(fallback));
       }
     });
+    brandsToFilter.push(...uniqueBrandsMap.entries());
   }
-  
-  const brandsToFilter = Array.from(uniqueBrandsMap.entries());
+
+  const hasMultipleBrandOptions = brandsToFilter.length > 1;
+  const hasSingleBrandOption = brandsToFilter.length === 1;
+  const noBrandCurrentlySelected = !selectedBrand || selectedBrand.trim() === "";
+  const showSingleBrandButton = noBrandCurrentlySelected && hasSingleBrandOption;
+
+  const handleAction = () => {
+    setPinnedInsight(mode, insight);
+    onAction?.(insight);
+  };
+
+  const handleSelectBrand = (brand: string) => {
+    setPinnedInsight(mode, insight);
+    setSelectedBrand(brand);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <Panel
@@ -237,7 +257,7 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
 
         <h4 className="text-base font-medium text-black mb-1.5">{insight.title}</h4>
 
-        {insight.affectedItems && insight.affectedItems.length > 0 && (
+        {showCatalogAffectedProducts && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-medium text-brand-blue">
@@ -252,8 +272,8 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
                   <p className="text-xs font-semibold mb-2 text-slate-800">Productos afectados</p>
                   <ul className="text-xs text-panel-muted list-disc list-inside space-y-0.5 max-h-48 overflow-y-auto pr-1">
                     {insight.affectedItems.map(item => (
-                      <li key={item.id} className="truncate" title={item.name}>
-                        {item.name}
+                      <li key={item.id} className="truncate" title={item.name || String(item.id)}>
+                        {item.name || String(item.id)}
                       </li>
                     ))}
                   </ul>
@@ -267,43 +287,46 @@ function ActionCard({ insight, onRegenerate }: { insight: AiInsightDto, onRegene
           {insight.description}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2">
-          {brandsToFilter.length > 1 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-                  <span>Revisar...</span>
-                  <ChevronDown className="h-4 w-4 opacity-70 absolute right-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="center">
-                {brandsToFilter.map(([originalBrand, displayBrand]) => (
-                  <DropdownMenuItem 
-                    key={originalBrand}
-                    onClick={() => {
-                      if (setPinnedInsight) setPinnedInsight(insight);
-                      setSelectedBrand(originalBrand);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="cursor-pointer font-medium text-sm"
-                  >
-                    {displayBrand}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length === 1 ? (
+        <div className="mt-auto">
+          {isAudiencesMode ? (
             <button
-              onClick={() => {
-                if (setPinnedInsight) setPinnedInsight(insight);
-                setSelectedBrand(brandsToFilter[0][0]);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+              onClick={handleAction}
+              className="w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             >
-              Revisar {brandsToFilter[0][1]}
+              {actionLabel || "Revisar"}
             </button>
-          ) : null}
+          ) : (
+            <div className="flex flex-col gap-2">
+              {hasMultipleBrandOptions ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                      <span>Revisar...</span>
+                      <ChevronDown className="h-4 w-4 opacity-70 absolute right-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="center">
+                    {brandsToFilter.map(([originalBrand, displayBrand]) => (
+                      <DropdownMenuItem 
+                        key={originalBrand}
+                        onClick={() => handleSelectBrand(originalBrand)}
+                        className="cursor-pointer font-medium text-sm"
+                      >
+                        {displayBrand}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : showSingleBrandButton ? (
+                <button
+                  onClick={() => handleSelectBrand(brandsToFilter[0][0])}
+                  className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                >
+                  Revisar {brandsToFilter[0][1]}
+                </button>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </Panel>

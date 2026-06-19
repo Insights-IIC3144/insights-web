@@ -26,7 +26,7 @@ export default function CatalogDashboard() {
       <CatalogKpiGrid data={kpis} loading={loadingProducts} />
       
       {/* AI Action Cards Section */}
-      <AiActionCards insights={insights} loading={loadingInsights} onRefresh={refetchInsights} onRegenerate={replaceInsight} />
+      <AiActionCards insights={insights} loading={loadingInsights} mode="catalog" onRefresh={refetchInsights} onRegenerate={replaceInsight} />
       
       {/* Product Table Section */}
       <CatalogTable products={products} loading={loadingProducts} />

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lightbulb, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -8,7 +9,8 @@ import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Bar, BarChart, CartesianGrid, Legend,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis,
+  ComposedChart, Line,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
 import { getOpportunity } from "@/lib/opportunity";
@@ -42,6 +44,10 @@ const tooltipStyle = {
   fontSize: "12px",
 };
 
+function trimCategoryName(name: string, maxLength: number = 17) {
+  return name.length > maxLength ? name.slice(0, maxLength) + "..." : name;
+}
+
 export function CompetitiveCharts({
   salesShareByCategory,
   detailByCategory,
@@ -70,12 +76,18 @@ export function CompetitiveCharts({
       setRegeneratingCategories(prev => ({ ...prev, [category]: false }));
     }
   };
+
+  const maxShare = Math.ceil(Math.max(...salesShareByCategory.map(d => d.sharePct), 2) / 2) * 2;
+  const shareTicks = Array.from({ length: maxShare / 2 + 1 }, (_, i) => i * 2);
+  
+  const maxPrice = Math.ceil(Math.max(...detailByCategory.flatMap(d => [d.averageBrandPrice, d.averageBenchmarkPrice]), 25) / 25) * 25;
+  const priceTicks = Array.from({ length: maxPrice / 25 + 1 }, (_, i) => i * 25);
   return (
     <>
+
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <Panel
-          className="lg:col-span-2"
           title="Share de ventas por categoría"
           description="% de los ingresos de la categoría capturados por tu marca"
         >
@@ -84,12 +96,12 @@ export function CompetitiveCharts({
               <Skeleton className="h-full w-full rounded-lg" />
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesShareByCategory} margin={{ top: 5, right: 10, left: 0, bottom: 30 }}>
+                <BarChart data={salesShareByCategory} margin={{ top: 5, right: 10, left: -15, bottom: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" interval={0} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
-                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                  <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} height={60} tickFormatter={(v) => trimCategoryName(v)} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} ticks={shareTicks} tickFormatter={(v) => `${v}%`} domain={[0, maxShare]} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
+                  <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -101,15 +113,15 @@ export function CompetitiveCharts({
             <Skeleton className="h-72 w-full rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={290}>
-              <BarChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+              <ComposedChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-25} textAnchor="end" height={70} />
-                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
+                <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={75} tickFormatter={(v) => trimCategoryName(v)} />
+                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
+                <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
-                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
-                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
-              </BarChart>
+                <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+                <Line type="linear" dataKey="averageBenchmarkPrice" name="Benchmark" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-3))", strokeWidth: 1.5, stroke: "hsl(var(--background))" }} activeDot={{ r: 6 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
@@ -138,12 +150,12 @@ export function CompetitiveCharts({
                       <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
                       {!loadingInsights && (
                         <div className="font-semibold text-sm mt-0.5">
-                          {insight?.opportunityTitle || "Posición competitiva"}
+                          {insight?.opportunityTitle || getOpportunity(c)}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {onRegenerate && (
+                      {!loadingInsights && insight && onRegenerate && (
                         <button 
                           onClick={() => handleRegenerate(c.category)}
                           disabled={regeneratingCategories[c.category]}
@@ -153,24 +165,9 @@ export function CompetitiveCharts({
                           <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
                         </button>
                       )}
-                      <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
-                      <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                      {!loadingInsights && insight && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
+                      {!loadingInsights && !insight && <Lightbulb className="h-4 w-4 text-primary mt-0.5" />}
                     </div>
-
-                    {loadingInsights ? (
-                      <div className="flex justify-center my-4">
-                        <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                        {insight?.opportunityDescription || (
-                          <>
-                            Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.
-                            Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-                          </>
-                        )}
-                      </p>
-                    )}
                   </div>
                   
                   {loadingInsights || regeneratingCategories[c.category] ? (
@@ -212,7 +209,7 @@ export function CompetitiveCharts({
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Categoría</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas marca</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas categoría</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share ventas</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio marca</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio benchmark</TableHead>
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Oportunidad</TableHead>
@@ -237,8 +234,17 @@ export function CompetitiveCharts({
                               <Loader2 className="h-3 w-3 animate-spin" />
                               <span>Analizando...</span>
                             </div>
+                          ) : insight ? (
+                            <Tooltip>
+                              <TooltipTrigger className="cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
+                                {insight.opportunityTitle}
+                              </TooltipTrigger>
+                              <TooltipContent side="top" align="center" className="max-w-xs leading-relaxed">
+                                {insight.opportunityDescription}
+                              </TooltipContent>
+                            </Tooltip>
                           ) : (
-                            insight?.opportunityTitle || "Posición competitiva"
+                            getOpportunity(c)
                           )}
                         </TableCell>
                       </TableRow>

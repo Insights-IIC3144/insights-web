@@ -3,7 +3,6 @@ import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
-import { pctChange } from "@/lib/utils";
 
 function computeKpis(categories: CompetitiveCategory[]) {
     let sumBrandSales = 0;
@@ -29,18 +28,6 @@ function computeKpis(categories: CompetitiveCategory[]) {
     const priceGapPct = avgPriceBench ? ((avgPriceBrand - avgPriceBench) / avgPriceBench) * 100 : 0;
 
     return { overallSalesShare, overallVolumeShare, avgPriceBrand, priceGapPct };
-}
-
-function computeDeltas(
-    current: ReturnType<typeof computeKpis>,
-    prior: ReturnType<typeof computeKpis>
-) {
-    return {
-        overallSalesShare: pctChange(current.overallSalesShare, prior.overallSalesShare),
-        overallVolumeShare: pctChange(current.overallVolumeShare, prior.overallVolumeShare),
-        avgPriceBrand: pctChange(current.avgPriceBrand, prior.avgPriceBrand),
-        priceGapPct: pctChange(current.priceGapPct, prior.priceGapPct),
-    };
 }
 
 export function useCompetitiveData(activeFilters: Record<string, string>) {
@@ -120,23 +107,26 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
 
         const currentKpis = computeKpis(currentCategories);
         const priorKpis = priorCategories.length ? computeKpis(priorCategories) : currentKpis;
-        const deltas = computeDeltas(currentKpis, priorKpis);
 
-        const detailByCategory = currentCategories.map((c) => ({
+        const detailByCategory = currentCategories
+            .map((c) => ({
             ...c,
             salesSharePct: c.salesShare * 100,
             volumeSharePct: c.volumeShare * 100,
             priceGapPct: c.averageBenchmarkPrice
                 ? ((c.averageBrandPrice - c.averageBenchmarkPrice) / c.averageBenchmarkPrice) * 100
                 : 0,
-        }));
+        }))
+            .sort((a, b) => b.averageBrandPrice - a.averageBrandPrice);
 
-        const salesShareByCategory = detailByCategory.map((r) => ({ category: r.category, sharePct: r.salesSharePct }));
+        const salesShareByCategory = detailByCategory
+            .map((r) => ({ category: r.category, sharePct: r.salesSharePct }))
+            .sort((a, b) => b.sharePct - a.sharePct);
         const topCategories = [...detailByCategory].sort((a, b) => b.salesSharePct - a.salesSharePct).slice(0, 3);
 
         return {
             kpis: currentKpis,
-            deltas,
+            prior: priorKpis,
             detailByCategory,
             salesShareByCategory,
             topCategories,

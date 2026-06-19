@@ -3,7 +3,6 @@ import { executiveService } from "@/services/executiveService";
 import { ExecutiveKpi, ExecutiveKpisWithPrior, CategorySales } from "@/types/executive";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
-import { pctChange } from "@/lib/utils";
 
 function aggregateKpis(data: ExecutiveKpi[]) {
   const totalRevenue = data.reduce((sum, d) => sum + (d.revenue || 0), 0);
@@ -14,22 +13,9 @@ function aggregateKpis(data: ExecutiveKpi[]) {
   return { totalRevenue, totalOrders, totalUnits, uniqueCustomers, aov };
 }
 
-function computeDeltas(
-  current: ReturnType<typeof aggregateKpis>,
-  prior: ReturnType<typeof aggregateKpis>
-) {
-  return {
-    totalRevenue: pctChange(current.totalRevenue, prior.totalRevenue),
-    totalOrders: pctChange(current.totalOrders, prior.totalOrders),
-    totalUnits: pctChange(current.totalUnits, prior.totalUnits),
-    uniqueCustomers: pctChange(current.uniqueCustomers, prior.uniqueCustomers),
-    aov: pctChange(current.aov, prior.aov),
-  };
-}
-
 export function useExecutiveData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
-  const [deltas, setDeltas] = useState<ReturnType<typeof computeDeltas> | null>(null);
+  const [prior, setPrior] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [loading, setLoading] = useState(true);
   const { days, selectedBrand: brand } = useUserContext();
@@ -54,7 +40,7 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
           setKpis(data.current || []);
           const currentAgg = aggregateKpis(data.current || []);
           const priorAgg = data.prior?.length ? aggregateKpis(data.prior) : currentAgg;
-          setDeltas(computeDeltas(currentAgg, priorAgg));
+          setPrior(priorAgg);
         }
         if (catRes) setCategorySales(catRes);
       } catch (err) {
@@ -66,5 +52,5 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
     fetchData();
   }, [activeFilters, days, brand]);
 
-  return { kpis, deltas, categorySales, loading };
+  return { kpis, prior, categorySales, loading };
 }
