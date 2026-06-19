@@ -12,8 +12,23 @@ export const competitiveService = {
     getCards: (params: FilterParams & { brand: string }) =>
         api.get<CompetitiveCardsData>("/competitive/performance-cards", params as any),
 
-    getInsights: (params: FilterParams & { brand: string }) =>
-        api.get<CompetitiveInsightDto[]>("/competitive/insights", params as any),
+    getInsights: async (params: FilterParams & { brand: string }): Promise<CompetitiveInsightDto[]> => {
+        // Route through the cached insights endpoint — brand, category and days are cache discriminators.
+        // Department is intentionally omitted from the insights call.
+        const insightParams = new URLSearchParams();
+        if (params.brand) insightParams.append("brand", params.brand);
+        if (params.category) insightParams.append("category", params.category);
+        if (params.days) insightParams.append("days", params.days.toString());
+
+        const res = await fetch(`/api/competitive-insights?${insightParams}`);
+
+        if (!res.ok) {
+            if (res.status === 404) return [];
+            throw new Error(`Failed to fetch competitive insights: ${res.status}`);
+        }
+
+        return res.json();
+    },
 
     regenerateInsight: (params: FilterParams & { brand: string, category: string }, excludeTitles: string[]) =>
         api.post<CompetitiveInsightDto[]>("/competitive/insights/regenerate", {

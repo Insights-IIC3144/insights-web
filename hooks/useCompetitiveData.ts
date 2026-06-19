@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
+import { revalidateCompetitiveInsights } from "@/app/actions/competitiveInsights";
 
 function computeKpis(categories: CompetitiveCategory[]) {
     let sumBrandSales = 0;
@@ -157,11 +158,35 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
                     }
                 });
             }
+            await revalidateCompetitiveInsights(brand, activeFilters.category || "", days?.toString() || "");
         } catch (err) {
             console.error("Error regenerating competitive insight:", err);
             throw err;
         }
     };
 
-    return { loading, loadingInsights, insights, stats, replaceInsight };
+    const refetchInsights = useCallback(async () => {
+        if (!brand || brand.trim() === "") return;
+        setLoadingInsights(true);
+        setInsights([]);
+        await revalidateCompetitiveInsights(brand, activeFilters.category || "", days?.toString() || "");
+        const params: FilterParams & { brand: string } = {
+            brand,
+            ...Object.fromEntries(
+                Object.entries(activeFilters).filter(([, v]) => v !== "")
+            ),
+        };
+        if (days > 0) params.days = days;
+        try {
+            const data = await competitiveService.getInsights(params);
+            setInsights(data || []);
+        } catch (err) {
+            console.error("Error refetching competitive insights:", err);
+            setInsights([]);
+        } finally {
+            setLoadingInsights(false);
+        }
+    }, [activeFilters, days, brand]);
+
+    return { loading, loadingInsights, insights, stats, replaceInsight, refetchInsights };
 }
