@@ -43,6 +43,10 @@ const tooltipStyle = {
   fontSize: "12px",
 };
 
+function trimCategoryName(name: string, maxLength: number = 17) {
+  return name.length > maxLength ? name.slice(0, maxLength) + "..." : name;
+}
+
 export function CompetitiveCharts({
   salesShareByCategory,
   detailByCategory,
@@ -71,12 +75,18 @@ export function CompetitiveCharts({
       setRegeneratingCategories(prev => ({ ...prev, [category]: false }));
     }
   };
+
+  const maxShare = Math.ceil(Math.max(...salesShareByCategory.map(d => d.sharePct), 2) / 2) * 2;
+  const shareTicks = Array.from({ length: maxShare / 2 + 1 }, (_, i) => i * 2);
+  
+  const maxPrice = Math.ceil(Math.max(...detailByCategory.flatMap(d => [d.averageBrandPrice, d.averageBenchmarkPrice]), 25) / 25) * 25;
+  const priceTicks = Array.from({ length: maxPrice / 25 + 1 }, (_, i) => i * 25);
   return (
     <>
+
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
         <Panel
-          className="lg:col-span-2"
           title="Share de ventas por categoría"
           description="% de los ingresos de la categoría capturados por tu marca"
         >
@@ -87,8 +97,8 @@ export function CompetitiveCharts({
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={salesShareByCategory} margin={{ top: 5, right: 10, left: 0, bottom: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" interval={0} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+                  <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} height={60} tickFormatter={(v) => trimCategoryName(v)} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} ticks={shareTicks} tickFormatter={(v) => `${v}%`} domain={[0, maxShare]} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
                   <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
@@ -104,8 +114,8 @@ export function CompetitiveCharts({
             <ResponsiveContainer width="100%" height={290}>
               <ComposedChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-25} textAnchor="end" height={70} />
-                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={75} tickFormatter={(v) => trimCategoryName(v)} />
+                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
                 <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
@@ -198,7 +208,7 @@ export function CompetitiveCharts({
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Categoría</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas marca</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas categoría</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share ventas</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio marca</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio benchmark</TableHead>
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Oportunidad</TableHead>
