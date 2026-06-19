@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Bar, BarChart, CartesianGrid, Legend,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
+  ComposedChart, Line,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
 import { getOpportunity } from "@/lib/opportunity";
@@ -101,15 +102,15 @@ export function CompetitiveCharts({
             <Skeleton className="h-72 w-full rounded-lg" />
           ) : (
             <ResponsiveContainer width="100%" height={290}>
-              <BarChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+              <ComposedChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-25} textAnchor="end" height={70} />
                 <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
                 <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
-                <Bar dataKey="averageBenchmarkPrice" name="Benchmark" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} maxBarSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
-              </BarChart>
+                <Line type="linear" dataKey="averageBenchmarkPrice" name="Benchmark" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-3))", strokeWidth: 1.5, stroke: "hsl(var(--background))" }} activeDot={{ r: 6 }} />
+              </ComposedChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
