@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lightbulb, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -8,7 +9,7 @@ import { ChartCard } from "@/components/ui-extra/ChartCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Bar, BarChart, CartesianGrid, Legend,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis,
   ComposedChart, Line,
 } from "recharts";
 import { fmtMoney, fmtPct } from "@/lib/format";
@@ -99,7 +100,7 @@ export function CompetitiveCharts({
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} angle={-45} textAnchor="end" interval={0} height={60} tickFormatter={(v) => trimCategoryName(v)} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} ticks={shareTicks} tickFormatter={(v) => `${v}%`} domain={[0, maxShare]} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
+                  <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number) => `${v.toFixed(2)}%`} />
                   <Bar dataKey="sharePct" name="Share" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 </BarChart>
               </ResponsiveContainer>
@@ -116,7 +117,7 @@ export function CompetitiveCharts({
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={75} tickFormatter={(v) => trimCategoryName(v)} />
                 <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
+                <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
                 <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
                 <Line type="linear" dataKey="averageBenchmarkPrice" name="Benchmark" stroke="hsl(var(--chart-3))" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(var(--chart-3))", strokeWidth: 1.5, stroke: "hsl(var(--background))" }} activeDot={{ r: 6 }} />
@@ -233,8 +234,17 @@ export function CompetitiveCharts({
                               <Loader2 className="h-3 w-3 animate-spin" />
                               <span>Analizando...</span>
                             </div>
+                          ) : insight ? (
+                            <Tooltip>
+                              <TooltipTrigger className="cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
+                                {insight.opportunityTitle}
+                              </TooltipTrigger>
+                              <TooltipContent side="top" align="center" className="max-w-xs leading-relaxed">
+                                {insight.opportunityDescription}
+                              </TooltipContent>
+                            </Tooltip>
                           ) : (
-                            insight?.opportunityTitle || getOpportunity(c)
+                            getOpportunity(c)
                           )}
                         </TableCell>
                       </TableRow>
