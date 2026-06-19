@@ -5,6 +5,7 @@ import { ArrowDownIcon, ArrowUpIcon, Search, ChevronDown, ChevronUp, ChevronLeft
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserContext } from "@/context/UserContext";
+import { fmtMoney } from "@/lib/format";
 
 interface CatalogTableProps {
   products: CatalogProductDto[];
@@ -103,9 +104,6 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
       setSortDirection('desc'); // Por defecto descendente al cambiar columna
     }
   };
-
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
 
   const formatPercent = (val: number) =>
     new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 }).format(val);
@@ -210,9 +208,9 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
                   {product.productName}
                 </td>
                 <td className="px-6 py-4 text-foreground">{product.category}</td>
-                <td className="px-6 py-4 text-right text-foreground">{formatCurrency(product.retailPrice)}</td>
+                <td className="px-6 py-4 text-right text-foreground">{fmtMoney(product.retailPrice, { decimals: 2 })}</td>
                 <td className="px-6 py-4 text-center text-foreground">{product.unitsSold.toLocaleString()}</td>
-                <td className="px-6 py-4 text-right text-foreground font-medium">{formatCurrency(product.revenueNet)}</td>
+                <td className="px-6 py-4 text-right text-foreground font-medium">{fmtMoney(product.revenueNet)}</td>
                 <td className="px-6 py-4 text-right">
                   <div className={`inline-flex items-center gap-1 ${product.returnRate > 0.15 ? 'text-rose-400' : 'text-emerald-400'}`}>
                     {product.returnRate > 0.15 ? <ArrowUpIcon className="h-3 w-3" /> : <ArrowDownIcon className="h-3 w-3" />}
