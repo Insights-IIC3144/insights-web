@@ -34,7 +34,7 @@ export function CatalogKpiGrid({ data, loading }: CatalogKpiGridProps) {
         label="Total de Productos"
         value={data.totalProducts}
         format={(v) => v.toString()}
-        icon={<Package className="h-4 w-4 text-brand-blue" />}
+        icon={<Package className="h-4 w-4 text-primary" />}
       />
       <KpiCard
         label="Ingreso Total del Catálogo"
