@@ -12,11 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useUserContext } from "@/context/UserContext";
 import Link from "next/link";
 import { type UserProfile } from "@/types/shared";
+import { BrandSearch } from "@/components/layout/BrandSearch";
 
 const RANGE_OPTIONS = [
   { label: "Últimos 7 días", days: 7 },
@@ -36,9 +37,6 @@ export function Topbar() {
     profile,
     isLoading: profileLoading,
     setDays,
-    selectedBrand,
-    setSelectedBrand,
-    availableBrands
   } = useUserContext();
   const [range, setRange] = useState(RANGE_OPTIONS[2]); // default: últimos 90 días
   const { user } = useUser();
@@ -76,56 +74,7 @@ export function Topbar() {
 
           <span className="text-muted-foreground/30 px-1">/</span>
 
-          {/* Brand — Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 font-semibold text-foreground hover:bg-muted text-[14px] h-7 px-2"
-                disabled={profileLoading || (profile?.role !== 'retailer_admin')} // Bloqueamos si no es admin
-              >
-                {profileLoading ? "Cargando..." : (selectedBrand || "Todas las marcas")}
-                {profile?.role === 'retailer_admin' && (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground opacity-70" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-
-            {/* Solo mostramos el contenido del menú si es Admin */}
-            {profile?.role === 'retailer_admin' && (
-              <DropdownMenuContent align="start" className="w-60 max-h-72 overflow-y-auto">
-                <DropdownMenuLabel className="text-xs">Filtro de marca</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                {/* Opción para limpiar el filtro */}
-                <DropdownMenuItem
-                  onClick={() => setSelectedBrand("")}
-                  className={selectedBrand === "" ? "bg-muted font-medium" : ""}
-                >
-                  Todas las marcas
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                {availableBrands.length === 0 ? (
-                  <DropdownMenuItem disabled className="text-muted-foreground">
-                    Cargando marcas...
-                  </DropdownMenuItem>
-                ) : (
-                  availableBrands.map((b) => (
-                    <DropdownMenuItem
-                      key={b}
-                      onClick={() => setSelectedBrand(b)}
-                      className={b === selectedBrand ? "bg-muted font-medium" : ""}
-                    >
-                      {b}
-                    </DropdownMenuItem>
-                  ))
-                )}
-              </DropdownMenuContent>
-            )}
-          </DropdownMenu>
+          <BrandSearch />
         </div>
 
         <div className="flex-1" />

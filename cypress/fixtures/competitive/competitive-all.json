@@ -1,0 +1,57 @@
+{
+  "current": [
+    {
+      "category": "Jeans",
+      "brandSales": 45000,
+      "categorySales": 150000,
+      "brandVolume": 900,
+      "categoryVolume": 3000,
+      "salesBenchmark": 50000,
+      "volumeBenchmark": 1100,
+      "salesShare": 0.30,
+      "volumeShare": 0.30,
+      "averageBrandPrice": 50.0,
+      "averageBenchmarkPrice": 45.45
+    },
+    {
+      "category": "Shirts",
+      "brandSales": 25000,
+      "categorySales": 100000,
+      "brandVolume": 1000,
+      "categoryVolume": 5000,
+      "salesBenchmark": 30000,
+      "volumeBenchmark": 1200,
+      "salesShare": 0.25,
+      "volumeShare": 0.20,
+      "averageBrandPrice": 25.0,
+      "averageBenchmarkPrice": 25.0
+    },
+    {
+      "category": "Sweaters",
+      "brandSales": 15000,
+      "categorySales": 75000,
+      "brandVolume": 300,
+      "categoryVolume": 1800,
+      "salesBenchmark": 20000,
+      "volumeBenchmark": 450,
+      "salesShare": 0.20,
+      "volumeShare": 0.166,
+      "averageBrandPrice": 50.0,
+      "averageBenchmarkPrice": 44.44
+    },
+    {
+      "category": "Pants",
+      "brandSales": 35000,
+      "categorySales": 120000,
+      "brandVolume": 700,
+      "categoryVolume": 2800,
+      "salesBenchmark": 40000,
+      "volumeBenchmark": 850,
+      "salesShare": 0.291,
+      "volumeShare": 0.25,
+      "averageBrandPrice": 50.0,
+      "averageBenchmarkPrice": 47.05
+    }
+  ],
+  "prior": []
+}

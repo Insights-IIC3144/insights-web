@@ -1,3 +1,8 @@
+export interface ExecutiveKpisWithPrior {
+  current: ExecutiveKpi[];
+  prior: ExecutiveKpi[];
+}
+
 export interface ExecutiveKpi {
   date: string;
   brand: string;

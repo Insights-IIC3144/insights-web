@@ -1,22 +1,44 @@
+import React, { useState } from "react";
 import { Panel } from "@/components/ui-extra/Panel";
-import { AiInsightDto } from "@/types/catalog";
-import { Lightbulb, PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
+import { AiInsightDto } from "@/types/insights";
+import { PieChart, PlusCircle, Shuffle, Sparkles, Tag, TrendingUp, AlertTriangle, PackageX, ChevronDown, RotateCcw, Info, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserContext } from "@/context/UserContext";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface AiActionCardsProps {
   insights: AiInsightDto[];
   loading: boolean;
+  mode: "audiences" | "catalog";
   onRefresh?: () => void;
+  onRegenerate?: (id: string, excludeType?: string) => Promise<void>;
+  onAction?: (insight: AiInsightDto) => void;
+  actionLabel?: string;
 }
 
-export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsProps) {
+export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate, onAction, actionLabel }: AiActionCardsProps) {
+  const { pinnedInsights, setPinnedInsight } = useUserContext();
+  const pinnedInsight = pinnedInsights[mode];
+
+  let list = insights || [];
+  if (pinnedInsight) {
+    const exists = list.some(i => i.id === pinnedInsight.id);
+    if (!exists) {
+      list = [pinnedInsight, ...list];
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -35,7 +57,7 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
     );
   }
 
-  if (!insights || insights.length === 0) {
+  if (!list || list.length === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
@@ -60,7 +82,7 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
             Es posible que el modelo de IA necesite unos segundos para inicializarse (cold start) o que no haya anomalías detectadas con los filtros actuales.
           </p>
           {onRefresh && (
-            <button 
+            <button
               onClick={onRefresh}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-md transition-colors shadow-sm"
             >
@@ -73,10 +95,15 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
     );
   }
 
-  // Sort insights by impact score descending and limit to 6 for symmetry
-  const sortedInsights = [...insights]
-    .sort((a, b) => b.impactScore - a.impactScore)
-    .slice(0, 6);
+  // Sort by impact score descending, then by title alphabetically
+  let sortedInsights = [...list].sort((a, b) => {
+    const impactDiff = b.impactScore - a.impactScore;
+    if (impactDiff !== 0) return impactDiff;
+    return (a.title || "").localeCompare(b.title || "");
+  });
+
+  // Limit to 6 for symmetry
+  sortedInsights = sortedInsights.slice(0, 6);
 
   return (
     <div className="space-y-4">
@@ -98,11 +125,11 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
 
       <div className="flex flex-wrap justify-center items-stretch gap-4">
         {sortedInsights.map((insight) => (
-          <div 
-            key={insight.id} 
+          <div
+            key={insight.id}
             className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] flex flex-col"
           >
-            <ActionCard insight={insight} />
+            <ActionCard insight={insight} mode={mode} onRegenerate={onRegenerate} onAction={onAction} actionLabel={actionLabel} />
           </div>
         ))}
       </div>
@@ -110,8 +137,22 @@ export function AiActionCards({ insights, loading, onRefresh }: AiActionCardsPro
   );
 }
 
-function ActionCard({ insight }: { insight: AiInsightDto }) {
-  const { setSelectedBrand, availableBrands, selectedBrand } = useUserContext();
+function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { insight: AiInsightDto, mode: "audiences" | "catalog", onRegenerate?: (id: string, excludeType?: string) => Promise<void>, onAction?: (insight: AiInsightDto) => void, actionLabel?: string }) {
+  const { setSelectedBrand, availableBrands, selectedBrand, setPinnedInsight } = useUserContext();
+  const [isRegenerating, setIsRegenerating] = useState(false);
+
+  const handleRegenerate = async () => {
+    if (!onRegenerate) return;
+    setIsRegenerating(true);
+    try {
+      await onRegenerate(insight.id, insight.type);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Error al regenerar el insight");
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   const isWarning = insight.type === "warning";
   const isOpportunity = insight.type === "opportunity";
@@ -121,6 +162,14 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
   const isDeadStock = insight.type === "dead_stock";
   const isCrossSell = insight.type === "cross_sell";
   const isReturns = insight.type === "returns" || insight.type === "return_rate";
+
+  if (isRegenerating) {
+    return (
+      <Panel className="flex flex-col items-center justify-center h-full min-h-[200px] bg-panel-hover/30 border-transparent">
+        <Loader2 className="h-8 w-8 text-indigo-400/50 animate-spin" />
+      </Panel>
+    );
+  }
 
   // Agrupamos colores por semántica para simplificar
   const colorRed = isWarning || isDeadStock || isReturns;
@@ -137,49 +186,55 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
       .join(' ');
   };
 
-  // Extract all unique brands from affected products
-  const uniqueBrands = new Set<string>();
-  
-  // Sort available brands by length descending to avoid matching short substrings like "H"
-  const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
+  const isAudiencesMode = mode === "audiences";
+  const hasAffectedItems = !!(insight.affectedItems?.length);
+  const showCatalogAffectedProducts = !isAudiencesMode && hasAffectedItems;
 
-  if (insight.affectedItems && insight.affectedItems.length > 0) {
+  // Brand extraction (only relevant for catalog mode with products)
+  const brandsToFilter: [string, string][] = [];
+  if (showCatalogAffectedProducts) {
+    const uniqueBrandsMap = new Map<string, string>();
+    const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
+
     insight.affectedItems.forEach(item => {
       const productName = item.name;
-      const matchedBrand = sortedBrands.find(b => 
+      if (!productName) return;
+      const matchedBrand = sortedBrands.find(b =>
         productName.toLowerCase().includes(b.toLowerCase())
       );
       
       if (matchedBrand) {
-        uniqueBrands.add(toTitleCase(matchedBrand));
-      } else {
-        // Fallback: Use the first word if no match is found, though with Title Case
-        uniqueBrands.add(toTitleCase(productName.split(' ')[0]));
+        uniqueBrandsMap.set(matchedBrand, toTitleCase(matchedBrand));
+      } else if (availableBrands.length > 0) {
+        // Fallback: Use the first word if no match is found
+        const fallback = productName.split(' ')[0];
+        uniqueBrandsMap.set(fallback, toTitleCase(fallback));
       }
     });
+    brandsToFilter.push(...uniqueBrandsMap.entries());
   }
-  
-  const brandsToFilter = Array.from(uniqueBrands);
+
+  const hasMultipleBrandOptions = brandsToFilter.length > 1;
+  const hasSingleBrandOption = brandsToFilter.length === 1;
+  const noBrandCurrentlySelected = !selectedBrand || selectedBrand.trim() === "";
+  const showSingleBrandButton = noBrandCurrentlySelected && hasSingleBrandOption;
+
+  const handleAction = () => {
+    setPinnedInsight(mode, insight);
+    onAction?.(insight);
+  };
+
+  const handleSelectBrand = (brand: string) => {
+    setPinnedInsight(mode, insight);
+    setSelectedBrand(brand);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <Panel 
-      className={cn(
-        "relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 flex flex-col h-full",
-        colorRed && "hover:border-rose-500/50 hover:shadow-[0_0_15px_rgba(244,63,94,0.15)]",
-        colorGreen && "hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]",
-        colorBlue && "hover:border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]",
-        colorOrange && "hover:border-orange-500/50 hover:shadow-[0_0_15px_rgba(249,115,22,0.15)]"
-      )}
+    <Panel
+      className="relative overflow-hidden transition-shadow duration-300 hover:[box-shadow:var(--shadow-elevated)] flex flex-col h-full border border-border"
       bodyClassName="flex flex-col h-full flex-grow p-0"
     >
-      {/* Glow effect on hover */}
-      <div className={cn(
-        "absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300",
-        colorRed && "bg-gradient-to-br from-rose-500 to-transparent",
-        colorGreen && "bg-gradient-to-br from-emerald-500 to-transparent",
-        colorBlue && "bg-gradient-to-br from-blue-500 to-transparent",
-        colorOrange && "bg-gradient-to-br from-orange-500 to-transparent"
-      )} />
 
       <div className="p-5 flex flex-col flex-grow relative z-10">
         <div className="flex items-start justify-between mb-3">
@@ -201,67 +256,95 @@ function ActionCard({ insight }: { insight: AiInsightDto }) {
             {isReturns && <RotateCcw className="h-5 w-5" />}
             {isFallback && <Info className="h-5 w-5" />}
           </div>
-          <div className="text-xs font-medium text-panel-muted bg-panel-hover px-2 py-1 rounded-md border border-panel-border/50">
-            Impacto: {insight.impactScore}/10
+          <div className="flex items-center gap-2">
+            {onRegenerate && (
+              <button 
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 bg-white hover:bg-slate-50 p-1.5 rounded-md border border-primary/20 shadow-sm"
+                title="Generar nuevo insight distinto"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5", isRegenerating && "animate-spin")} />
+              </button>
+            )}
+            <div className="text-xs font-medium text-panel-muted bg-panel-hover px-2 py-1 rounded-md border border-panel-border/50">
+              Impacto: {insight.impactScore}/10
+            </div>
           </div>
         </div>
 
         <h4 className="text-base font-medium text-black mb-1.5">{insight.title}</h4>
-        
-        {insight.affectedItems && insight.affectedItems.length > 0 && (
+
+        {showCatalogAffectedProducts && (
           <div className="mb-3">
-            <p className="text-xs font-medium text-brand-blue mb-1">
-              Afecta a {insight.affectedItems.length} producto(s):
-            </p>
-            <ul className="text-xs text-panel-muted list-disc list-inside space-y-0.5 max-h-16 overflow-y-auto pr-2">
-              {insight.affectedItems.map(item => (
-                <li key={item.id} className="truncate" title={item.name}>
-                  {item.name}
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-medium text-brand-blue">
+                Afecta a {insight.affectedItems.length} producto(s):
+              </p>
+              <Popover>
+                <PopoverTrigger className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center transition-colors outline-none cursor-pointer">
+                  Ver productos
+                  <ChevronDown className="h-3 w-3 ml-0.5" />
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 p-3 bg-white shadow-lg border border-slate-200">
+                  <p className="text-xs font-semibold mb-2 text-slate-800">Productos afectados</p>
+                  <ul className="text-xs text-panel-muted list-disc list-inside space-y-0.5 max-h-48 overflow-y-auto pr-1">
+                    {insight.affectedItems.map(item => (
+                      <li key={item.id} className="truncate" title={item.name || String(item.id)}>
+                        {item.name || String(item.id)}
+                      </li>
+                    ))}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         )}
-        
+
         <p className="text-sm text-panel-foreground leading-relaxed mb-4">
           {insight.description}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2">
-          {(!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length > 1 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm">
-                  <span>Revisar...</span>
-                  <ChevronDown className="h-4 w-4 opacity-50 absolute right-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="center">
-                {brandsToFilter.map(brand => (
-                  <DropdownMenuItem 
-                    key={brand}
-                    onClick={() => {
-                      setSelectedBrand(brand);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="cursor-pointer font-medium text-sm"
-                  >
-                    {brand}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (!selectedBrand || selectedBrand.trim() === "") && brandsToFilter.length === 1 ? (
-            <button 
-              onClick={() => {
-                setSelectedBrand(brandsToFilter[0]);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-white hover:bg-indigo-50 text-indigo-600 border border-indigo-200 shadow-sm"
+        <div className="mt-auto">
+          {isAudiencesMode ? (
+            <button
+              onClick={handleAction}
+              className="w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             >
-              Revisar {brandsToFilter[0]}
+              {actionLabel || "Revisar"}
             </button>
-          ) : null}
+          ) : (
+            <div className="flex flex-col gap-2">
+              {hasMultipleBrandOptions ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="relative w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                      <span>Revisar...</span>
+                      <ChevronDown className="h-4 w-4 opacity-70 absolute right-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="center">
+                    {brandsToFilter.map(([originalBrand, displayBrand]) => (
+                      <DropdownMenuItem 
+                        key={originalBrand}
+                        onClick={() => handleSelectBrand(originalBrand)}
+                        className="cursor-pointer font-medium text-sm"
+                      >
+                        {displayBrand}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : showSingleBrandButton ? (
+                <button
+                  onClick={() => handleSelectBrand(brandsToFilter[0][0])}
+                  className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                >
+                  Revisar {brandsToFilter[0][1]}
+                </button>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </Panel>

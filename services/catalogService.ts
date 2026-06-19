@@ -40,5 +40,29 @@ export const catalogService = {
     }
     
     return res.json();
+  },
+
+  regenerateInsight: async (params: FilterParams, excludeTitles: string[], excludeType?: string): Promise<AiInsightDto[]> => {
+    const res = await fetch(`/api/proxy/catalog/insights/regenerate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        brand: params.brand,
+        days: params.days,
+        category: params.category,
+        department: params.department,
+        excludeTitles,
+        excludeType
+      }),
+    });
+    
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error(`Failed to regenerate catalog insight: ${res.status}`);
+    }
+    
+    return res.json();
   }
 };

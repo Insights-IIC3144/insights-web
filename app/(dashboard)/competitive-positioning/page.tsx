@@ -6,10 +6,11 @@ import { Filters } from "@/components/ui-extra/Filters";
 import { CompetitiveKpiGrid } from "@/components/dashboard/CompetitiveKpiGrid";
 import { CompetitiveCharts } from "@/components/dashboard/CompetitiveCharts";
 import { useCompetitiveData } from "@/hooks/useCompetitiveData";
+import { toggleFilter } from "@/lib/utils";
 
 export default function CompetitivePositioningPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { loading, loadingInsights, insights, stats } = useCompetitiveData(activeFilters);
+  const { loading, loadingInsights, insights, stats, replaceInsight } = useCompetitiveData(activeFilters);
 
   return (
     <div>
@@ -18,9 +19,9 @@ export default function CompetitivePositioningPage() {
         subtitle="Tu marca comparada contra el benchmark agregado de otras marcas en TheLook. Sin nombres individuales."
       />
 
-      <Filters onChange={setActiveFilters} />
+      <Filters value={activeFilters} onChange={setActiveFilters} />
 
-      <CompetitiveKpiGrid kpis={stats?.kpis ?? null} loading={loading} />
+      <CompetitiveKpiGrid kpis={stats?.kpis ?? null} prior={stats?.prior ?? null} loading={loading} />
 
       {!loading && stats && (
         <CompetitiveCharts
@@ -28,8 +29,10 @@ export default function CompetitivePositioningPage() {
           detailByCategory={stats.detailByCategory}
           topCategories={stats.topCategories}
           loading={loading}
+          onCategorySelect={(cat) => setActiveFilters(prev => toggleFilter(prev, "category", cat))}
           insights={insights}
           loadingInsights={loadingInsights}
+          onRegenerate={replaceInsight}
         />
       )}
 

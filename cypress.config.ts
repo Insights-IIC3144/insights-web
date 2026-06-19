@@ -1,22 +1,41 @@
 import { defineConfig } from "cypress";
+import codeCoverage from '@cypress/code-coverage/task';
 
 export default defineConfig({
   e2e: {
     baseUrl: "http://localhost:3000",
+
+    setupNodeEvents(on, config) {
+      codeCoverage(on, config);
+      return config;
+    },
+
     supportFile: "cypress/support/e2e.ts",
     specPattern: "cypress/e2e/**/*.cy.ts",
     viewportWidth: 1280,
     viewportHeight: 800,
+
     video: false,
-    screenshotOnRunFailure: true,
-    defaultCommandTimeout: 8000,
-    // cy.wait(alias) uses requestTimeout, not defaultCommandTimeout.
-    // Under load (after ~3 min of tests) the dev server can be slow;
-    // 15 s gives enough headroom without making the suite flaky.
-    requestTimeout: 15000,
-    responseTimeout: 15000,
-    env: {
-      // Se inyecta al iniciar el servidor con CYPRESS_TESTING=true
+    videoCompression: 32,
+    screenshotOnRunFailure: false,
+    trashAssetsBeforeRuns: true,
+
+    defaultCommandTimeout: 10000,
+    pageLoadTimeout: 30000,
+    requestTimeout: 10000,
+    responseTimeout: 10000,
+
+    retries: {
+      runMode: 2,
+      openMode: 0,
     },
+
+    watchForFileChanges: false,
+    chromeWebSecurity: false,
+
+    experimentalMemoryManagement: true,
+    numTestsKeptInMemory: 0,
+
+    env: {},
   },
 });
