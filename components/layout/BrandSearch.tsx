@@ -18,7 +18,7 @@ export function BrandSearch() {
     selectedBrand,
     setSelectedBrand,
     availableBrands,
-    setPinnedInsight,
+    clearPinnedInsights,
   } = useUserContext();
 
   const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ export function BrandSearch() {
 
   const handleSelect = (brand: string) => {
     setSelectedBrand(brand);
-    if (setPinnedInsight) setPinnedInsight(null);
+    clearPinnedInsights();
     setOpen(false);
     setSearch("");
   };

@@ -13,8 +13,9 @@ interface UserContextValue {
   selectedBrand: string
   setSelectedBrand: (brand: string) => void
   availableBrands: string[] // <-- Nuevo: Lista de marcas para el dropdown
-  pinnedInsight: AiInsightDto | null
-  setPinnedInsight: (insight: AiInsightDto | null) => void
+  pinnedInsights: Record<string, AiInsightDto | null>
+  setPinnedInsight: (mode: string, insight: AiInsightDto | null) => void
+  clearPinnedInsights: () => void
 }
 
 const UserContext = createContext<UserContextValue>({
@@ -26,8 +27,9 @@ const UserContext = createContext<UserContextValue>({
   selectedBrand: "",
   setSelectedBrand: () => { },
   availableBrands: [],
-  pinnedInsight: null,
+  pinnedInsights: {},
   setPinnedInsight: () => { },
+  clearPinnedInsights: () => { },
 })
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -38,7 +40,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [days, setDays] = useState(90)
   const [selectedBrand, setSelectedBrand] = useState("")
   const [availableBrands, setAvailableBrands] = useState<string[]>([])
-  const [pinnedInsight, setPinnedInsight] = useState<AiInsightDto | null>(null)
+  const [pinnedInsights, setPinnedInsights] = useState<Record<string, AiInsightDto | null>>({})
+  const setPinnedInsight = (mode: string, insight: AiInsightDto | null) => {
+    setPinnedInsights(prev => ({ ...prev, [mode]: insight }))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -93,7 +98,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <UserContext.Provider value={{
       profile, isLoading, error,
       days, setDays, selectedBrand, setSelectedBrand, availableBrands,
-      pinnedInsight, setPinnedInsight
+      pinnedInsights, setPinnedInsight,
+      clearPinnedInsights: () => setPinnedInsights({}),
     }}>
       {children}
     </UserContext.Provider>

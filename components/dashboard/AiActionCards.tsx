@@ -28,13 +28,14 @@ interface AiActionCardsProps {
 }
 
 export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate, onAction, actionLabel }: AiActionCardsProps) {
-  const { pinnedInsight } = useUserContext();
+  const { pinnedInsights, setPinnedInsight } = useUserContext();
+  const pinnedInsight = pinnedInsights[mode];
 
-  let finalInsights = insights || [];
+  let list = insights || [];
   if (pinnedInsight) {
-    const exists = finalInsights.some(i => i.id === pinnedInsight.id);
+    const exists = list.some(i => i.id === pinnedInsight.id);
     if (!exists) {
-      finalInsights = [pinnedInsight, ...finalInsights];
+      list = [pinnedInsight, ...list];
     }
   }
 
@@ -56,7 +57,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
     );
   }
 
-  if (!finalInsights || finalInsights.length === 0) {
+  if (!list || list.length === 0) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
@@ -86,7 +87,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
   }
 
   // Sort by impact score descending, then by title alphabetically
-  let sortedInsights = [...finalInsights].sort((a, b) => {
+  let sortedInsights = [...list].sort((a, b) => {
     const impactDiff = b.impactScore - a.impactScore;
     if (impactDiff !== 0) return impactDiff;
     return (a.title || "").localeCompare(b.title || "");
@@ -200,13 +201,13 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
   const noBrandCurrentlySelected = !selectedBrand || selectedBrand.trim() === "";
   const showSingleBrandButton = noBrandCurrentlySelected && hasSingleBrandOption;
 
-  const handlePinAndAction = () => {
-    if (setPinnedInsight) setPinnedInsight(insight);
+  const handleAction = () => {
+    setPinnedInsight(mode, insight);
     onAction?.(insight);
   };
 
-  const handlePinAndSelectBrand = (brand: string) => {
-    if (setPinnedInsight) setPinnedInsight(insight);
+  const handleSelectBrand = (brand: string) => {
+    setPinnedInsight(mode, insight);
     setSelectedBrand(brand);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -289,7 +290,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
         <div className="mt-auto">
           {isAudiencesMode ? (
             <button
-              onClick={handlePinAndAction}
+              onClick={handleAction}
               className="w-full inline-flex items-center justify-center py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
             >
               {actionLabel || "Revisar"}
@@ -308,7 +309,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
                     {brandsToFilter.map(([originalBrand, displayBrand]) => (
                       <DropdownMenuItem 
                         key={originalBrand}
-                        onClick={() => handlePinAndSelectBrand(originalBrand)}
+                        onClick={() => handleSelectBrand(originalBrand)}
                         className="cursor-pointer font-medium text-sm"
                       >
                         {displayBrand}
@@ -318,7 +319,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
                 </DropdownMenu>
               ) : showSingleBrandButton ? (
                 <button
-                  onClick={() => handlePinAndSelectBrand(brandsToFilter[0][0])}
+                  onClick={() => handleSelectBrand(brandsToFilter[0][0])}
                   className="w-full py-2 px-4 rounded-md text-sm font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
                 >
                   Revisar {brandsToFilter[0][1]}
