@@ -93,7 +93,7 @@ export function useCatalogData(localFilters: Record<string, string>) {
       category: localFilters.category,
       department: localFilters.department,
     };
-    await revalidateCatalogInsights(effectiveBrand, localFilters.category || "");
+    await revalidateCatalogInsights(effectiveBrand, localFilters.category || "", days?.toString() || "");
     catalogService.getInsights(params)
       .then(fetchedInsights => {
         setInsights(fetchedInsights);

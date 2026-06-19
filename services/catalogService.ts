@@ -26,11 +26,12 @@ export const catalogService = {
   },
 
   getInsights: async (params: FilterParams): Promise<AiInsightDto[]> => {
-    // Route through the cached insights endpoint — only brand+category are cache discriminators.
-    // Days and department are intentionally omitted from the insights call.
+    // Route through the cached insights endpoint — brand, category and days are cache discriminators.
+    // Department is intentionally omitted from the insights call.
     const insightParams = new URLSearchParams();
     if (params.brand) insightParams.append("brand", params.brand);
     if (params.category) insightParams.append("category", params.category);
+    if (params.days) insightParams.append("days", params.days.toString());
 
     const res = await fetch(`/api/catalog-insights?${insightParams}`);
 
