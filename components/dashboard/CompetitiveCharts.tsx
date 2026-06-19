@@ -139,12 +139,12 @@ export function CompetitiveCharts({
                       <div className="text-xs text-muted-foreground font-medium">{c.category}</div>
                       {!loadingInsights && (
                         <div className="font-semibold text-sm mt-0.5">
-                          {insight?.opportunityTitle || "Posición competitiva"}
+                          {insight?.opportunityTitle || getOpportunity(c)}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {onRegenerate && (
+                      {insight && onRegenerate && (
                         <button 
                           onClick={() => handleRegenerate(c.category)}
                           disabled={regeneratingCategories[c.category]}
@@ -154,24 +154,9 @@ export function CompetitiveCharts({
                           <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
                         </button>
                       )}
-                      <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />
+                      {insight && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
                       <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
                     </div>
-
-                    {loadingInsights ? (
-                      <div className="flex justify-center my-4">
-                        <Loader2 className="h-5 w-5 animate-spin text-indigo-300" />
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                        {insight?.opportunityDescription || (
-                          <>
-                            Tu share es <span className="font-semibold text-primary">{fmtPct(c.salesSharePct)}</span>.
-                            Precio promedio marca <span className="text-primary">{fmtMoney(c.averageBrandPrice)}</span> vs benchmark <span className="text-primary">{fmtMoney(c.averageBenchmarkPrice)}</span>.
-                          </>
-                        )}
-                      </p>
-                    )}
                   </div>
                   
                   {loadingInsights || regeneratingCategories[c.category] ? (
@@ -239,7 +224,7 @@ export function CompetitiveCharts({
                               <span>Analizando...</span>
                             </div>
                           ) : (
-                            insight?.opportunityTitle || "Posición competitiva"
+                            insight?.opportunityTitle || getOpportunity(c)
                           )}
                         </TableCell>
                       </TableRow>
