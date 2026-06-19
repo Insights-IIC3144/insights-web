@@ -154,7 +154,7 @@ export function CompetitiveCharts({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {insight && onRegenerate && (
+                      {!loadingInsights && insight && onRegenerate && (
                         <button 
                           onClick={() => handleRegenerate(c.category)}
                           disabled={regeneratingCategories[c.category]}
@@ -164,8 +164,8 @@ export function CompetitiveCharts({
                           <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
                         </button>
                       )}
-                      {insight && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
-                      <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                      {!loadingInsights && insight && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
+                      {!loadingInsights && !insight && <Lightbulb className="h-4 w-4 text-primary mt-0.5" />}
                     </div>
                   </div>
                   
