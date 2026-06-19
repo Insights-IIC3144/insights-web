@@ -26,14 +26,16 @@ export function AudiencesKpiGrid({ data, loading }: Props) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <KpiCard
         label="Clientes Únicos"
-        value={data ? fmtNum(data.uniqueCustomers) : "—"}
+        value={data?.uniqueCustomers}
+        format={fmtNum}
         delta={data?.uniqueCustomersDeltaPct ?? undefined}
         icon={<Users className="h-4 w-4" />}
         tooltip="Compradores distintos en el período. El % compara los últimos 30 días vs los 30 anteriores."
       />
       <KpiCard
         label="Órdenes / Cliente"
-        value={data ? data.ordersPerCustomer.toFixed(2) : "—"}
+        value={data?.ordersPerCustomer}
+        format={(v) => v.toFixed(2)}
         delta={data?.ordersPerCustomerDeltaPct ?? undefined}
         hint="Frecuencia"
         icon={<RefreshCw className="h-4 w-4" />}
@@ -41,7 +43,8 @@ export function AudiencesKpiGrid({ data, loading }: Props) {
       />
       <KpiCard
         label="Recencia Promedio"
-        value={data ? `${data.avgRecencyDays} d` : "—"}
+        value={data?.avgRecencyDays}
+        format={(v) => `${v} d`}
         delta={data?.avgRecencyDeltaPct ?? undefined}
         hint="Días desde última compra"
         icon={<Clock className="h-4 w-4" />}
@@ -49,7 +52,8 @@ export function AudiencesKpiGrid({ data, loading }: Props) {
       />
       <KpiCard
         label="Ticket / Cliente"
-        value={data ? fmtMoney(data.avgTicketPerCustomer) : "—"}
+        value={data?.avgTicketPerCustomer}
+        format={fmtMoney}
         delta={data?.avgTicketDeltaPct ?? undefined}
         icon={<Receipt className="h-4 w-4" />}
         tooltip="Gasto promedio por orden. Refleja el valor monetario de la audiencia y su disposición a pagar."

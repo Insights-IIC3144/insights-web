@@ -14,7 +14,7 @@ export default function SalesDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [granularity, setGranularity] = useState("monthly");
   const [topLimit, setTopLimit] = useState(5);
-  const { kpis, deltas, categorySales, performance, topProducts, loading } = useSalesData(
+  const { kpis, prior, categorySales, performance, topProducts, loading } = useSalesData(
     activeFilters,
     granularity,
     topLimit
@@ -31,7 +31,7 @@ export default function SalesDashboard() {
         <Filters value={activeFilters} onChange={setActiveFilters} />
       </div>
 
-      <SalesKpiGrid data={kpis} deltas={deltas} loading={loading} />
+      <SalesKpiGrid data={kpis} prior={prior} loading={loading} />
       <SalesCharts
         kpis={kpis}
         categorySales={categorySales}

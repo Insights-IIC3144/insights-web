@@ -1,18 +1,21 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, pctChange } from "@/lib/utils";
 import { InfoTooltip } from "@/components/ui-extra/InfoTooltip";
 
 interface KpiCardProps {
     label: string;
-    value: string;
+    value?: number;
+    format: (value: number) => string;
+    prior?: number;
     delta?: number;
     hint?: string;
     icon?: React.ReactNode;
     tooltip?: string;
 }
 
-export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardProps) {
-    const positive = (delta ?? 0) >= 0;
+export function KpiCard({ label, value, format, prior, delta, hint, icon, tooltip }: KpiCardProps) {
+    const effectiveDelta = delta ?? (value !== undefined && prior !== undefined ? pctChange(value, prior) : undefined);
+    const positive = (effectiveDelta ?? 0) >= 0;
     return (
         <div className="kpi-card">
             <div className="flex items-start justify-between gap-2">
@@ -23,10 +26,10 @@ export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardPro
                 {icon && <div className="text-muted-foreground">{icon}</div>}
             </div>
             <div className="mt-2 text-2xl font-semibold tracking-tight tabular text-foreground">
-                {value}
+                {value !== undefined ? format(value) : "\u2014"}
             </div>
             <div className="mt-1.5 flex items-center gap-2 text-xs">
-                {delta !== undefined && (
+                {effectiveDelta !== undefined && (
                     <span
                         className={cn(
                             "inline-flex items-center gap-0.5 font-medium tabular",
@@ -34,7 +37,7 @@ export function KpiCard({ label, value, delta, hint, icon, tooltip }: KpiCardPro
                         )}
                     >
                         {positive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                        {Math.abs(delta).toFixed(1)}%
+                        {Math.abs(effectiveDelta).toFixed(1)}%
                     </span>
                 )}
                 {hint && <span className="text-muted-foreground">{hint}</span>}

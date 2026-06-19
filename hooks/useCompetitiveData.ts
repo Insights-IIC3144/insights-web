@@ -3,7 +3,6 @@ import { competitiveService } from "@/services/competitiveService";
 import { CompetitiveCategory, CompetitiveWithPrior, CompetitiveInsightDto } from "@/types/competitive";
 import { useUserContext } from "@/context/UserContext";
 import { FilterParams } from "@/types/shared";
-import { pctChange } from "@/lib/utils";
 
 function computeKpis(categories: CompetitiveCategory[]) {
     let sumBrandSales = 0;
@@ -29,18 +28,6 @@ function computeKpis(categories: CompetitiveCategory[]) {
     const priceGapPct = avgPriceBench ? ((avgPriceBrand - avgPriceBench) / avgPriceBench) * 100 : 0;
 
     return { overallSalesShare, overallVolumeShare, avgPriceBrand, priceGapPct };
-}
-
-function computeDeltas(
-    current: ReturnType<typeof computeKpis>,
-    prior: ReturnType<typeof computeKpis>
-) {
-    return {
-        overallSalesShare: pctChange(current.overallSalesShare, prior.overallSalesShare),
-        overallVolumeShare: pctChange(current.overallVolumeShare, prior.overallVolumeShare),
-        avgPriceBrand: pctChange(current.avgPriceBrand, prior.avgPriceBrand),
-        priceGapPct: pctChange(current.priceGapPct, prior.priceGapPct),
-    };
 }
 
 export function useCompetitiveData(activeFilters: Record<string, string>) {
@@ -120,7 +107,6 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
 
         const currentKpis = computeKpis(currentCategories);
         const priorKpis = priorCategories.length ? computeKpis(priorCategories) : currentKpis;
-        const deltas = computeDeltas(currentKpis, priorKpis);
 
         const detailByCategory = currentCategories
             .map((c) => ({
@@ -140,7 +126,7 @@ export function useCompetitiveData(activeFilters: Record<string, string>) {
 
         return {
             kpis: currentKpis,
-            deltas,
+            prior: priorKpis,
             detailByCategory,
             salesShareByCategory,
             topCategories,

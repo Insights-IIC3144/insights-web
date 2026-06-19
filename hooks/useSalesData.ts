@@ -3,7 +3,6 @@ import { salesService } from "@/services/salesService";
 import { SalesKpi, SalesKpisWithPrior, SalesByCategory, SalesPerformanceByDimension, TopProductsData } from "@/types/sales";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
-import { pctChange } from "@/lib/utils";
 
 function aggregateKpis(data: SalesKpi[]) {
   const revenueNet = data.reduce((sum, d) => sum + (d.revenueNet || 0), 0);
@@ -15,27 +14,13 @@ function aggregateKpis(data: SalesKpi[]) {
   return { revenueNet, totalOrders, unitsSold, uniqueCustomers, lossRate, aov };
 }
 
-function computeDeltas(
-  current: ReturnType<typeof aggregateKpis>,
-  prior: ReturnType<typeof aggregateKpis>
-) {
-  return {
-    revenueNet: pctChange(current.revenueNet, prior.revenueNet),
-    totalOrders: pctChange(current.totalOrders, prior.totalOrders),
-    unitsSold: pctChange(current.unitsSold, prior.unitsSold),
-    uniqueCustomers: pctChange(current.uniqueCustomers, prior.uniqueCustomers),
-    lossRate: pctChange(current.lossRate, prior.lossRate),
-    aov: pctChange(current.aov, prior.aov),
-  };
-}
-
 export function useSalesData(
   activeFilters: Record<string, string>,
   granularity: string = "monthly",
   topLimit: number = 5
 ) {
   const [kpis, setKpis] = useState<SalesKpi[]>([]);
-  const [deltas, setDeltas] = useState<ReturnType<typeof computeDeltas> | null>(null);
+  const [prior, setPrior] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
   const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
   const [topProducts, setTopProducts] = useState<TopProductsData | null>(null);
@@ -65,7 +50,7 @@ export function useSalesData(
           setKpis(data.current || []);
           const currentAgg = aggregateKpis(data.current || []);
           const priorAgg = data.prior?.length ? aggregateKpis(data.prior) : currentAgg;
-          setDeltas(computeDeltas(currentAgg, priorAgg));
+          setPrior(priorAgg);
         }
         if (catRes) setCategorySales(catRes);
         if (perfRes) setPerformance(perfRes);
@@ -79,5 +64,5 @@ export function useSalesData(
     fetchData();
   }, [activeFilters, days, brand, granularity, topLimit]);
 
-  return { kpis, deltas, categorySales, performance, topProducts, loading };
+  return { kpis, prior, categorySales, performance, topProducts, loading };
 }
