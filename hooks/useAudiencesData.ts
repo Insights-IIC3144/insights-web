@@ -4,6 +4,7 @@ import { AudiencesKpis, AudiencesGender, AudiencesAge, AudiencesRfm, AudiencesFu
 import { AiInsightDto } from "@/types/insights";
 import { FilterParams } from "@/types/shared";
 import { useUserContext } from "@/context/UserContext";
+import { revalidateAudiencesInsights } from "@/app/actions/audiencesInsights";
 
 export function useAudiencesData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<AudiencesKpis | null>(null);
@@ -79,9 +80,17 @@ export function useAudiencesData(activeFilters: Record<string, string>) {
     };
   }, [buildParams]);
 
-  const refetchInsights = useCallback(() => {
+  const refetchInsights = useCallback(async () => {
     setLoadingInsights(true);
+    setInsights([]);
     const params = buildParams();
+    await revalidateAudiencesInsights(
+      params.brand || "",
+      params.gender || "",
+      params.ageRange || "",
+      params.trafficSource || "",
+      params.days?.toString() || ""
+    );
     audiencesService.getInsights(params)
       .then((res) => {
         if (!mountedRef.current) return;

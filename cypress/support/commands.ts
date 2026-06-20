@@ -136,7 +136,7 @@ Cypress.Commands.add(
       cy.intercept("GET", "/api/proxy/audiences/age-breakdown*", { statusCode, body: { error: "Server error" } }).as("audiencesAge");
       cy.intercept("GET", "/api/proxy/audiences/rfm-cohorts*", { statusCode, body: { error: "Server error" } }).as("audiencesRfm");
       cy.intercept("GET", "/api/proxy/audiences/funnel*", { statusCode, body: { error: "Server error" } }).as("audiencesFunnel");
-      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode, body: { error: "Server error" } }).as("audiencesInsights");
+      cy.intercept("GET", "/api/audiences-insights*", { statusCode, body: { error: "Server error" } }).as("audiencesInsights");
       return;
     }
 
@@ -194,9 +194,9 @@ Cypress.Commands.add(
     }
 
     if (overrides && "insights" in overrides) {
-      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: overrides.insights }).as("audiencesInsights");
+      cy.intercept("GET", "/api/audiences-insights*", { statusCode: 200, body: overrides.insights }).as("audiencesInsights");
     } else {
-      cy.intercept("GET", "/api/proxy/audiences/insights*", { statusCode: 200, body: [] }).as("audiencesInsights");
+      cy.intercept("GET", "/api/audiences-insights*", { statusCode: 200, body: [] }).as("audiencesInsights");
     }
   }
 );
@@ -214,7 +214,7 @@ Cypress.Commands.add(
         statusCode,
         body: { error: "Internal Server Error" },
       }).as("compAll");
-      cy.intercept("GET", "/api/proxy/competitive/insights*", {
+      cy.intercept("GET", "/api/competitive-insights*", {
         statusCode,
         body: { error: "Internal Server Error" },
       }).as("compInsights");
@@ -232,7 +232,7 @@ Cypress.Commands.add(
         fixture: "competitive/competitive-all.json",
       }).as("compAll");
     }
-    cy.intercept("GET", "/api/proxy/competitive/insights*", {
+    cy.intercept("GET", "/api/competitive-insights*", {
       body: [],
     }).as("compInsights");
   }
