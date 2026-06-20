@@ -25,6 +25,9 @@ const TOOLTIP_STYLE = {
   color: "hsl(var(--popover-foreground))",
 };
 
+const TOOLTIP_ITEM_STYLE = { color: "hsl(var(--popover-foreground))" };
+const TOOLTIP_LABEL_STYLE = { color: "hsl(var(--popover-foreground))" };
+
 const GENDER_COLORS = [
   "hsl(var(--chart-1))",
   "hsl(var(--chart-2))",
@@ -77,6 +80,8 @@ export function AudiencesCharts({ gender, age, loading }: Props) {
               </Pie>
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
+                itemStyle={TOOLTIP_ITEM_STYLE}
+                labelStyle={TOOLTIP_LABEL_STYLE}
                 formatter={(value: number) => [fmtNum(value), "Clientes"]}
               />
             </PieChart>

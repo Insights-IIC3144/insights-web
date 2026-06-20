@@ -44,11 +44,11 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Loader2 className="h-5 w-5 text-indigo-400 animate-spin" />
-          <h3 className="text-lg font-semibold text-black">Generando Insights...</h3>
+          <h3 className="text-lg font-semibold text-foreground">Generando Insights...</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <Panel key={i} className="flex flex-col items-center justify-center h-[200px] bg-panel-hover/30 border-transparent">
+            <Panel key={i} className="flex flex-col items-center justify-center h-[200px] bg-muted/30 border-transparent">
               <Loader2 className="h-8 w-8 text-indigo-400/50 animate-spin" />
             </Panel>
           ))}
@@ -64,7 +64,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
           <div className="h-8 w-8 rounded-md bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
             <Sparkles className="h-4 w-4 text-indigo-400" />
           </div>
-          <h3 className="text-lg font-semibold text-black tracking-tight">Insights Generados por IA</h3>
+          <h3 className="text-lg font-semibold text-foreground tracking-tight">Insights Generados por IA</h3>
           {onRefresh && (
             <button
               onClick={onRefresh}
@@ -75,10 +75,10 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
             </button>
           )}
         </div>
-        <Panel className="py-2 px-6 text-center border-dashed border-2 flex flex-col items-center justify-center bg-panel-hover/50">
-          <Sparkles className="h-6 w-6 text-indigo-300/50 mb-2 mx-auto flex-shrink-0" />
-          <h3 className="text-base font-medium text-black mb-1">No se obtuvieron insights</h3>
-          <p className="text-sm text-panel-muted max-w-lg mb-3 leading-relaxed">
+        <Panel className="py-2 px-6 text-center border-dashed border-2 flex flex-col items-center justify-center bg-muted/50">
+          <Sparkles className="h-6 w-6 text-indigo-300/50 mb-2 mx-auto shrink-0" />
+          <h3 className="text-base font-medium text-foreground mb-1">No se obtuvieron insights</h3>
+          <p className="text-sm text-muted-foreground max-w-lg mb-3 leading-relaxed">
             Es posible que el modelo de IA necesite unos segundos para inicializarse (cold start) o que no haya anomalías detectadas con los filtros actuales.
           </p>
           {onRefresh && (
@@ -111,7 +111,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
         <div className="h-8 w-8 rounded-md bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
           <Sparkles className="h-4 w-4 text-indigo-400" />
         </div>
-        <h3 className="text-lg font-semibold text-black tracking-tight">Insights Generados por IA</h3>
+        <h3 className="text-lg font-semibold text-foreground tracking-tight">Insights Generados por IA</h3>
         {onRefresh && (
           <button
             onClick={onRefresh}
@@ -165,7 +165,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
 
   if (isRegenerating) {
     return (
-      <Panel className="flex flex-col items-center justify-center h-full min-h-[200px] bg-panel-hover/30 border-transparent">
+      <Panel className="flex flex-col items-center justify-center h-full min-h-[200px] bg-muted/30 border-transparent">
         <Loader2 className="h-8 w-8 text-indigo-400/50 animate-spin" />
       </Panel>
     );
@@ -236,7 +236,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
       bodyClassName="flex flex-col h-full flex-grow p-0"
     >
 
-      <div className="p-5 flex flex-col flex-grow relative z-10">
+      <div className="p-5 flex flex-col grow relative z-10">
         <div className="flex items-start justify-between mb-3">
           <div className={cn(
             "p-2 rounded-lg",
@@ -261,24 +261,24 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
               <button 
                 onClick={handleRegenerate}
                 disabled={isRegenerating}
-                className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 bg-white hover:bg-slate-50 p-1.5 rounded-md border border-primary/20 shadow-sm"
+                className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 bg-card hover:bg-muted p-1.5 rounded-md border border-primary/20 shadow-sm"
                 title="Generar nuevo insight distinto"
               >
                 <RefreshCw className={cn("h-3.5 w-3.5", isRegenerating && "animate-spin")} />
               </button>
             )}
-            <div className="text-xs font-medium text-panel-muted bg-panel-hover px-2 py-1 rounded-md border border-panel-border/50">
+            <div className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md border border-border/50">
               Impacto: {insight.impactScore}/10
             </div>
           </div>
         </div>
 
-        <h4 className="text-base font-medium text-black mb-1.5">{insight.title}</h4>
+        <h4 className="text-base font-medium text-foreground mb-1.5">{insight.title}</h4>
 
         {showCatalogAffectedProducts && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-xs font-medium text-brand-blue">
+              <p className="text-xs font-medium text-primary">
                 Afecta a {insight.affectedItems.length} producto(s):
               </p>
               <Popover>
@@ -288,7 +288,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-64 p-3 bg-white shadow-lg border border-slate-200">
                   <p className="text-xs font-semibold mb-2 text-slate-800">Productos afectados</p>
-                  <ul className="text-xs text-panel-muted list-disc list-inside space-y-0.5 max-h-48 overflow-y-auto pr-1">
+                  <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5 max-h-48 overflow-y-auto pr-1">
                     {insight.affectedItems.map(item => (
                       <li key={item.id} className="truncate" title={item.name || String(item.id)}>
                         {item.name || String(item.id)}
@@ -301,7 +301,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
           </div>
         )}
 
-        <p className="text-sm text-panel-foreground leading-relaxed mb-4">
+        <p className="text-sm text-foreground leading-relaxed mb-4">
           {insight.description}
         </p>
 

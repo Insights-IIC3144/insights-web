@@ -1,6 +1,7 @@
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, DollarSign, RotateCcw } from "lucide-react";
+import { fmtMoney } from "@/lib/format";
 
 interface CatalogKpiGridProps {
   data: {
@@ -22,9 +23,6 @@ export function CatalogKpiGrid({ data, loading }: CatalogKpiGridProps) {
     );
   }
 
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(val);
-
   const formatPercent = (val: number) =>
     new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 }).format(val);
 
@@ -34,12 +32,12 @@ export function CatalogKpiGrid({ data, loading }: CatalogKpiGridProps) {
         label="Total de Productos"
         value={data.totalProducts}
         format={(v) => v.toString()}
-        icon={<Package className="h-4 w-4 text-brand-blue" />}
+        icon={<Package className="h-4 w-4 text-primary" />}
       />
       <KpiCard
         label="Ingreso Total del Catálogo"
         value={data.totalRevenue}
-        format={formatCurrency}
+        format={(v) => fmtMoney(v)}
         icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
       />
       <KpiCard
