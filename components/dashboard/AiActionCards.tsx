@@ -67,7 +67,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
           <h3 className="text-lg font-semibold text-foreground tracking-tight">Insights Generados por IA</h3>
         </div>
         <Panel className="py-2 px-6 text-center border-dashed border-2 flex flex-col items-center justify-center bg-muted/50">
-          <Sparkles className="h-6 w-6 text-indigo-300/50 mb-2 mx-auto flex-shrink-0" />
+          <Sparkles className="h-6 w-6 text-indigo-300/50 mb-2 mx-auto shrink-0" />
           <h3 className="text-base font-medium text-foreground mb-1">No se obtuvieron insights</h3>
           <p className="text-sm text-muted-foreground max-w-lg mb-3 leading-relaxed">
             Es posible que el modelo de IA necesite unos segundos para inicializarse (cold start) o que no haya anomalías detectadas con los filtros actuales.
@@ -218,7 +218,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
       bodyClassName="flex flex-col h-full flex-grow p-0"
     >
 
-      <div className="p-5 flex flex-col flex-grow relative z-10">
+      <div className="p-5 flex flex-col grow relative z-10">
         <div className="flex items-start justify-between mb-3">
           <div className={cn(
             "p-2 rounded-lg",
@@ -243,7 +243,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
               <button 
                 onClick={handleRegenerate}
                 disabled={isRegenerating}
-                className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 bg-white hover:bg-slate-50 p-1.5 rounded-md border border-primary/20 shadow-sm"
+                className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 bg-card hover:bg-muted p-1.5 rounded-md border border-primary/20 shadow-sm"
                 title="Generar nuevo insight distinto"
               >
                 <RefreshCw className={cn("h-3.5 w-3.5", isRegenerating && "animate-spin")} />

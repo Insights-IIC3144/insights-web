@@ -139,7 +139,7 @@ export function CompetitiveCharts({
         </div>
         <div className="flex flex-wrap justify-center items-stretch gap-5">
           {loading
-            ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="w-full md:w-[calc(33.333%-1rem)] h-28 rounded-xl flex-shrink-0" />)
+            ? Array(3).fill(0).map((_, i) => <Skeleton key={i} className="w-full md:w-[calc(33.333%-1rem)] h-28 rounded-xl shrink-0" />)
             : topCategories.map((c) => {
               const insight = getInsightForCategory(c.category);
               return (
@@ -154,12 +154,12 @@ export function CompetitiveCharts({
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
                       {!loadingInsights && insight && onRegenerate && (
                         <button 
                           onClick={() => handleRegenerate(c.category)}
                           disabled={regeneratingCategories[c.category]}
-                          className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 mt-0.5 p-1 bg-white hover:bg-slate-50 rounded border border-primary/20 shadow-sm"
+                          className="text-primary hover:text-primary/80 transition-colors disabled:opacity-50 mt-0.5 p-1 bg-card hover:bg-muted rounded border border-primary/20 shadow-sm"
                           title="Generar nuevo insight"
                         >
                           <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
