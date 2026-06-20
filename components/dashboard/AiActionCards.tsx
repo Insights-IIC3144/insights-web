@@ -65,6 +65,15 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
             <Sparkles className="h-4 w-4 text-indigo-400" />
           </div>
           <h3 className="text-lg font-semibold text-foreground tracking-tight">Insights Generados por IA</h3>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              title="Regenerar insights"
+              className="ml-auto p-1.5 rounded-md text-panel-muted hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <Panel className="py-2 px-6 text-center border-dashed border-2 flex flex-col items-center justify-center bg-muted/50">
           <Sparkles className="h-6 w-6 text-indigo-300/50 mb-2 mx-auto shrink-0" />
@@ -103,6 +112,15 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
           <Sparkles className="h-4 w-4 text-indigo-400" />
         </div>
         <h3 className="text-lg font-semibold text-foreground tracking-tight">Insights Generados por IA</h3>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            title="Regenerar insights"
+            className="ml-auto p-1.5 rounded-md text-panel-muted hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap justify-center items-stretch gap-4">

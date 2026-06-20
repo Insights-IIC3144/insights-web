@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { CatalogProductDto, AiInsightDto } from "@/types/catalog";
 import { useUserContext } from "@/context/UserContext";
 import { catalogService } from "@/services/catalogService";
+import { revalidateCatalogInsights } from "@/app/actions/catalogInsights";
 
 export function useCatalogData(localFilters: Record<string, string>) {
   // Global context filters (from Topbar)
@@ -81,16 +82,18 @@ export function useCatalogData(localFilters: Record<string, string>) {
     };
   }, [brand, days, localFilters]);
 
-  const refetchInsights = () => {
+  const refetchInsights = async () => {
     if (!days) return;
     setLoadingInsights(true);
     setInsights([]);
+    const effectiveBrand = brand === "" ? "all" : brand;
     const params = {
       days,
-      brand: brand === "" ? "all" : brand,
+      brand: effectiveBrand,
       category: localFilters.category,
       department: localFilters.department,
     };
+    await revalidateCatalogInsights(effectiveBrand, localFilters.category || "", days?.toString() || "");
     catalogService.getInsights(params)
       .then(fetchedInsights => {
         setInsights(fetchedInsights);
