@@ -17,6 +17,7 @@ type SortField = 'productName' | 'category' | 'retailPrice' | 'unitsSold' | 'rev
 type SortDirection = 'asc' | 'desc';
 
 export function CatalogTable({ localFilters }: CatalogTableProps) {
+  const { category: localCategory, department: localDepartment } = localFilters;
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -72,13 +73,13 @@ export function CatalogTable({ localFilters }: CatalogTableProps) {
       setLoading(true);
 
       const effectiveBrand = selectedBrand || filterBrand;
-      const effectiveCategory = filterCategory !== "all" ? filterCategory : localFilters.category;
+      const effectiveCategory = filterCategory !== "all" ? filterCategory : localCategory;
 
       const params = {
         days,
         brand: effectiveBrand === "" ? "all" : effectiveBrand,
         category: effectiveCategory,
-        department: localFilters.department,
+        department: localDepartment,
       };
 
       try {
@@ -107,7 +108,7 @@ export function CatalogTable({ localFilters }: CatalogTableProps) {
     return () => {
       cancelled = true;
     };
-  }, [days, selectedBrand, localFilters, filterBrand, filterCategory, currentPage, sortField, sortDirection, debouncedSearch]);
+  }, [days, selectedBrand, localCategory, localDepartment, filterBrand, filterCategory, currentPage, sortField, sortDirection, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {

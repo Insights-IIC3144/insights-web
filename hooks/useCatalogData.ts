@@ -5,6 +5,7 @@ import { catalogService } from "@/services/catalogService";
 import { revalidateCatalogInsights } from "@/app/actions/catalogInsights";
 
 export function useCatalogData(localFilters: Record<string, string>) {
+  const { category: localCategory, department: localDepartment } = localFilters;
   const { selectedBrand: brand, days } = useUserContext();
 
   const [insights, setInsights] = useState<AiInsightDto[]>([]);
@@ -36,8 +37,8 @@ export function useCatalogData(localFilters: Record<string, string>) {
       const params = {
         days,
         brand: brand === "" ? "all" : brand,
-        category: localFilters.category,
-        department: localFilters.department,
+        category: localCategory,
+        department: localDepartment,
       };
 
       catalogService.getGlobalKpis(params)
@@ -62,7 +63,7 @@ export function useCatalogData(localFilters: Record<string, string>) {
     return () => {
       cancelled = true;
     };
-  }, [brand, days, localFilters]);
+  }, [brand, days, localCategory, localDepartment]);
 
   const refetchInsights = async () => {
     if (!days) return;
@@ -72,10 +73,10 @@ export function useCatalogData(localFilters: Record<string, string>) {
     const params = {
       days,
       brand: effectiveBrand,
-      category: localFilters.category,
-      department: localFilters.department,
+      category: localCategory,
+      department: localDepartment,
     };
-    await revalidateCatalogInsights(effectiveBrand, localFilters.category || "", days?.toString() || "");
+    await revalidateCatalogInsights(effectiveBrand, localCategory || "", days?.toString() || "");
     catalogService.getInsights(params)
       .then(fetchedInsights => {
         setInsights(fetchedInsights);
@@ -110,8 +111,8 @@ export function useCatalogData(localFilters: Record<string, string>) {
     const params = {
       days,
       brand: brand === "" ? "all" : brand,
-      category: localFilters.category,
-      department: localFilters.department,
+      category: localCategory,
+      department: localDepartment,
     };
     try {
       const newInsights = await catalogService.regenerateInsight(params, excludeTitles, excludeType);
