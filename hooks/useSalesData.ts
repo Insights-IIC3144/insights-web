@@ -9,7 +9,9 @@ function aggregateKpis(data: SalesKpi[]) {
   const totalOrders = data.reduce((sum, d) => sum + (d.totalOrders || 0), 0);
   const unitsSold = data.reduce((sum, d) => sum + (d.unitsSold || 0), 0);
   const uniqueCustomers = data.reduce((sum, d) => sum + (d.uniqueCustomers || 0), 0);
-  const lossRate = data.length > 0 ? data[data.length - 1].lossRate : 0;
+  const totalReturned = data.reduce((sum, d) => sum + (d.returnedItems || 0), 0);
+  const totalItems = data.reduce((sum, d) => sum + (d.totalItems || 0), 0);
+  const lossRate = totalItems > 0 ? totalReturned / totalItems : 0;
   const aov = totalOrders > 0 ? revenueNet / totalOrders : 0;
   return { revenueNet, totalOrders, unitsSold, uniqueCustomers, lossRate, aov };
 }

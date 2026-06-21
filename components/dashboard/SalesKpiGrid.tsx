@@ -25,7 +25,9 @@ export function SalesKpiGrid({ data, prior, loading }: Props) {
   const totalOrders     = data.reduce((s, d) => s + (d.totalOrders     || 0), 0);
   const unitsSold       = data.reduce((s, d) => s + (d.unitsSold       || 0), 0);
   const uniqueCustomers = data.reduce((s, d) => s + (d.uniqueCustomers || 0), 0);
-  const lossRate        = data.length > 0 ? data[data.length - 1].lossRate : 0;
+  const totalReturned = data.reduce((s, d) => s + (d.returnedItems || 0), 0);
+  const totalItems = data.reduce((s, d) => s + (d.totalItems || 0), 0);
+  const lossRate = totalItems > 0 ? totalReturned / totalItems : 0;
   const aov             = totalOrders > 0 ? revenueNet / totalOrders : 0;
 
   if (loading) {
