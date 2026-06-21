@@ -1,11 +1,11 @@
 import { DollarSign, ShoppingCart, TrendingUp, AlertTriangle, Users, Package } from "lucide-react";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SalesKpi } from "@/types/sales";
 import { fmtMoney, fmtNum } from "@/lib/format";
 
-interface SalesPrior {
+interface SalesKpiAggregated {
   revenueNet: number;
+  revenueGross: number;
   totalOrders: number;
   unitsSold: number;
   uniqueCustomers: number;
@@ -14,21 +14,13 @@ interface SalesPrior {
 }
 
 interface Props {
-  data: SalesKpi[];
-  prior?: SalesPrior | null;
+  data: SalesKpiAggregated | null;
+  prior?: SalesKpiAggregated | null;
   loading: boolean;
 }
 
 export function SalesKpiGrid({ data, prior, loading }: Props) {
-  const revenueNet      = data.reduce((s, d) => s + (d.revenueNet      || 0), 0);
-  const revenueGross    = data.reduce((s, d) => s + (d.revenueGross    || 0), 0);
-  const totalOrders     = data.reduce((s, d) => s + (d.totalOrders     || 0), 0);
-  const unitsSold       = data.reduce((s, d) => s + (d.unitsSold       || 0), 0);
-  const uniqueCustomers = data.reduce((s, d) => s + (d.uniqueCustomers || 0), 0);
-  const totalReturned = data.reduce((s, d) => s + (d.returnedItems || 0), 0);
-  const totalItems = data.reduce((s, d) => s + (d.totalItems || 0), 0);
-  const lossRate = totalItems > 0 ? totalReturned / totalItems : 0;
-  const aov             = totalOrders > 0 ? revenueNet / totalOrders : 0;
+  const { revenueNet = 0, revenueGross = 0, totalOrders = 0, unitsSold = 0, uniqueCustomers = 0, lossRate = 0, aov = 0 } = data ?? {};
 
   if (loading) {
     return (

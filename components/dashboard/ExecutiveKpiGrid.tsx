@@ -1,11 +1,9 @@
 import { DollarSign, ShoppingBag, Package, Users, ReceiptText } from "lucide-react";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExecutiveKpi } from "@/types/executive";
-
 import { fmtMoney, fmtNum } from "@/lib/format";
 
-interface ExecutivePrior {
+interface ExecutiveKpiAggregated {
   totalRevenue: number;
   totalOrders: number;
   totalUnits: number;
@@ -14,17 +12,13 @@ interface ExecutivePrior {
 }
 
 interface Props {
-  data: ExecutiveKpi[];
-  prior?: ExecutivePrior | null;
+  data: ExecutiveKpiAggregated | null;
+  prior?: ExecutiveKpiAggregated | null;
   loading: boolean;
 }
 
 export function ExecutiveKpiGrid({ data, prior, loading }: Props) {
-  const totalRevenue = data.reduce((s, d) => s + (d.revenue || 0), 0);
-  const totalOrders = data.reduce((s, d) => s + (d.totalOrders || 0), 0);
-  const totalUnits = data.reduce((s, d) => s + (d.unitsSold || 0), 0);
-  const uniqueCustomers = data.reduce((s, d) => s + (d.uniqueCustomers || 0), 0);
-  const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const { totalRevenue = 0, totalOrders = 0, totalUnits = 0, uniqueCustomers = 0, aov = 0 } = data ?? {};
 
   if (loading) {
     return (

@@ -6,6 +6,7 @@ import { useUserContext } from "@/context/UserContext";
 
 function aggregateKpis(data: SalesKpi[]) {
   const revenueNet = data.reduce((sum, d) => sum + (d.revenueNet || 0), 0);
+  const revenueGross = data.reduce((sum, d) => sum + (d.revenueGross || 0), 0);
   const totalOrders = data.reduce((sum, d) => sum + (d.totalOrders || 0), 0);
   const unitsSold = data.reduce((sum, d) => sum + (d.unitsSold || 0), 0);
   const uniqueCustomers = data.reduce((sum, d) => sum + (d.uniqueCustomers || 0), 0);
@@ -13,7 +14,7 @@ function aggregateKpis(data: SalesKpi[]) {
   const totalItems = data.reduce((sum, d) => sum + (d.totalItems || 0), 0);
   const lossRate = totalItems > 0 ? totalReturned / totalItems : 0;
   const aov = totalOrders > 0 ? revenueNet / totalOrders : 0;
-  return { revenueNet, totalOrders, unitsSold, uniqueCustomers, lossRate, aov };
+  return { revenueNet, revenueGross, totalOrders, unitsSold, uniqueCustomers, lossRate, aov };
 }
 
 export function useSalesData(
@@ -22,6 +23,7 @@ export function useSalesData(
   topLimit: number = 5
 ) {
   const [kpis, setKpis] = useState<SalesKpi[]>([]);
+  const [current, setCurrent] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [prior, setPrior] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [categorySales, setCategorySales] = useState<SalesByCategory[]>([]);
   const [performance, setPerformance] = useState<SalesPerformanceByDimension[]>([]);
@@ -52,6 +54,7 @@ export function useSalesData(
           setKpis(data.current || []);
           const currentAgg = aggregateKpis(data.current || []);
           const priorAgg = data.prior?.length ? aggregateKpis(data.prior) : currentAgg;
+          setCurrent(currentAgg);
           setPrior(priorAgg);
         }
         if (catRes) setCategorySales(catRes);
@@ -66,5 +69,5 @@ export function useSalesData(
     fetchData();
   }, [activeFilters, days, brand, granularity, topLimit]);
 
-  return { kpis, prior, categorySales, performance, topProducts, loading };
+  return { kpis, current, prior, categorySales, performance, topProducts, loading };
 }
