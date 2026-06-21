@@ -1,5 +1,6 @@
 import { FilterParams } from "@/types/shared";
-import { CatalogProductDto, AiInsightDto } from "@/types/catalog";
+import { CatalogProductDto, AiInsightDto, GlobalKpiDto, GlobalKpiWithPrior } from "@/types/catalog";
+import { PaginatedResponse } from "@/types/shared";
 
 const buildQueryString = (params: FilterParams): string => {
   const queryParams = new URLSearchParams();
@@ -13,13 +14,50 @@ const buildQueryString = (params: FilterParams): string => {
 };
 
 export const catalogService = {
-  getProducts: async (params: FilterParams): Promise<CatalogProductDto[]> => {
+  getProducts: async (params: FilterParams, page: number = 0, size: number = 15, sortField?: string, sortDirection?: string, search?: string): Promise<PaginatedResponse<CatalogProductDto>> => {
     const qs = buildQueryString(params);
-    const res = await fetch(`/api/proxy/catalog/products?${qs}`);
+    const fullQs = new URLSearchParams(qs);
+    fullQs.append("page", page.toString());
+    fullQs.append("size", size.toString());
+    if (sortField) fullQs.append("sortField", sortField);
+    if (sortDirection) fullQs.append("sortDirection", sortDirection);
+    if (search) fullQs.append("search", search);
+
+    const res = await fetch(`/api/proxy/catalog/products?${fullQs.toString()}`);
     
     if (!res.ok) {
-      if (res.status === 404) return []; // Si no hay datos, retornamos vacío
+      if (res.status === 404) return { data: [], totalElements: 0, totalPages: 0, currentPage: 0 };
       throw new Error(`Failed to fetch catalog products: ${res.status}`);
+    }
+    
+    return res.json();
+  },
+
+  getGlobalKpis: async (params: FilterParams, search?: string): Promise<GlobalKpiDto> => {
+    const qs = buildQueryString(params);
+    const fullQs = new URLSearchParams(qs);
+    if (search) fullQs.append("search", search);
+
+    const res = await fetch(`/api/proxy/catalog/kpis?${fullQs.toString()}`);
+    
+    if (!res.ok) {
+      if (res.status === 404) return { totalProducts: 0, totalRevenue: 0, avgReturnRate: 0 };
+      throw new Error(`Failed to fetch catalog KPIs: ${res.status}`);
+    }
+    
+    return res.json();
+  },
+
+  getKpisWithPrior: async (params: FilterParams, search?: string): Promise<GlobalKpiWithPrior> => {
+    const qs = buildQueryString(params);
+    const fullQs = new URLSearchParams(qs);
+    if (search) fullQs.append("search", search);
+
+    const res = await fetch(`/api/proxy/catalog/kpis-with-prior?${fullQs.toString()}`);
+    
+    if (!res.ok) {
+      if (res.status === 404) return { current: [], prior: [] };
+      throw new Error(`Failed to fetch catalog KPIs with prior: ${res.status}`);
     }
     
     return res.json();

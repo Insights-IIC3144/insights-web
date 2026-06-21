@@ -187,28 +187,25 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
   };
 
   const isAudiencesMode = mode === "audiences";
+  const isProductScope = insight.scope === "product";
   const hasAffectedItems = !!(insight.affectedItems?.length);
-  const showCatalogAffectedProducts = !isAudiencesMode && hasAffectedItems;
+  const showAffectedItemsList = !isAudiencesMode && isProductScope && hasAffectedItems;
 
-  // Brand extraction (only relevant for catalog mode with products)
+  // Brand extraction (relevant to suggest brand filtering)
   const brandsToFilter: [string, string][] = [];
-  if (showCatalogAffectedProducts) {
+  if (!isAudiencesMode && hasAffectedItems) {
     const uniqueBrandsMap = new Map<string, string>();
     const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
 
     insight.affectedItems.forEach(item => {
-      const productName = item.name;
-      if (!productName) return;
+      const itemName = item.name;
+      if (!itemName) return;
       const matchedBrand = sortedBrands.find(b =>
-        productName.toLowerCase().includes(b.toLowerCase())
+        itemName.toLowerCase().includes(b.toLowerCase())
       );
       
       if (matchedBrand) {
         uniqueBrandsMap.set(matchedBrand, toTitleCase(matchedBrand));
-      } else if (availableBrands.length > 0) {
-        // Fallback: Use the first word if no match is found
-        const fallback = productName.split(' ')[0];
-        uniqueBrandsMap.set(fallback, toTitleCase(fallback));
       }
     });
     brandsToFilter.push(...uniqueBrandsMap.entries());
@@ -275,7 +272,7 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
 
         <h4 className="text-base font-medium text-foreground mb-1.5">{insight.title}</h4>
 
-        {showCatalogAffectedProducts && (
+        {showAffectedItemsList && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <p className="text-xs font-medium text-primary">

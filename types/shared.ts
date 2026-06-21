@@ -26,3 +26,10 @@ export interface UserProfile {
   isActive: boolean;
   retailerName: string;
 }
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+}
