@@ -42,8 +42,8 @@ export function PerformanceTable({ performance, loading }: Props) {
                   <th>Fuente de Tráfico</th>
                   <th className="text-right">Órdenes</th>
                   <th className="text-right">Unidades</th>
-                  <th className="text-right">Ticket Promedio</th>
-                  <th className="text-right">Ingresos</th>
+                  <th className="text-right">Ticket Promedio (USD)</th>
+                  <th className="text-right">Ingresos (USD)</th>
                 </tr>
               </thead>
               <tbody>

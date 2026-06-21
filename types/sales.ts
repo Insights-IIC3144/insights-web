@@ -1,3 +1,8 @@
+export interface SalesKpisWithPrior {
+  current: SalesKpi[];
+  prior: SalesKpi[];
+}
+
 export interface SalesKpi {
   date: string;
   brand: string;
@@ -8,6 +13,8 @@ export interface SalesKpi {
   uniqueCustomers: number;
   avgOrderValue: number;
   lossRate: number;
+  returnedItems: number;
+  totalItems: number;
 }
 
 export interface SalesByCategory {
@@ -21,4 +28,18 @@ export interface SalesPerformanceByDimension {
   revenue: number;
   orders: number;
   unitsSold: number;
+}
+
+export interface TopProductEntry {
+  productId: string;
+  productName: string;
+  category: string;
+  revenueNet: number;
+  unitsSold: number;
+  rank: number;
+}
+
+export interface TopProductsData {
+  best: TopProductEntry[];
+  worst: TopProductEntry[];
 }

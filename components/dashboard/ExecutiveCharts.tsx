@@ -5,11 +5,13 @@ import {
 } from "recharts";
 import { ExecutiveKpi, CategorySales } from "@/types/executive";
 import { fmtMoney } from "@/lib/format";
+import { projectLinear, inferGranularity } from "@/lib/projection";
 
 interface Props {
   kpis: ExecutiveKpi[];
   categorySales: CategorySales[];
   loading: boolean;
+  onCategorySelect?: (category: string) => void;
 }
 
 const tooltipStyle = {
@@ -21,17 +23,33 @@ const tooltipStyle = {
   boxShadow: "var(--shadow-elevated)",
 };
 
-export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
-  const trendData = kpis.map(k => ({
+export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect }: Props) {
+  const historical = kpis.map(k => ({
     label: k.date,
-    revenue: k.revenue
+    revenue: k.revenue,
   })).sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
+
+  const labels = historical.map((d) => d.label);
+  const granularity = inferGranularity(labels);
+  const projRevenue = projectLinear(labels, historical.map((d) => d.revenue), granularity);
+
+  const trendData = [
+    ...historical.map((d, i) => ({
+      ...d,
+      revenueProj: i === historical.length - 1 ? d.revenue : undefined,
+    })),
+    ...projRevenue.map((p) => ({
+      label: p.label,
+      revenue: undefined,
+      revenueProj: p.value,
+    })),
+  ];
 
   const catDataMap = categorySales.reduce((acc, curr) => {
     acc[curr.category] = (acc[curr.category] || 0) + curr.revenue;
     return acc;
   }, {} as Record<string, number>);
-  
+
   const catData = Object.entries(catDataMap)
     .map(([category, revenue]) => ({ category, revenue }))
     .sort((a, b) => b.revenue - a.revenue)
@@ -39,7 +57,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Revenue diario">
+      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Ingresos diarios · USD">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />
@@ -56,14 +74,15 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
                 <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#g1)" />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#g1)" connectNulls={false} />
+                <Area type="monotone" dataKey="revenueProj" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} fill="none" connectNulls={false} />
               </AreaChart>
             </ResponsiveContainer>
           )}
         </div>
       </Panel>
 
-      <Panel title="Revenue por categoría" description="Top categorías">
+      <Panel title="Ingresos por categoría" description="Top categorías · USD">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />
@@ -74,7 +93,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading }: Props) {
                 <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
                 <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={110} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} />
-                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} />
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
               </BarChart>
             </ResponsiveContainer>
           )}

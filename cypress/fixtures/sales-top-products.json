@@ -1,0 +1,16 @@
+{
+  "best": [
+    { "productId": "101", "productName": "Slim Fit Jeans", "category": "Jeans", "revenueNet": 4200.50, "unitsSold": 42, "rank": 1 },
+    { "productId": "102", "productName": "Classic Polo Shirt", "category": "Tops & Tees", "revenueNet": 3850.00, "unitsSold": 55, "rank": 2 },
+    { "productId": "103", "productName": "Winter Parka", "category": "Outerwear & Coats", "revenueNet": 3400.75, "unitsSold": 18, "rank": 3 },
+    { "productId": "104", "productName": "Cargo Pants", "category": "Pants", "revenueNet": 2900.00, "unitsSold": 38, "rank": 4 },
+    { "productId": "105", "productName": "Fleece Hoodie", "category": "Sweaters", "revenueNet": 2650.25, "unitsSold": 31, "rank": 5 }
+  ],
+  "worst": [
+    { "productId": "201", "productName": "Basic Tee White", "category": "Tops & Tees", "revenueNet": 18.50, "unitsSold": 2, "rank": 1 },
+    { "productId": "202", "productName": "Ankle Socks Pack", "category": "Accessories", "revenueNet": 24.00, "unitsSold": 3, "rank": 2 },
+    { "productId": "203", "productName": "Swim Trunks", "category": "Swim", "revenueNet": 35.75, "unitsSold": 2, "rank": 3 },
+    { "productId": "204", "productName": "Belt Canvas Brown", "category": "Accessories", "revenueNet": 42.00, "unitsSold": 4, "rank": 4 },
+    { "productId": "205", "productName": "Boxer Brief 3-Pack", "category": "Underwear", "revenueNet": 51.50, "unitsSold": 5, "rank": 5 }
+  ]
+}

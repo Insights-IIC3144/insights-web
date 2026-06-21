@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { UserProfile } from '@/types/shared'
+import { AiInsightDto } from '@/types/catalog'
 
 interface UserContextValue {
   profile: UserProfile | null
@@ -12,6 +13,9 @@ interface UserContextValue {
   selectedBrand: string
   setSelectedBrand: (brand: string) => void
   availableBrands: string[] // <-- Nuevo: Lista de marcas para el dropdown
+  pinnedInsights: Record<string, AiInsightDto | null>
+  setPinnedInsight: (mode: string, insight: AiInsightDto | null) => void
+  clearPinnedInsights: () => void
 }
 
 const UserContext = createContext<UserContextValue>({
@@ -19,10 +23,13 @@ const UserContext = createContext<UserContextValue>({
   isLoading: true,
   error: null,
   days: 90,
-  setDays: () => {},
+  setDays: () => { },
   selectedBrand: "",
-  setSelectedBrand: () => {},
+  setSelectedBrand: () => { },
   availableBrands: [],
+  pinnedInsights: {},
+  setPinnedInsight: () => { },
+  clearPinnedInsights: () => { },
 })
 
 export function UserProvider({ children }: { children: ReactNode }) {
@@ -33,6 +40,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [days, setDays] = useState(90)
   const [selectedBrand, setSelectedBrand] = useState("")
   const [availableBrands, setAvailableBrands] = useState<string[]>([])
+  const [pinnedInsights, setPinnedInsights] = useState<Record<string, AiInsightDto | null>>({})
+  const setPinnedInsight = (mode: string, insight: AiInsightDto | null) => {
+    setPinnedInsights(prev => ({ ...prev, [mode]: insight }))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -57,7 +68,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             .then(res => res.json())
             .then(filters => {
               if (!cancelled && filters.brands) {
-                const sortedBrands = [...filters.brands].sort((a: string, b: string) => 
+                const sortedBrands = [...filters.brands].sort((a: string, b: string) =>
                   a.localeCompare(b)
                 );
                 setAvailableBrands(sortedBrands);
@@ -86,7 +97,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   return (
     <UserContext.Provider value={{
       profile, isLoading, error,
-      days, setDays, selectedBrand, setSelectedBrand, availableBrands
+      days, setDays, selectedBrand, setSelectedBrand, availableBrands,
+      pinnedInsights, setPinnedInsight,
+      clearPinnedInsights: () => setPinnedInsights({}),
     }}>
       {children}
     </UserContext.Provider>

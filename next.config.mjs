@@ -11,6 +11,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-};
+  cacheComponents: true,
+  cacheLife: {
+    daily: {
+      stale: 3600,
+      revalidate: 86400,
+      expire: 172800,
+    },
+  },
+}
 
 export default nextConfig;

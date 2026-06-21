@@ -1,0 +1,27 @@
+{
+  "current": [
+    {
+      "date": "2026-03",
+      "brand": "Calvin Klein",
+      "totalOrders": 970,
+      "revenueGross": 134500,
+      "revenueNet": 124300,
+      "unitsSold": 1420,
+      "uniqueCustomers": 820,
+      "avgOrderValue": 128.15,
+      "lossRate": 0.074
+    },
+    {
+      "date": "2026-04",
+      "brand": "Calvin Klein",
+      "totalOrders": 902,
+      "revenueGross": 126000,
+      "revenueNet": 115530,
+      "unitsSold": 1310,
+      "uniqueCustomers": 760,
+      "avgOrderValue": 128.08,
+      "lossRate": 0.063
+    }
+  ],
+  "prior": []
+}

@@ -1,21 +1,24 @@
 import { DollarSign, ShoppingBag, Package, Users, ReceiptText } from "lucide-react";
 import { KpiCard } from "@/components/ui-extra/KpiCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExecutiveKpi } from "@/types/executive";
-
 import { fmtMoney, fmtNum } from "@/lib/format";
 
+interface ExecutiveKpiAggregated {
+  totalRevenue: number;
+  totalOrders: number;
+  totalUnits: number;
+  uniqueCustomers: number;
+  aov: number;
+}
+
 interface Props {
-  data: ExecutiveKpi[];
+  data: ExecutiveKpiAggregated | null;
+  prior?: ExecutiveKpiAggregated | null;
   loading: boolean;
 }
 
-export function ExecutiveKpiGrid({ data, loading }: Props) {
-  const totalRevenue = data.reduce((s, d) => s + (d.revenue || 0), 0);
-  const totalOrders = data.reduce((s, d) => s + (d.totalOrders || 0), 0);
-  const totalUnits = data.reduce((s, d) => s + (d.unitsSold || 0), 0);
-  const uniqueCustomers = data.reduce((s, d) => s + (d.uniqueCustomers || 0), 0);
-  const aov = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+export function ExecutiveKpiGrid({ data, prior, loading }: Props) {
+  const { totalRevenue = 0, totalOrders = 0, totalUnits = 0, uniqueCustomers = 0, aov = 0 } = data ?? {};
 
   if (loading) {
     return (
@@ -27,11 +30,43 @@ export function ExecutiveKpiGrid({ data, loading }: Props) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      <KpiCard label="Ventas totales" value={fmtMoney(totalRevenue)} icon={<DollarSign className="h-4 w-4" />} />
-      <KpiCard label="Órdenes" value={fmtNum(totalOrders)} icon={<ShoppingBag className="h-4 w-4" />} />
-      <KpiCard label="Unidades vendidas" value={fmtNum(totalUnits)} icon={<Package className="h-4 w-4" />} />
-      <KpiCard label="Clientes únicos" value={fmtNum(uniqueCustomers)} icon={<Users className="h-4 w-4" />} />
-      <KpiCard label="Ticket promedio" value={fmtMoney(aov)} icon={<ReceiptText className="h-4 w-4" />} />
+      <KpiCard
+        label="Ventas totales"
+        value={totalRevenue}
+        format={fmtMoney}
+        prior={prior?.totalRevenue}
+        icon={<DollarSign className="h-4 w-4" />}
+        currency="USD"
+        tooltip="Ingresos netos acumulados de la marca en el período, excluyendo devoluciones y cancelaciones." />
+      <KpiCard
+        label="Órdenes"
+        value={totalOrders}
+        format={fmtNum}
+        prior={prior?.totalOrders}
+        icon={<ShoppingBag className="h-4 w-4" />}
+        tooltip="Cantidad de pedidos realizados en el período. Un pedido puede agrupar múltiples productos." />
+      <KpiCard
+        label="Unidades vendidas"
+        value={totalUnits}
+        format={fmtNum}
+        prior={prior?.totalUnits}
+        icon={<Package className="h-4 w-4" />}
+        tooltip="Total de unidades físicas comercializadas. Una misma orden puede contener varias unidades." />
+      <KpiCard
+        label="Clientes únicos"
+        value={uniqueCustomers}
+        format={fmtNum}
+        prior={prior?.uniqueCustomers}
+        icon={<Users className="h-4 w-4" />}
+        tooltip="Número de clientes distintos que efectuaron al menos una compra en el período." />
+      <KpiCard
+        label="Ticket promedio"
+        value={aov}
+        format={fmtMoney}
+        prior={prior?.aov}
+        icon={<ReceiptText className="h-4 w-4" />}
+        currency="USD"
+        tooltip="Valor promedio gastado por pedido. Se calcula dividiendo las ventas totales entre el número de órdenes." />
     </div>
   );
 }

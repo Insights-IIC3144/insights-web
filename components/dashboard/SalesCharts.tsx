@@ -1,17 +1,22 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AreaChart, Area, LineChart, Line, ComposedChart, Bar,
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
+  BarChart, ResponsiveContainer, Tooltip,
   XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
 import { SalesKpi, SalesByCategory } from "@/types/sales";
 import { fmtMoney, fmtNum } from "@/lib/format";
 import { ChartCard } from "../ui-extra/ChartCard";
+import { GranularitySelector } from "@/components/dashboard/GranularitySelector";
+import { projectLinear } from "@/lib/projection";
 
 interface Props {
   kpis: SalesKpi[];
   categorySales: SalesByCategory[];
   loading: boolean;
+  granularity: string;
+  onGranularityChange: (g: string) => void;
+  onCategorySelect?: (category: string) => void;
 }
 
 const TOOLTIP_STYLE = {
@@ -22,39 +27,37 @@ const TOOLTIP_STYLE = {
   color: "hsl(var(--popover-foreground))",
 };
 
-const PIE_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-];
-/*
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-card-foreground">{title}</h3>
-      </div>
-      {children}
-    </div>
-  );
-}
-  */
 
-export function SalesCharts({ kpis, categorySales, loading }: Props) {
-  const trendData = kpis.map((k) => ({
+export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange, onCategorySelect }: Props) {
+  const historical = kpis.map((k) => ({
     label: k.date,
     revenue: k.revenueNet ?? 0,
     orders: k.totalOrders ?? 0,
     aov: k.avgOrderValue ?? 0,
   }));
+
+  const labels = historical.map((d) => d.label);
+  const projRevenue = projectLinear(labels, historical.map((d) => d.revenue), granularity);
+  const projAov = projectLinear(labels, historical.map((d) => d.aov), granularity);
+  const projOrders = projectLinear(labels, historical.map((d) => d.orders), granularity);
+
+  const trendData = [
+    ...historical.map((d, i) => ({
+      ...d,
+      revenueProj: i === historical.length - 1 ? d.revenue : undefined,
+      aovProj: i === historical.length - 1 ? d.aov : undefined,
+      ordersProj: i === historical.length - 1 ? d.orders : undefined,
+    })),
+    ...projRevenue.map((p, i) => ({
+      label: p.label,
+      revenue: undefined,
+      orders: undefined,
+      aov: undefined,
+      revenueProj: p.value,
+      aovProj: projAov[i]?.value,
+      ordersProj: projOrders[i]?.value,
+    })),
+  ];
 
   const catData = categorySales
     .sort((a, b) => b.revenue - a.revenue)
@@ -62,9 +65,10 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <ChartCard title="Ventas en el Tiempo"
-      subtitle="Evolución de los ingresos netos según la granularidad seleccionada. 
-      Útil para identificar tendencias y estacionalidad."
+      <ChartCard
+        title="Ventas en el Tiempo"
+        subtitle="Evolución de los ingresos netos (USD) según la granularidad seleccionada. Útil para identificar tendencias y estacionalidad."
+        actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
       >
         {loading ? (
           <Skeleton className="h-[300px] w-full" />
@@ -81,15 +85,18 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos netos"]} />
-              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revenueGrad)" strokeWidth={2} />
+              <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revenueGrad)" strokeWidth={2} connectNulls={false} />
+              <Area type="monotone" dataKey="revenueProj" stroke="hsl(var(--chart-1))" fill="none" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} connectNulls={false} name="Proyección" />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </ChartCard>
 
-      <ChartCard title="Ticket Promedio en el Tiempo"
-      subtitle="Valor promedio por orden completada. 
-      Un aumento sostenido indica que los clientes están comprando productos de mayor valor.">
+      <ChartCard
+        title="Ticket Promedio en el Tiempo"
+        subtitle="Valor promedio por orden completada. Un aumento sostenido indica que los clientes están comprando productos de mayor valor."
+        actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
+      >
         {loading ? (
           <Skeleton className="h-[250px] w-full" />
         ) : (
@@ -99,7 +106,8 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
               <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ticket promedio"]} />
-              <Line type="monotone" dataKey="aov" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="aov" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} connectNulls={false} />
+              <Line type="monotone" dataKey="aovProj" stroke="hsl(var(--chart-2))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} dot={false} connectNulls={false} name="Proyección" />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -107,36 +115,28 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard title="Ventas por Categoría"
-        subtitle="Distribución de ingresos por categoría de producto.
+          subtitle="Distribución de ingresos por categoría de producto.
         Útil para identificar las categorías más rentables y detectar cambios en el comportamiento de compra.">
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={catData}
-                  dataKey="revenue"
-                  nameKey="category"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {catData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
+              <BarChart data={catData} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => fmtMoney(v, { compact: true })} />
+                <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} width={110} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number) => [fmtMoney(v), "Ingresos"]} />
-                <Legend />
-              </PieChart>
+                <Bar dataKey="revenue" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} barSize={14} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>
 
-        <ChartCard title="Órdenes vs Ingresos Netos"
-        subtitle="Compara el volumen de órdenes con los ingresos netos. 
-        Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen.">
+        <ChartCard
+          title="Ingresos Netos vs Órdenes"
+          subtitle="Compara el volumen de órdenes con los ingresos netos (USD). Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen."
+          actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
+        >
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
           ) : (
@@ -153,8 +153,10 @@ export function SalesCharts({ kpis, categorySales, loading }: Props) {
                   }
                 />
                 <Legend />
-                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="revenue" />
-                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="orders" />
+                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="Ingresos netos" />
+                <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Órdenes" connectNulls={false} />
+                <Bar yAxisId="revenue" dataKey="revenueProj" fill="hsl(var(--chart-1))" opacity={0.35} radius={[4, 4, 0, 0]} name="Ingresos proyectados" />
+                <Line yAxisId="orders" type="monotone" dataKey="ordersProj" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} dot={false} name="Órdenes proyectadas" connectNulls={false} />
               </ComposedChart>
             </ResponsiveContainer>
           )}

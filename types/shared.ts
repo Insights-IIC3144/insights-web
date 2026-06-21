@@ -4,9 +4,10 @@ export interface FilterParams {
   department?: string;
   country?: string;
   gender?: string;
+  ageRange?: string;
   trafficSource?: string;
   days?: number;
-  granularity?: string; 
+  granularity?: string;
 }
 
 export interface FiltersData {
@@ -24,4 +25,11 @@ export interface UserProfile {
   brand: string | null;
   isActive: boolean;
   retailerName: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
 }
