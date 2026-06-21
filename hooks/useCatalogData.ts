@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { CatalogProductDto, AiInsightDto } from "@/types/catalog";
+import { AiInsightDto, GlobalKpiDto } from "@/types/catalog";
 import { useUserContext } from "@/context/UserContext";
 import { catalogService } from "@/services/catalogService";
 import { revalidateCatalogInsights } from "@/app/actions/catalogInsights";
 
 export function useCatalogData(localFilters: Record<string, string>) {
-  // Global context filters (from Topbar)
   const { selectedBrand: brand, days } = useUserContext();
 
-  const [products, setProducts] = useState<CatalogProductDto[]>([]);
   const [insights, setInsights] = useState<AiInsightDto[]>([]);
   const insightsRef = useRef<AiInsightDto[]>([]);
 
@@ -16,62 +14,46 @@ export function useCatalogData(localFilters: Record<string, string>) {
     insightsRef.current = insights;
   }, [insights]);
   
-  // Estados de carga separados según el contrato
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingKpis, setLoadingKpis] = useState(true);
   const [loadingInsights, setLoadingInsights] = useState(true);
 
-  // KPIs calculados
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [avgReturnRate, setAvgReturnRate] = useState(0);
+  const [globalKpis, setGlobalKpis] = useState<GlobalKpiDto>({
+    totalProducts: 0,
+    totalRevenue: 0,
+    avgReturnRate: 0,
+  });
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchAllData() {
-      if (!days) return; // Esperar a tener el contexto de tiempo
+      if (!days) return;
 
-      setLoadingProducts(true);
+      setLoadingKpis(true);
       setLoadingInsights(true);
-      setProducts([]);
       setInsights([]);
 
       const params = {
         days,
-        brand: brand === "" ? "all" : brand, // si brand está vacío, asumimos "all"
+        brand: brand === "" ? "all" : brand,
         category: localFilters.category,
         department: localFilters.department,
       };
 
-      // Disparar promesa de productos
-      catalogService.getProducts(params)
-        .then(fetchedProducts => {
+      catalogService.getGlobalKpis(params)
+        .then(kpis => {
           if (cancelled) return;
-          
-          setProducts(fetchedProducts);
-
-          // Calcular KPIs
-          const total = fetchedProducts.length;
-          const revenue = fetchedProducts.reduce((acc, curr) => acc + (curr.revenueNet || 0), 0);
-          const returnRate = total > 0 
-            ? fetchedProducts.reduce((acc, curr) => acc + (curr.returnRate || 0), 0) / total 
-            : 0;
-
-          setTotalProducts(total);
-          setTotalRevenue(revenue);
-          setAvgReturnRate(returnRate);
-          
-          setLoadingProducts(false);
+          setGlobalKpis(kpis);
+          setLoadingKpis(false);
         })
         .catch(err => {
-          console.error("Error fetching catalog products:", err);
+          console.error("Error fetching catalog KPIs:", err);
           if (!cancelled) {
-            setProducts([]);
-            setLoadingProducts(false);
+            setGlobalKpis({ totalProducts: 0, totalRevenue: 0, avgReturnRate: 0 });
+            setLoadingKpis(false);
           }
         });
 
-      // Disparar promesa de insights en paralelo (puede tardar más)
       fetchInsightsData(params, cancelled);
     }
 
@@ -138,19 +120,14 @@ export function useCatalogData(localFilters: Record<string, string>) {
       }
     } catch (err) {
       console.error("Error regenerating insight:", err);
-      throw err; // Let the component handle the error state
+      throw err;
     }
   };
 
   return {
-    products,
     insights,
-    kpis: {
-      totalProducts,
-      totalRevenue,
-      avgReturnRate,
-    },
-    loadingProducts,
+    kpis: globalKpis,
+    loadingKpis,
     loadingInsights,
     refetchInsights,
     replaceInsight,

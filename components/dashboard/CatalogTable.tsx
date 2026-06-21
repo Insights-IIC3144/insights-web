@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Panel } from "@/components/ui-extra/Panel";
 import { CatalogProductDto } from "@/types/catalog";
 import { ArrowDownIcon, ArrowUpIcon, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter } from "lucide-react";
@@ -6,102 +6,115 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUserContext } from "@/context/UserContext";
 import { fmtMoney } from "@/lib/format";
+import { catalogService } from "@/services/catalogService";
+import { filterService } from "@/services/filterService";
 
 interface CatalogTableProps {
-  products: CatalogProductDto[];
-  loading: boolean;
+  localFilters: Record<string, string>;
 }
 
-type SortField = 'unitsSold' | 'revenueNet' | 'returnRate' | null;
+type SortField = 'productName' | 'category' | 'retailPrice' | 'unitsSold' | 'revenueNet' | 'returnRate' | null;
 type SortDirection = 'asc' | 'desc';
 
-export function CatalogTable({ products, loading }: CatalogTableProps) {
+export function CatalogTable({ localFilters }: CatalogTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterBrand, setFilterBrand] = useState("all");
-  const { selectedBrand } = useUserContext();
+  const { selectedBrand, availableBrands, days } = useUserContext();
+
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   const [sortField, setSortField] = useState<SortField>('revenueNet');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 15;
 
-  // Extraer opciones únicas para los filtros
-  const categories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category).filter(Boolean));
-    return Array.from(cats).sort();
-  }, [products]);
+  const [products, setProducts] = useState<CatalogProductDto[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Asumimos que podemos inferir la marca desde productName o si la DTO no tiene brand explícito,
-  // como the mock did not put brand explicitly in the catalog endpoint, wait, let's check if DTO has brand.
-  // Actually, DTO doesn't have brand in Java, it only has productName.
-  // Wait, looking at the DTO in CATALOG_BACKEND_INSTRUCTIONS.md, it does not have 'brand'.
-  // But wait, the user wants a filter by brand in the table!
-  // I'll extract a pseudo-brand from the first word of the product name just in case, or if DTO has brand.
-  // Wait, I didn't add brand to CatalogProductDto. Let me check types/catalog.ts.
-  const brands = useMemo(() => {
-    // Si products tiene 'brand' lo usamos, de lo contrario extraemos la primera palabra
-    const brs = new Set(products.map(p => (p as any).brand || p.productName?.split(" ")[0]).filter(Boolean));
-    return Array.from(brs).sort();
-  }, [products]);
+  // Fetch valid categories for the current selected brand
+  useEffect(() => {
+    let cancelled = false;
+    const effectiveBrand = selectedBrand || (filterBrand === "all" ? "" : filterBrand);
+    
+    filterService.getFilters(effectiveBrand || undefined)
+      .then(res => {
+        if (!cancelled) setAvailableCategories(res.categories || []);
+      })
+      .catch(console.error);
 
-  // Aplicar filtros, búsqueda y ordenamiento
-  const processedProducts = useMemo(() => {
-    let result = [...products];
+    return () => { cancelled = true; };
+  }, [selectedBrand, filterBrand]);
 
-    // Búsqueda
-    if (searchTerm) {
-      const lowerTerm = searchTerm.toLowerCase();
-      result = result.filter(p => p.productName?.toLowerCase().includes(lowerTerm));
-    }
+  // Debounce search term
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-    // Filtro de Categoría
-    if (filterCategory !== "all") {
-      result = result.filter(p => p.category === filterCategory);
-    }
-
-    // Filtro de Marca
-    if (filterBrand !== "all") {
-      result = result.filter(p => {
-        const pBrand = (p as any).brand || p.productName?.split(" ")[0];
-        return pBrand === filterBrand;
-      });
-    }
-
-    // Ordenamiento
-    if (sortField) {
-      result.sort((a, b) => {
-        const valA = a[sortField] || 0;
-        const valB = b[sortField] || 0;
-
-        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-
-    return result;
-  }, [products, searchTerm, filterCategory, filterBrand, sortField, sortDirection]);
-
-  // Resetear página al cambiar filtros
-  useMemo(() => {
+  // Reset page when filters change
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterCategory, filterBrand, sortField, sortDirection]);
+  }, [debouncedSearch, filterCategory, filterBrand, sortField, sortDirection]);
 
-  // Paginación
-  const totalPages = Math.max(1, Math.ceil(processedProducts.length / ITEMS_PER_PAGE));
-  const currentItems = processedProducts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProducts() {
+      if (!days) return;
+
+      setLoading(true);
+
+      const effectiveBrand = selectedBrand || filterBrand;
+      const effectiveCategory = filterCategory !== "all" ? filterCategory : localFilters.category;
+
+      const params = {
+        days,
+        brand: effectiveBrand === "" ? "all" : effectiveBrand,
+        category: effectiveCategory,
+        department: localFilters.department,
+      };
+
+      try {
+        const res = await catalogService.getProducts(
+          params,
+          currentPage - 1, // API is 0-indexed
+          ITEMS_PER_PAGE,
+          sortField || undefined,
+          sortDirection,
+          debouncedSearch || undefined
+        );
+        if (!cancelled) {
+          setProducts(res.data || []);
+          setTotalElements(res.totalElements || 0);
+          setTotalPages(res.totalPages || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching paginated products:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchProducts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [days, selectedBrand, localFilters, filterBrand, filterCategory, currentPage, sortField, sortDirection, debouncedSearch]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortDirection('desc'); // Por defecto descendente al cambiar columna
+      setSortDirection('desc');
     }
   };
 
@@ -109,13 +122,13 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
     new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 }).format(val);
 
   const renderSortIcon = (field: SortField) => {
-    if (sortField !== field) return <span className="w-4" />; // Placeholder
+    if (sortField !== field) return <span className="w-4 inline-block" />;
     return sortDirection === 'asc'
       ? <ChevronUp className="h-3.5 w-3.5 inline ml-1 text-foreground" />
       : <ChevronDown className="h-3.5 w-3.5 inline ml-1 text-foreground" />;
   };
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <Panel className="p-6">
         <div className="h-6 w-48 bg-muted rounded animate-pulse mb-6" />
@@ -134,7 +147,6 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
         <h3 className="text-base font-semibold text-foreground">Rendimiento por Producto</h3>
         <p className="text-sm text-muted-foreground mt-1">Desglose de ingresos, ventas y devoluciones de tu catálogo.</p>
 
-        {/* Toolbar */}
         <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-between">
           <div className="relative w-full sm:w-[450px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -149,38 +161,50 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
           <div className="flex flex-1 items-center justify-end gap-2 overflow-x-auto">
             <Filter className="h-4 w-4 text-muted-foreground hidden sm:block ml-2" />
 
-            {/* Simple Select for Category */}
             <select
               className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-[180px] sm:w-[220px]"
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
             >
               <option value="all">Categoría (Todas)</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              {availableCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
 
-            {/* Simple Select for Brand - Only show if no brand is globally selected */}
             {(!selectedBrand || selectedBrand.trim() === "") && (
               <select
                 className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-[180px] sm:w-[220px]"
                 value={filterBrand}
-                onChange={(e) => setFilterBrand(e.target.value)}
+                onChange={(e) => {
+                  setFilterBrand(e.target.value);
+                  setFilterCategory("all"); // Reset category when brand changes
+                }}
               >
                 <option value="all">Marca (Todas)</option>
-                {brands.map(b => <option key={b} value={b}>{b}</option>)}
+                {availableBrands.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             )}
           </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
+        {loading && (
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+            <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          </div>
+        )}
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30 border-b border-border">
             <tr>
-              <th className="px-6 py-3 font-medium">Producto</th>
-              <th className="px-6 py-3 font-medium">Categoría</th>
-              <th className="px-6 py-3 font-medium text-right">Precio</th>
+              <th className="px-6 py-3 font-medium select-none">
+                Producto
+              </th>
+              <th className="px-6 py-3 font-medium select-none">
+                Categoría
+              </th>
+              <th className="px-6 py-3 font-medium text-right select-none">
+                Precio
+              </th>
               <th
                 className="px-6 py-3 font-medium text-center cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none"
                 onClick={() => handleSort('unitsSold')}
@@ -202,7 +226,7 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
-            {currentItems.map((product) => (
+            {products.map((product) => (
               <tr key={product.productId} className="hover:bg-muted/30 transition-colors">
                 <td className="px-6 py-4 font-medium text-foreground max-w-[200px] truncate" title={product.productName}>
                   {product.productName}
@@ -219,7 +243,7 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
                 </td>
               </tr>
             ))}
-            {currentItems.length === 0 && (
+            {products.length === 0 && !loading && (
               <tr>
                 <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                   No se encontraron productos que coincidan con la búsqueda o filtros.
@@ -230,11 +254,10 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
         </table>
       </div>
 
-      {/* Paginación */}
-      {processedProducts.length > 0 && (
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm">
+      {totalElements > 0 && (
+        <div className="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           <div className="text-muted-foreground">
-            Mostrando <span className="font-medium text-foreground">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a <span className="font-medium text-foreground">{Math.min(currentPage * ITEMS_PER_PAGE, processedProducts.length)}</span> de <span className="font-medium text-foreground">{processedProducts.length}</span> resultados
+            Mostrando <span className="font-medium text-foreground">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a <span className="font-medium text-foreground">{Math.min(currentPage * ITEMS_PER_PAGE, totalElements)}</span> de <span className="font-medium text-foreground">{totalElements}</span> resultados
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -242,19 +265,19 @@ export function CatalogTable({ products, loading }: CatalogTableProps) {
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || loading}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-muted-foreground px-2">
-              Página {currentPage} de {totalPages}
+              Página {currentPage} de {Math.max(1, totalPages)}
             </span>
             <Button
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === Math.max(1, totalPages) || loading}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
