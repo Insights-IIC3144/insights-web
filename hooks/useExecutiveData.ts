@@ -15,6 +15,7 @@ function aggregateKpis(data: ExecutiveKpi[]) {
 
 export function useExecutiveData(activeFilters: Record<string, string>) {
   const [kpis, setKpis] = useState<ExecutiveKpi[]>([]);
+  const [current, setCurrent] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [prior, setPrior] = useState<ReturnType<typeof aggregateKpis> | null>(null);
   const [categorySales, setCategorySales] = useState<CategorySales[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,7 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
           setKpis(data.current || []);
           const currentAgg = aggregateKpis(data.current || []);
           const priorAgg = data.prior?.length ? aggregateKpis(data.prior) : currentAgg;
+          setCurrent(currentAgg);
           setPrior(priorAgg);
         }
         if (catRes) setCategorySales(catRes);
@@ -52,5 +54,5 @@ export function useExecutiveData(activeFilters: Record<string, string>) {
     fetchData();
   }, [activeFilters, days, brand]);
 
-  return { kpis, prior, categorySales, loading };
+  return { kpis, current, prior, categorySales, loading };
 }

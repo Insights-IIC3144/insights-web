@@ -11,7 +11,7 @@ import { toggleFilter } from "@/lib/utils";
 
 export default function ExecutiveDashboard() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const { kpis, prior, categorySales, loading } = useExecutiveData(activeFilters);
+  const { kpis, current, prior, categorySales, loading } = useExecutiveData(activeFilters);
 
   return (
     <div className="space-y-6">
@@ -28,7 +28,7 @@ export default function ExecutiveDashboard() {
       />
 
       <ExecutiveKpiGrid 
-        data={kpis} 
+        data={current} 
         prior={prior} 
         loading={loading} 
       />
