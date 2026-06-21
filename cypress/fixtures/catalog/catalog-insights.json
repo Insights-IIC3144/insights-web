@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ci-1",
+    "scope": "product",
+    "affectedItems": [
+      { "id": "catalog-products", "name": "Slim Fit Denim Jeans Calvin Klein" }
+    ],
+    "type": "returns",
+    "title": "Reducir devoluciones en jeans",
+    "description": "La tasa de devolución de jeans es 18%, muy por encima del promedio. Revisar la guía de tallas reduciría devoluciones evitables.",
+    "impactScore": 8
+  },
+  {
+    "id": "ci-2",
+    "scope": "product",
+    "affectedItems": [
+      { "id": "catalog-products", "name": "Classic Crew Neck Tee" }
+    ],
+    "type": "opportunity",
+    "title": "Impulsar producto de alta rotación",
+    "description": "Este producto vendió 312 unidades con baja devolución (6%). Aumentar stock y visibilidad puede capturar más demanda.",
+    "impactScore": 6
+  }
+]
