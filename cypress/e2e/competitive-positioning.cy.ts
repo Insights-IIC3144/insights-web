@@ -36,7 +36,7 @@ describe("Competitive Positioning Dashboard", () => {
       });
 
       it("renders all detail table column headers", () => {
-        const columns = ["Categoría", "Ventas marca", "Ventas categoría", "Share", "Precio marca", "Precio benchmark", "Oportunidad"];
+        const columns = ["Categoría", "Ventas marca (USD)", "Ventas categoría (USD)", "Share ventas", "Precio marca (USD)", "Precio benchmark (USD)", "Oportunidad"];
         columns.forEach((col) => {
           cy.contains(col, { timeout: 10000 }).should("be.visible");
         });
