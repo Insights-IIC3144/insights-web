@@ -67,7 +67,7 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
     <div className="flex flex-col gap-4">
       <ChartCard
         title="Ventas en el Tiempo"
-        subtitle="Evolución de los ingresos netos según la granularidad seleccionada. Útil para identificar tendencias y estacionalidad."
+        subtitle="Evolución de los ingresos netos (USD) según la granularidad seleccionada. Útil para identificar tendencias y estacionalidad."
         actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
       >
         {loading ? (
@@ -134,7 +134,7 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
 
         <ChartCard
           title="Ingresos Netos vs Órdenes"
-          subtitle="Compara el volumen de órdenes con los ingresos netos. Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen."
+          subtitle="Compara el volumen de órdenes con los ingresos netos (USD). Útil para detectar si el aumento de órdenes se traduce en mayores ingresos o si hay descuentos/promociones afectando el margen."
           actions={<GranularitySelector value={granularity} onChange={onGranularityChange} />}
         >
           {loading ? (

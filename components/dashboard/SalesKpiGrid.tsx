@@ -41,6 +41,7 @@ export function SalesKpiGrid({ data, prior, loading }: Props) {
         prior={prior?.revenueNet}
         hint={`Bruto: ${fmtMoney(revenueGross)}`}
         icon={<DollarSign className="h-4 w-4" />}
+        currency="USD"
         tooltip="Ingresos generados por la marca después de descartar devoluciones y cancelaciones. Es el valor neto realmente percibido por las ventas del período."
       />
       <KpiCard
@@ -68,6 +69,7 @@ export function SalesKpiGrid({ data, prior, loading }: Props) {
         prior={prior?.aov}
         hint=""
         icon={<TrendingUp className="h-4 w-4" />}
+        currency="USD"
         tooltip="Ingreso neto promedio por pedido. Se obtiene dividiendo los ingresos netos totales entre el número de pedidos del período."
       />
       <KpiCard

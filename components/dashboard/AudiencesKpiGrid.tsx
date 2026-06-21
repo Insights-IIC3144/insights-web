@@ -56,6 +56,7 @@ export function AudiencesKpiGrid({ data, loading }: Props) {
         format={fmtMoney}
         delta={data?.avgTicketDeltaPct ?? undefined}
         icon={<Receipt className="h-4 w-4" />}
+        currency="USD"
         tooltip="Gasto promedio por orden. Refleja el valor monetario de la audiencia y su disposición a pagar."
       />
     </div>

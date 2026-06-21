@@ -73,7 +73,7 @@ export function BestWorstProducts({ data, loading, limit, onLimitChange }: Props
   return (
     <Panel
       title="Mejores y Peores Productos"
-      description="Productos con mayor y menor ingreso neto en el período seleccionado."
+      description="Productos con mayor y menor ingreso neto (USD) en el período seleccionado."
       action={<TopLimitSelector value={limit} onChange={onLimitChange} />}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

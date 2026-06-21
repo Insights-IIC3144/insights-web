@@ -58,6 +58,7 @@ export function CompetitiveKpiGrid({ kpis, prior, loading }: Props) {
         format={fmtMoney}
         prior={prior?.avgPriceBrand}
         icon={<DollarSign className="h-4 w-4" />}
+        currency="USD"
         tooltip="Precio de venta unitario promedio de la marca. Se calcula dividiendo los ingresos totales recaudados entre el volumen total de unidades vendidas."
       />
       <KpiCard

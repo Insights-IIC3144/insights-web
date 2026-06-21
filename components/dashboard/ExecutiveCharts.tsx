@@ -57,7 +57,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Ingresos diarios">
+      <Panel className="lg:col-span-2" title="Tendencia de ventas" description="Ingresos diarios · USD">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />
@@ -82,7 +82,7 @@ export function ExecutiveCharts({ kpis, categorySales, loading, onCategorySelect
         </div>
       </Panel>
 
-      <Panel title="Ingresos por categoría" description="Top categorías">
+      <Panel title="Ingresos por categoría" description="Top categorías · USD">
         <div className="h-72">
           {loading ? (
             <Skeleton className="h-full w-full rounded-lg" />
