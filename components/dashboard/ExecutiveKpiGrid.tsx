@@ -36,6 +36,7 @@ export function ExecutiveKpiGrid({ data, prior, loading }: Props) {
         format={fmtMoney}
         prior={prior?.totalRevenue}
         icon={<DollarSign className="h-4 w-4" />}
+        currency="USD"
         tooltip="Ingresos netos acumulados de la marca en el período, excluyendo devoluciones y cancelaciones." />
       <KpiCard
         label="Órdenes"
@@ -64,6 +65,7 @@ export function ExecutiveKpiGrid({ data, prior, loading }: Props) {
         format={fmtMoney}
         prior={prior?.aov}
         icon={<ReceiptText className="h-4 w-4" />}
+        currency="USD"
         tooltip="Valor promedio gastado por pedido. Se calcula dividiendo las ventas totales entre el número de órdenes." />
     </div>
   );

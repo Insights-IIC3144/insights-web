@@ -47,6 +47,7 @@ export function CatalogKpiGrid({ data, prior, loading }: CatalogKpiGridProps) {
         format={(v) => fmtMoney(v)}
         prior={prior?.totalRevenue}
         icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
+        currency="USD"
         tooltip="Suma de ingresos generados por las ventas del catálogo en el período."
       />
       <KpiCard

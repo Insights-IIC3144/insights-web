@@ -12,6 +12,7 @@ interface KpiCardProps {
     hint?: string;
     icon?: React.ReactNode;
     tooltip?: string;
+    currency?: string;
 }
 
 function resolveDelta(value?: number, prior?: number, delta?: number): number | undefined {
@@ -22,7 +23,7 @@ function resolvePrior(value?: number, delta?: number, prior?: number): number | 
     return prior ?? (value !== undefined && delta !== undefined ? invertPctChange(value, delta) : undefined);
 }
 
-export function KpiCard({ label, value, format, prior, delta, hint, icon, tooltip }: KpiCardProps) {
+export function KpiCard({ label, value, format, prior, delta, hint, icon, tooltip, currency }: KpiCardProps) {
     const effectiveDelta = resolveDelta(value, prior, delta);
     const effectivePrior = resolvePrior(value, effectiveDelta, prior);
     const positive = (effectiveDelta ?? 0) >= 0;
@@ -39,6 +40,9 @@ export function KpiCard({ label, value, format, prior, delta, hint, icon, toolti
             </div>
             <div className="mt-2 text-2xl font-semibold tracking-tight tabular text-foreground">
                 {value !== undefined ? format(value) : "-"}
+                {currency && value !== undefined && (
+                    <span className="ml-1.5 text-xs font-medium text-muted-foreground">{currency}</span>
+                )}
             </div>
             <div className="mt-1.5 flex items-center gap-2 text-xs">
                 {effectiveDelta !== undefined && (

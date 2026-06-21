@@ -204,7 +204,7 @@ export function CatalogTable({ localFilters }: CatalogTableProps) {
                 Categoría
               </th>
               <th className="px-6 py-3 font-medium text-right select-none">
-                Precio
+                Precio (USD)
               </th>
               <th
                 className="px-6 py-3 font-medium text-center cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none"
@@ -216,7 +216,7 @@ export function CatalogTable({ localFilters }: CatalogTableProps) {
                 className="px-6 py-3 font-medium text-right cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none"
                 onClick={() => handleSort('revenueNet')}
               >
-                Ingreso Neto {renderSortIcon('revenueNet')}
+                Ingreso Neto (USD) {renderSortIcon('revenueNet')}
               </th>
               <th
                 className="px-6 py-3 font-medium text-right cursor-pointer hover:text-foreground hover:bg-muted/50 transition-colors select-none"

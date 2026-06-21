@@ -116,7 +116,7 @@ export function CompetitiveCharts({
               <ComposedChart data={detailByCategory} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                 <XAxis dataKey="category" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" height={75} tickFormatter={(v) => trimCategoryName(v)} />
-                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
+                <YAxis tickFormatter={(v) => fmtMoney(v, { compact: true })} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} ticks={priceTicks} domain={[0, maxPrice]} />
                 <RechartsTooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtMoney(v)} cursor={{ fill: "hsl(var(--muted))" }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
                 <Bar dataKey="averageBrandPrice" name="Marca" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} maxBarSize={40} onClick={(entry) => onCategorySelect?.(entry.payload?.category)} style={{ cursor: 'pointer' }} />
@@ -207,11 +207,11 @@ export function CompetitiveCharts({
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b">
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Categoría</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas marca</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas categoría</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas marca (USD)</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Ventas categoría (USD)</TableHead>
                   <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Share ventas</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio marca</TableHead>
-                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio benchmark</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio marca (USD)</TableHead>
+                  <TableHead className="text-right text-muted-foreground font-medium py-3 px-6">Precio benchmark (USD)</TableHead>
                   <TableHead className="text-muted-foreground font-medium py-3 px-6">Oportunidad</TableHead>
                 </TableRow>
               </TableHeader>
