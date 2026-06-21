@@ -18,11 +18,9 @@ export function useCatalogData(localFilters: Record<string, string>) {
   const [loadingKpis, setLoadingKpis] = useState(true);
   const [loadingInsights, setLoadingInsights] = useState(true);
 
-  const [globalKpis, setGlobalKpis] = useState<GlobalKpiDto>({
-    totalProducts: 0,
-    totalRevenue: 0,
-    avgReturnRate: 0,
-  });
+  const [globalKpis, setGlobalKpis] = useState<GlobalKpiDto | null>(null);
+
+  const [globalKpisPrior, setGlobalKpisPrior] = useState<GlobalKpiDto | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,16 +39,20 @@ export function useCatalogData(localFilters: Record<string, string>) {
         department: localDepartment,
       };
 
-      catalogService.getGlobalKpis(params)
-        .then(kpis => {
+      catalogService.getKpisWithPrior(params)
+        .then(data => {
           if (cancelled) return;
-          setGlobalKpis(kpis);
+          const current = data.current?.[0] ?? null;
+          const prior = data.prior?.[0] ?? null;
+          setGlobalKpis(current);
+          setGlobalKpisPrior(prior);
           setLoadingKpis(false);
         })
         .catch(err => {
           console.error("Error fetching catalog KPIs:", err);
           if (!cancelled) {
-            setGlobalKpis({ totalProducts: 0, totalRevenue: 0, avgReturnRate: 0 });
+            setGlobalKpis(null);
+            setGlobalKpisPrior(null);
             setLoadingKpis(false);
           }
         });
@@ -128,6 +130,7 @@ export function useCatalogData(localFilters: Record<string, string>) {
   return {
     insights,
     kpis: globalKpis,
+    kpisPrior: globalKpisPrior,
     loadingKpis,
     loadingInsights,
     refetchInsights,

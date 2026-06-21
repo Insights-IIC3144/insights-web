@@ -16,4 +16,9 @@ export interface GlobalKpiDto {
   avgReturnRate: number;
 }
 
+export interface GlobalKpiWithPrior {
+  current: GlobalKpiDto[];
+  prior: GlobalKpiDto[];
+}
+
 export type { AiInsightDto } from "@/types/insights";

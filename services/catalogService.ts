@@ -1,5 +1,5 @@
 import { FilterParams } from "@/types/shared";
-import { CatalogProductDto, AiInsightDto, GlobalKpiDto } from "@/types/catalog";
+import { CatalogProductDto, AiInsightDto, GlobalKpiDto, GlobalKpiWithPrior } from "@/types/catalog";
 import { PaginatedResponse } from "@/types/shared";
 
 const buildQueryString = (params: FilterParams): string => {
@@ -43,6 +43,21 @@ export const catalogService = {
     if (!res.ok) {
       if (res.status === 404) return { totalProducts: 0, totalRevenue: 0, avgReturnRate: 0 };
       throw new Error(`Failed to fetch catalog KPIs: ${res.status}`);
+    }
+    
+    return res.json();
+  },
+
+  getKpisWithPrior: async (params: FilterParams, search?: string): Promise<GlobalKpiWithPrior> => {
+    const qs = buildQueryString(params);
+    const fullQs = new URLSearchParams(qs);
+    if (search) fullQs.append("search", search);
+
+    const res = await fetch(`/api/proxy/catalog/kpis-with-prior?${fullQs.toString()}`);
+    
+    if (!res.ok) {
+      if (res.status === 404) return { current: [], prior: [] };
+      throw new Error(`Failed to fetch catalog KPIs with prior: ${res.status}`);
     }
     
     return res.json();
