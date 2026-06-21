@@ -194,8 +194,6 @@ describe("Executive Dashboard (/dashboard)", () => {
       cy.visit("/dashboard");
       cy.wait("@execKpis");
 
-      // FIX: mismo patrón de request handler — el menú puede disparar re-fetches
-      // intermedios; solo aliasamos la request que tiene brand=Calvin+Klein.
       cy.intercept("GET", "/api/proxy/executive/kpis*", (req) => {
         const url = new URL(req.url);
         if (url.searchParams.get("brand") === "Calvin Klein") {

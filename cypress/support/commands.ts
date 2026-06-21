@@ -37,6 +37,10 @@ declare global {
         competitiveCards?: object | null;
         statusCode?: number;
       }): void;
+      mockAuth0User(overrides?: { 
+        name?: string; email?: 
+        string; picture?: string 
+      }): void;
     }
 
     interface DefineCustomEnvVariables {
@@ -293,5 +297,16 @@ Cypress.Commands.add(
     }
   }
 );
+
+//TODO: profile (perfil)
+Cypress.Commands.add("mockAuth0User", (overrides?: { name?: string; email?: string; picture?: string }) => {
+  const user = {
+    name: overrides?.name ?? "Test Admin",
+    email: overrides?.email ?? "test-admin@thelook.com",
+    picture: overrides?.picture ?? "https://example.com/avatar.png",
+    sub: "auth0|test123",
+  };
+  cy.intercept("GET", "/api/auth/me", { statusCode: 200, body: user }).as("auth0Me");
+});
 
 export {};
