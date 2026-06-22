@@ -28,6 +28,36 @@ const TOOLTIP_STYLE = {
 };
 
 
+function RevenueOrdersLegend() {
+  return (
+    <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground pt-1">
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-3 h-3 rounded-sm" style={{ background: "hsl(var(--chart-1))", opacity: 0.85 }} />
+        Ingresos netos
+      </span>
+      <span className="flex items-center gap-1.5">
+        <svg width="12" height="12" className="rounded-sm" style={{ overflow: "hidden" }}>
+          <defs>
+            <pattern id="legendHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="hsl(var(--chart-1))" strokeWidth="3" strokeOpacity="0.55" />
+            </pattern>
+          </defs>
+          <rect width="12" height="12" fill="url(#legendHatch)" />
+        </svg>
+        Ingresos proyectados
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-3 h-0.5" style={{ background: "hsl(var(--chart-3))" }} />
+        Órdenes
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="inline-block w-3 h-0.5 border-t-2 border-dashed" style={{ borderColor: "hsl(var(--chart-3))", opacity: 0.5 }} />
+        Órdenes proyectadas
+      </span>
+    </div>
+  );
+}
+
 export function SalesCharts({ kpis, categorySales, loading, granularity, onGranularityChange, onCategorySelect }: Props) {
   const historical = kpis.map((k) => ({
     label: k.date,
@@ -142,6 +172,11 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <ComposedChart data={trendData}>
+                <defs>
+                  <pattern id="revenueHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="hsl(var(--chart-1))" strokeWidth="3" strokeOpacity="0.55" />
+                  </pattern>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis yAxisId="revenue" orientation="left" tickFormatter={(v) => fmtMoney(v)} tick={{ fontSize: 11 }} />
@@ -152,10 +187,10 @@ export function SalesCharts({ kpis, categorySales, loading, granularity, onGranu
                     name === "revenue" ? [fmtMoney(v), "Ingresos netos"] : [fmtNum(v), "Órdenes"]
                   }
                 />
-                <Legend />
-                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.8} radius={[4, 4, 0, 0]} name="Ingresos netos" />
+                <Legend content={<RevenueOrdersLegend />} />
+                <Bar yAxisId="revenue" dataKey="revenue" fill="hsl(var(--chart-1))" opacity={0.85} radius={[4, 4, 0, 0]} name="Ingresos netos" />
                 <Line yAxisId="orders" type="monotone" dataKey="orders" stroke="hsl(var(--chart-3))" strokeWidth={2} dot={false} name="Órdenes" connectNulls={false} />
-                <Bar yAxisId="revenue" dataKey="revenueProj" fill="hsl(var(--chart-1))" opacity={0.35} radius={[4, 4, 0, 0]} name="Ingresos proyectados" />
+                <Bar yAxisId="revenue" dataKey="revenueProj" fill="url(#revenueHatch)" radius={[4, 4, 0, 0]} name="Ingresos proyectados" />
                 <Line yAxisId="orders" type="monotone" dataKey="ordersProj" stroke="hsl(var(--chart-3))" strokeWidth={2} strokeDasharray="6 3" strokeOpacity={0.5} dot={false} name="Órdenes proyectadas" connectNulls={false} />
               </ComposedChart>
             </ResponsiveContainer>
