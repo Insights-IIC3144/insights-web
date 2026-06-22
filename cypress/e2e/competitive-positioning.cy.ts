@@ -181,7 +181,7 @@ describe("Competitive Positioning Dashboard", () => {
       });
 
       it("shows the regenerate (RefreshCw) button only for categories that already have an insight", () => {
-        cy.contains("Jeans", { timeout: 10000 })
+        cy.contains("div.text-xs", "Jeans", { timeout: 10000 })
           .parents(".panel")
           .find("button[title='Generar nuevo insight']")
           .should("exist");
