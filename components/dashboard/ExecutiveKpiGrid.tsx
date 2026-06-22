@@ -22,14 +22,14 @@ export function ExecutiveKpiGrid({ data, prior, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(185px,1fr))]">
         {Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(185px,1fr))]">
       <KpiCard
         label="Ventas totales"
         value={totalRevenue}
