@@ -95,12 +95,7 @@ export function AiActionCards({ insights, loading, mode, onRefresh, onRegenerate
     );
   }
 
-  // Sort by impact score descending, then by title alphabetically
-  let sortedInsights = [...list].sort((a, b) => {
-    const impactDiff = b.impactScore - a.impactScore;
-    if (impactDiff !== 0) return impactDiff;
-    return (a.title || "").localeCompare(b.title || "");
-  });
+  let sortedInsights = [...list];
 
   // Limit to 6 for symmetry
   sortedInsights = sortedInsights.slice(0, 6);
@@ -193,21 +188,25 @@ function ActionCard({ insight, mode, onRegenerate, onAction, actionLabel }: { in
 
   // Brand extraction (relevant to suggest brand filtering)
   const brandsToFilter: [string, string][] = [];
-  if (!isAudiencesMode && hasAffectedItems) {
+  if (!isAudiencesMode) {
     const uniqueBrandsMap = new Map<string, string>();
     const sortedBrands = [...availableBrands].sort((a, b) => b.length - a.length);
 
-    insight.affectedItems.forEach(item => {
-      const itemName = item.name;
-      if (!itemName) return;
-      const matchedBrand = sortedBrands.find(b =>
-        itemName.toLowerCase().includes(b.toLowerCase())
-      );
-      
-      if (matchedBrand) {
-        uniqueBrandsMap.set(matchedBrand, toTitleCase(matchedBrand));
+    // Búsqueda en affectedItems, title y description
+    const searchSpace = [
+      ...(insight.affectedItems || []).map(i => i.name),
+      insight.title,
+      insight.description
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    sortedBrands.forEach(b => {
+      // Usamos regex con boundaries si es posible, pero un simple includes con espacios puede bastar
+      // Para ser seguros con marcas cortas, buscamos si se incluye
+      if (searchSpace.includes(b.toLowerCase())) {
+        uniqueBrandsMap.set(b, toTitleCase(b));
       }
     });
+    
     brandsToFilter.push(...uniqueBrandsMap.entries());
   }
 
