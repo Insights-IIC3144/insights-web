@@ -61,7 +61,7 @@ export function CompetitiveCharts({
   const [regeneratingCategories, setRegeneratingCategories] = useState<Record<string, boolean>>({});
 
   const getInsightForCategory = (category: string) => {
-    return insights.find(i => i.category === category);
+    return insights.find(i => i.category?.toLowerCase() === category.toLowerCase());
   };
 
   const handleRegenerate = async (category: string) => {
@@ -155,7 +155,7 @@ export function CompetitiveCharts({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {!loadingInsights && insight && onRegenerate && (
+                      {!loadingInsights && insight?.opportunityTitle && onRegenerate && (
                         <button 
                           onClick={() => handleRegenerate(c.category)}
                           disabled={regeneratingCategories[c.category]}
@@ -165,8 +165,8 @@ export function CompetitiveCharts({
                           <RefreshCw className={cn("h-3.5 w-3.5", regeneratingCategories[c.category] && "animate-spin")} />
                         </button>
                       )}
-                      {!loadingInsights && insight && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
-                      {!loadingInsights && !insight && <Lightbulb className="h-4 w-4 text-primary mt-0.5" />}
+                      {!loadingInsights && insight?.opportunityTitle && <Sparkles className="h-4 w-4 text-indigo-400 mt-0.5" />}
+                      {!loadingInsights && (!insight || !insight.opportunityTitle) && <Lightbulb className="h-4 w-4 text-primary mt-0.5" />}
                     </div>
                   </div>
                   
