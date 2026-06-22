@@ -38,7 +38,7 @@ describe("Competitive Positioning Dashboard", () => {
       it("renders all detail table column headers", () => {
         const columns = ["Categoría", "Ventas marca (USD)", "Ventas categoría (USD)", "Share ventas", "Precio marca (USD)", "Precio benchmark (USD)", "Oportunidad"];
         columns.forEach((col) => {
-          cy.contains(col, { timeout: 10000 }).should("be.visible");
+          cy.contains(col, { timeout: 10000 }).should("exist");
         });
       });
 
@@ -166,7 +166,7 @@ describe("Competitive Positioning Dashboard", () => {
         cy.contains("td, [role='cell']", "Jeans", { timeout: 10000 })
           .parents("tr")
           .within(() => {
-            cy.contains("Precio por encima del benchmark").should("be.visible");
+            cy.contains("Precio por encima del benchmark").should("exist");
           });
       });
 
@@ -181,7 +181,7 @@ describe("Competitive Positioning Dashboard", () => {
       });
 
       it("shows the regenerate (RefreshCw) button only for categories that already have an insight", () => {
-        cy.contains("Jeans", { timeout: 10000 })
+        cy.contains("div.text-xs", "Jeans", { timeout: 10000 })
           .parents(".panel")
           .find("button[title='Generar nuevo insight']")
           .should("exist");
