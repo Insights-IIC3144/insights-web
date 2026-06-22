@@ -79,9 +79,15 @@ export function useCatalogData(localFilters: Record<string, string>) {
       department: localDepartment,
     };
     await revalidateCatalogInsights(effectiveBrand, localCategory || "", days?.toString() || "");
+    await catalogService.evictInsightsCache();
     catalogService.getInsights(params)
       .then(fetchedInsights => {
-        setInsights(fetchedInsights);
+        const sorted = [...fetchedInsights].sort((a, b) => {
+          const impactDiff = b.impactScore - a.impactScore;
+          if (impactDiff !== 0) return impactDiff;
+          return (a.title || "").localeCompare(b.title || "");
+        });
+        setInsights(sorted);
         setLoadingInsights(false);
       })
       .catch(err => {
@@ -95,7 +101,12 @@ export function useCatalogData(localFilters: Record<string, string>) {
     catalogService.getInsights(params)
       .then(fetchedInsights => {
         if (cancelled) return;
-        setInsights(fetchedInsights);
+        const sorted = [...fetchedInsights].sort((a, b) => {
+          const impactDiff = b.impactScore - a.impactScore;
+          if (impactDiff !== 0) return impactDiff;
+          return (a.title || "").localeCompare(b.title || "");
+        });
+        setInsights(sorted);
         setLoadingInsights(false);
       })
       .catch(err => {
@@ -109,7 +120,16 @@ export function useCatalogData(localFilters: Record<string, string>) {
 
   const replaceInsight = async (oldInsightId: string, excludeType?: string) => {
     if (!days) throw new Error("Faltan días de filtro");
+    
     const excludeTitles = insightsRef.current.map(i => i.title);
+    const oldInsight = insightsRef.current.find(i => i.id === oldInsightId);
+    if (oldInsight) {
+      excludeTitles.push(`TEMA RECHAZADO ANTERIORMENTE (PROHIBIDO REPETIR ESTE PROBLEMA EXACTO): ${oldInsight.description}`);
+    }
+    const currentInsightsContext = insightsRef.current
+      .filter(i => i.id !== oldInsightId)
+      .map(i => `[Título: ${i.title}] - [Descripción: ${i.description}]`);
+
     const params = {
       days,
       brand: brand === "" ? "all" : brand,
@@ -117,9 +137,33 @@ export function useCatalogData(localFilters: Record<string, string>) {
       department: localDepartment,
     };
     try {
-      const newInsights = await catalogService.regenerateInsight(params, excludeTitles, excludeType);
+      const newInsights = await catalogService.regenerateInsight(params, excludeTitles, excludeType, currentInsightsContext);
       if (newInsights && newInsights.length > 0) {
-        setInsights(prev => prev.map(i => i.id === oldInsightId ? { ...newInsights[0], id: oldInsightId } : i));
+        const normalize = (s?: string | number) => (s ? String(s) : "").toLowerCase().trim();
+        const currentAffectedStrings = new Set(
+          insightsRef.current.flatMap(i => i.affectedItems?.flatMap(a => [normalize(a.id), normalize(a.name)]) || [])
+        );
+        currentAffectedStrings.delete("");
+
+        let trulyNewInsight = newInsights.find(newInsight => {
+          const hasNewTitle = !insightsRef.current.some(existing => existing.title === newInsight.title);
+          const hasDifferentItems = !(newInsight.affectedItems?.some(a => 
+             currentAffectedStrings.has(normalize(a.id)) || currentAffectedStrings.has(normalize(a.name))
+          ));
+          return hasNewTitle && hasDifferentItems;
+        });
+
+        if (!trulyNewInsight) {
+          trulyNewInsight = newInsights.find(
+            newInsight => !insightsRef.current.some(existing => existing.title === newInsight.title)
+          );
+        }
+
+        if (!trulyNewInsight) {
+          trulyNewInsight = newInsights[0];
+        }
+
+        setInsights(prev => prev.map(i => i.id === oldInsightId ? { ...trulyNewInsight, id: oldInsightId } : i));
       }
     } catch (err) {
       console.error("Error regenerating insight:", err);
