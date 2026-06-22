@@ -1,0 +1,8 @@
+{
+  "current": [
+    { "totalProducts": 1284, "totalRevenue": 458920.50, "avgReturnRate": 0.084 }
+  ],
+  "prior": [
+    { "totalProducts": 1190, "totalRevenue": 412300.10, "avgReturnRate": 0.091 }
+  ]
+}
