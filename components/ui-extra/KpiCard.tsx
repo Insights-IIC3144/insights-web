@@ -32,13 +32,13 @@ export function KpiCard({ label, value, format, prior, delta, hint, icon, toolti
     return (
         <div className="kpi-card">
             <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold leading-none">
                     {label}
                     {tooltip && <InfoTooltip text={tooltip} />}
                 </div>
-                {icon && <div className="text-muted-foreground">{icon}</div>}
+                {icon && <div className="shrink-0 text-muted-foreground">{icon}</div>}
             </div>
-            <div className="mt-2 text-2xl font-semibold tracking-tight tabular text-foreground">
+            <div className="mt-2 text-xl font-semibold tracking-tight tabular text-foreground">
                 {value !== undefined ? format(value) : "-"}
                 {currency && value !== undefined && (
                     <span className="ml-1.5 text-xs font-medium text-muted-foreground">{currency}</span>

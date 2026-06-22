@@ -24,7 +24,7 @@ export function SalesKpiGrid({ data, prior, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-32 w-full rounded-xl" />
         ))}
@@ -33,7 +33,7 @@ export function SalesKpiGrid({ data, prior, loading }: Props) {
   }
 
   return (
-    <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+    <div className="grid gap-4 grid-cols-3">
       <KpiCard
         label="Ingresos Netos"
         value={revenueNet}
