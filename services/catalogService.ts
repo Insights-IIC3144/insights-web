@@ -81,7 +81,7 @@ export const catalogService = {
     return res.json();
   },
 
-  regenerateInsight: async (params: FilterParams, excludeTitles: string[], excludeType?: string): Promise<AiInsightDto[]> => {
+  regenerateInsight: async (params: FilterParams, excludeTitles: string[], excludeType?: string, currentInsightsContext?: string[]): Promise<AiInsightDto[]> => {
     const res = await fetch(`/api/proxy/catalog/insights/regenerate`, {
       method: "POST",
       headers: {
@@ -93,7 +93,8 @@ export const catalogService = {
         category: params.category,
         department: params.department,
         excludeTitles,
-        excludeType
+        excludeType,
+        currentInsightsContext
       }),
     });
     
@@ -103,5 +104,11 @@ export const catalogService = {
     }
     
     return res.json();
+  },
+
+  evictInsightsCache: async (): Promise<void> => {
+    await fetch(`/api/proxy/catalog/insights/cache/evict`, {
+      method: "POST"
+    });
   }
 };

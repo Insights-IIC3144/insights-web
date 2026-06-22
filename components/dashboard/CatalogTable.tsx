@@ -59,6 +59,12 @@ export function CatalogTable({ localFilters }: CatalogTableProps) {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  // Reset local filters when global brand changes
+  useEffect(() => {
+    setFilterCategory("all");
+    setFilterBrand("all");
+  }, [selectedBrand]);
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);

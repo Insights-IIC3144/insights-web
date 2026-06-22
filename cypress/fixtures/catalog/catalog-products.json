@@ -1,0 +1,40 @@
+{
+  "data": [
+    {
+      "productId": "1001",
+      "productName": "Classic Crew Neck Tee",
+      "category": "Tops",
+      "department": "Men",
+      "retailPrice": 24.99,
+      "unitsSold": 312,
+      "revenueNet": 7798.88,
+      "returnRate": 0.06,
+      "marketShare": 0.21
+    },
+    {
+      "productId": "1002",
+      "productName": "Slim Fit Denim Jeans",
+      "category": "Jeans",
+      "department": "Men",
+      "retailPrice": 59.99,
+      "unitsSold": 198,
+      "revenueNet": 11878.02,
+      "returnRate": 0.18,
+      "marketShare": 0.34
+    },
+    {
+      "productId": "1003",
+      "productName": "Floral Summer Dress",
+      "category": "Dresses",
+      "department": "Women",
+      "retailPrice": 45.50,
+      "unitsSold": 276,
+      "revenueNet": 12558.0,
+      "returnRate": 0.11,
+      "marketShare": 0.28
+    }
+  ],
+  "totalElements": 3,
+  "totalPages": 1,
+  "currentPage": 0
+}

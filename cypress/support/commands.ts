@@ -41,6 +41,12 @@ declare global {
         name?: string; email?: 
         string; picture?: string 
       }): void;
+      mockCatalogData(overrides?: {
+        kpis?: object | null;
+        products?: object | null;
+        insights?: object | null;
+        statusCode?: number;
+      }): void;
     }
 
     interface DefineCustomEnvVariables {
@@ -298,7 +304,7 @@ Cypress.Commands.add(
   }
 );
 
-//TODO: profile (perfil)
+//profile (perfil)
 Cypress.Commands.add("mockAuth0User", (overrides?: { name?: string; email?: string; picture?: string }) => {
   const user = {
     name: overrides?.name ?? "Test Admin",
@@ -308,5 +314,45 @@ Cypress.Commands.add("mockAuth0User", (overrides?: { name?: string; email?: stri
   };
   cy.intercept("GET", "/api/auth/me", { statusCode: 200, body: user }).as("auth0Me");
 });
+
+// catalog
+Cypress.Commands.add(
+  "mockCatalogData",
+  (overrides?: {
+    kpis?: object | null;
+    products?: object | null;
+    insights?: object | null;
+    statusCode?: number;
+  }) => {
+    const statusCode = overrides?.statusCode ?? 200;
+
+    if (statusCode !== 200) {
+      const errorBody = { error: "Internal Server Error" };
+      cy.intercept("GET", "/api/proxy/catalog/kpis-with-prior*", { statusCode, body: errorBody }).as("catalogKpis");
+      cy.intercept("GET", "/api/proxy/catalog/products*", { statusCode, body: errorBody }).as("catalogProducts");
+      cy.intercept("GET", "/api/catalog-insights*", { statusCode, body: errorBody }).as("catalogInsights");
+      return;
+    }
+
+    if (overrides && "kpis" in overrides) {
+      const body = Array.isArray(overrides.kpis) ? { current: overrides.kpis, prior: [] } : overrides.kpis;
+      cy.intercept("GET", "/api/proxy/catalog/kpis-with-prior*", { statusCode: 200, body }).as("catalogKpis");
+    } else {
+      cy.intercept("GET", "/api/proxy/catalog/kpis-with-prior*", { fixture: "catalog/catalog-kpis.json" }).as("catalogKpis");
+    }
+
+    if (overrides && "products" in overrides) {
+      cy.intercept("GET", "/api/proxy/catalog/products*", { statusCode: 200, body: overrides.products }).as("catalogProducts");
+    } else {
+      cy.intercept("GET", "/api/proxy/catalog/products*", { fixture: "catalog/catalog-products.json" }).as("catalogProducts");
+    }
+
+    if (overrides && "insights" in overrides) {
+      cy.intercept("GET", "/api/catalog-insights*", { statusCode: 200, body: overrides.insights }).as("catalogInsights");
+    } else {
+      cy.intercept("GET", "/api/catalog-insights*", { fixture: "catalog/catalog-insights.json" }).as("catalogInsights");
+    }
+  }
+);
 
 export {};
